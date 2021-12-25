@@ -275,7 +275,7 @@ all = ["Quart (>=0.16.0,<0.17.0)", "aiohttp[speedups] (>=3.7.4,<4.0.0)", "httpx[
 type = "git"
 url = "https://github.com/nonebot/nonebot2.git"
 reference = "dev"
-resolved_reference = "9b9941e6c5a3d9432c149b06c629e13490c0b629"
+resolved_reference = "00c2ee84907383da909d06a0aa8bdb8928d788ae"
 
 [[package]]
 name = "nonebug"

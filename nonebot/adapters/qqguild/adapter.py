@@ -1,5 +1,4 @@
 import sys
-import json
 import asyncio
 from typing import Any, List, Union, Optional
 
@@ -14,6 +13,7 @@ from .bot import Bot
 from .utils import log
 from .event import Event
 from .config import Config, BotInfo
+from .model import Guild, GuildRoles
 from .payload import (
     Hello,
     Opcode,
@@ -78,7 +78,7 @@ class Adapter(BaseAdapter):
     async def run_bot(self, bot_info: BotInfo) -> None:
         bot = Bot(self, bot_info.app_id)
         try:
-            gateway_info = await bot.gateway_with_shards()
+            gateway_info = await bot.get_gateway_with_shards()
             ws_url = URL(gateway_info.url)
         except Exception as e:
             log(
@@ -139,6 +139,7 @@ class Adapter(BaseAdapter):
                 continue
 
             # TODO: intent and shard
+            # TODO: resume
             payload = Identify(
                 data={
                     "token": self.get_authorization(bot_info),
@@ -212,3 +213,28 @@ class Adapter(BaseAdapter):
     @overrides(BaseAdapter)
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
         ...
+
+    async def _get_guild(self, bot: Bot, guild_id: str) -> Guild:
+        request = Request(
+            "GET",
+            self.get_api_base() / f"guilds/{guild_id}",
+        )
+        data = await self.request(request)
+        assert data.content is not None
+        return Guild.parse_raw(data.content)
+
+    async def _get_guild_roles(self, bot: Bot, guild_id: str) -> GuildRoles:
+        request = Request(
+            "GET",
+            self.get_api_base() / f"guilds/{guild_id}/roles",
+        )
+        data = await self.request(request)
+        assert data.content is not None
+        return GuildRoles.parse_raw(data.content)
+
+    api_handlers = {
+        # Guild API
+        "get_guild": _get_guild,
+        # Guild Role API
+        "get_guild_roles": _get_guild_roles,
+    }
