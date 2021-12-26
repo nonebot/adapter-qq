@@ -4,6 +4,9 @@ from typing_extensions import Literal
 
 from pydantic import Extra, Field, BaseModel
 
+from .event import EventType
+from .transformer import AliasExportTransformer
+
 
 class Opcode(IntEnum):
     DISPATCH = 0
@@ -16,15 +19,17 @@ class Opcode(IntEnum):
     HEARTBEAT_ACK = 11
 
 
-class Payload(BaseModel, extra=Extra.allow):
-    ...
+class Payload(AliasExportTransformer, BaseModel):
+    class Config:
+        extra = Extra.allow
+        allow_population_by_field_name = True
 
 
 class Dispatch(Payload):
     opcode: Literal[Opcode.DISPATCH] = Field(Opcode.DISPATCH, alias="op")
     data: dict = Field(alias="d")
     sequence: int = Field(alias="s")
-    type: str = Field(alias="t")
+    type: EventType = Field(alias="t")
 
 
 class Heartbeat(Payload):

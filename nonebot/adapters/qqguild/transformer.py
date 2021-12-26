@@ -1,21 +1,23 @@
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from pydantic import BaseModel
-from pydantic.typing import DictStrAny, MappingIntStrAny, AbstractSetIntStr
+
+if TYPE_CHECKING:
+    from pydantic.typing import DictStrAny, MappingIntStrAny, AbstractSetIntStr
 
 
 class ExcludeNoneTransformer(BaseModel):
     def dict(
         self,
         *,
-        include: Union[AbstractSetIntStr, MappingIntStrAny] = None,
-        exclude: Union[AbstractSetIntStr, MappingIntStrAny] = None,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
         by_alias: bool = False,
         skip_defaults: bool = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         **kwargs: Any,
-    ) -> DictStrAny:
+    ) -> "DictStrAny":
         return super().dict(
             include=include,
             exclude=exclude,
@@ -52,3 +54,26 @@ class BoolToIntTransformer(BaseModel):
             if isinstance(value, bool):
                 data[key] = int(value)
         return data
+
+
+class AliasExportTransformer(BaseModel):
+    def dict(
+        self,
+        *,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        **kwargs: Any,
+    ) -> "DictStrAny":
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+        )

@@ -1,5 +1,5 @@
+from datetime import datetime
 from typing import List, Optional
-from typing_extensions import Literal
 
 from pydantic import Extra, BaseModel, root_validator
 
@@ -20,7 +20,7 @@ class Guild(BoolToIntTransformer, Model):
     memeber_count: int
     max_members: int
     description: str
-    joined_at: Optional[str] = None
+    joined_at: Optional[datetime] = None
 
 
 # Guild Role API
@@ -66,6 +66,16 @@ class PatchRole(Model):
     guild_id: str
     role_id: str
     role: Role
+
+
+# User API
+class User(Model):
+    id: str
+    username: str
+    avatar: Optional[str] = None
+    bot: bool
+    union_openid: Optional[str] = None
+    union_user_account: Optional[str] = None
 
 
 # WebSocket API

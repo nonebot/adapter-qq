@@ -1,14 +1,15 @@
 from typing_extensions import Literal
-from typing import Any, Union, Optional
+from typing import TYPE_CHECKING, Any, Union, Optional
 
 from nonebot.typing import overrides
-from nonebot.message import handle_event
 
 from nonebot.adapters import Bot as BaseBot
 
 from .event import Event
+from .config import BotInfo
 from .message import Message, MessageSegment
 from .model import (
+    User,
     Guild,
     Gateway,
     PatchRole,
@@ -17,7 +18,28 @@ from .model import (
     GatewayWithShards,
 )
 
+if TYPE_CHECKING:
+    from .adapter import Adapter
+
 class Bot(BaseBot):
+    bot_info: BotInfo
+    def __init__(self, adapter: "Adapter", bot_info: BotInfo): ...
+    @property
+    def ready(self) -> bool: ...
+    @property
+    def session_id(self) -> str: ...
+    @session_id.setter
+    def session_id(self, session_id: str) -> None: ...
+    @property
+    def self_info(self) -> User: ...
+    @self_info.setter
+    def self_info(self, self_info: User) -> None: ...
+    @property
+    def has_sequence(self) -> bool: ...
+    @property
+    def sequence(self) -> int: ...
+    @sequence.setter
+    def sequence(self, sequence: int) -> None: ...
     # Guild API
     async def get_guild(self, guild_id: str) -> Guild: ...
     async def get_guild_roles(self, guild_id: str) -> GuildRoles: ...
