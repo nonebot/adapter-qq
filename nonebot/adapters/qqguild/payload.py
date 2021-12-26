@@ -4,7 +4,6 @@ from typing_extensions import Literal
 
 from pydantic import Extra, Field, BaseModel
 
-from .event import EventType
 from .transformer import AliasExportTransformer
 
 
@@ -29,7 +28,7 @@ class Dispatch(Payload):
     opcode: Literal[Opcode.DISPATCH] = Field(Opcode.DISPATCH, alias="op")
     data: dict = Field(alias="d")
     sequence: int = Field(alias="s")
-    type: EventType = Field(alias="t")
+    type: str = Field(alias="t")
 
 
 class Heartbeat(Payload):

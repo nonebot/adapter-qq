@@ -1,7 +1,7 @@
 import sys
 import json
 import asyncio
-from typing import Any, Dict, List, Tuple, Union, Optional
+from typing import Any, Dict, List, Type, Tuple, Union, Optional
 
 from pydantic import parse_raw_as
 from nonebot.typing import overrides
@@ -14,7 +14,6 @@ from nonebot.adapters import Adapter as BaseAdapter
 from .bot import Bot
 from .utils import log
 from .config import Config, BotInfo
-from .event import Event, EventType
 from .model import User, Guild, Gateway, GuildRoles, GatewayWithShards
 from .payload import (
     Hello,
@@ -28,11 +27,32 @@ from .payload import (
     HeartbeatAck,
     InvalidSession,
 )
+from .event import (
+    Event,
+    EventType,
+    GuildCreateEvent,
+    GuildDeleteEvent,
+    GuildUpdateEvent,
+    ChannelCreateEvent,
+    ChannelDeleteEvent,
+    ChannelUpdateEvent,
+    AtMessageCreateEvent,
+)
 
 RECONNECT_INTERVAL = 3.0
 
 
 class Adapter(BaseAdapter):
+    event_classes: Dict[str, Type[Event]] = {
+        EventType.GUILD_CREATE.value: GuildCreateEvent,
+        EventType.GUILD_DELETE.value: GuildDeleteEvent,
+        EventType.GUILD_UPDATE.value: GuildUpdateEvent,
+        EventType.CHANNEL_CREATE.value: ChannelCreateEvent,
+        EventType.CHANNEL_DELETE.value: ChannelDeleteEvent,
+        EventType.CHANNEL_UPDATE.value: ChannelUpdateEvent,
+        EventType.AT_MESSAGE_CREATE.value: AtMessageCreateEvent,
+    }
+
     @overrides(BaseAdapter)
     def __init__(self, driver: Driver, **kwargs: Any):
         super().__init__(driver, **kwargs)
@@ -213,11 +233,22 @@ class Adapter(BaseAdapter):
                         )
                         while True:
                             payload = await self.receive_payload(ws)
-                            print(payload)
+                            log(
+                                "TRACE",
+                                f"Received payload: {escape_tag(repr(payload))}",
+                            )
                             if isinstance(payload, Dispatch):
                                 bot.sequence = payload.sequence
-                                event = self.payload_to_event(payload)
-                                asyncio.create_task(bot.handle_event(event))
+                                try:
+                                    event = self.payload_to_event(payload)
+                                except Exception as e:
+                                    log(
+                                        "WARNING",
+                                        f"Failed to parse event {escape_tag(repr(payload))}",
+                                        e,
+                                    )
+                                else:
+                                    asyncio.create_task(bot.handle_event(event))
                             elif isinstance(payload, HeartbeatAck):
                                 log("TRACE", "Heartbeat ACK")
                                 continue
@@ -230,7 +261,7 @@ class Adapter(BaseAdapter):
                             else:
                                 log(
                                     "WARNING",
-                                    f"Unknown payload from server: {escape_tag(str(payload.dict()))}",
+                                    f"Unknown payload from server: {escape_tag(repr(payload))}",
                                 )
                     except WebSocketClosed as e:
                         log(
@@ -290,8 +321,11 @@ class Adapter(BaseAdapter):
         )
 
     @classmethod
-    def payload_to_event(cls, payload: Payload) -> Event:
-        ...
+    def payload_to_event(cls, payload: Dispatch) -> Event:
+        EventClass = cls.event_classes.get(payload.type, None)
+        if not EventClass:
+            raise ValueError(f"Unknown payload type: {payload.type}")
+        return EventClass.parse_obj(payload.data)
 
     @overrides(BaseAdapter)
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:

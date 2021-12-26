@@ -7,7 +7,7 @@ class Intents(BaseModel):
     guilds: bool = True
     guild_members: bool = True
     guild_messages: bool = False
-    guild_message_reactions: bool = False
+    guild_message_reactions: bool = True
     direct_message: bool = False
     forum_event: bool = False
     audio_action: bool = False
