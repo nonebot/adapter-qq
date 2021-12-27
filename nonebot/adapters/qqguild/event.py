@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Tuple
 
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
@@ -6,7 +7,7 @@ from nonebot.utils import escape_tag
 from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
-from .model import Guild, Channel
+from .model import User, Guild, Channel
 from .model import Message as GuildMessage
 
 
@@ -82,6 +83,25 @@ class Event(BaseEvent):
         return False
 
 
+# Meta Event
+class MetaEvent(Event):
+    @overrides(BaseEvent)
+    def get_type(self) -> str:
+        return "meta_event"
+
+
+class ReadyEvent(MetaEvent):
+    __type__ = EventType.READY
+    version: int
+    session_id: str
+    user: User
+    shard: Tuple[int, int]
+
+
+class ResumedEvent(MetaEvent):
+    __type__ = EventType.RESUMED
+
+
 # Guild Event
 class GuildEvent(Event):
     @overrides(BaseEvent)
@@ -131,6 +151,11 @@ class MessageEvent(Event):
 
 class AtMessageCreateEvent(MessageEvent, GuildMessage):
     __type__ = EventType.AT_MESSAGE_CREATE
+    content: Message
+
+    @overrides(Event)
+    def get_message(self) -> Message:
+        return self.content
 
 
 # Message Reaction Event

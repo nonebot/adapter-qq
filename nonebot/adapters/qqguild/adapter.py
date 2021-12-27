@@ -1,7 +1,17 @@
 import sys
 import json
 import asyncio
-from typing import Any, Dict, List, Type, Tuple, Union, Optional
+from typing import (
+    Any,
+    Dict,
+    List,
+    Type,
+    Tuple,
+    Union,
+    Callable,
+    ClassVar,
+    Optional,
+)
 
 from pydantic import parse_raw_as
 from nonebot.typing import overrides
@@ -14,10 +24,9 @@ from nonebot.adapters import Adapter as BaseAdapter
 from .bot import Bot
 from .utils import log
 from .config import Config, BotInfo
-from .model import User, Guild, Gateway, GuildRoles, GatewayWithShards
+from .model import Guild, Gateway, GuildRoles, GatewayWithShards
 from .payload import (
     Hello,
-    Opcode,
     Resume,
     Payload,
     Dispatch,
@@ -30,6 +39,8 @@ from .payload import (
 from .event import (
     Event,
     EventType,
+    ReadyEvent,
+    ResumedEvent,
     GuildCreateEvent,
     GuildDeleteEvent,
     GuildUpdateEvent,
@@ -43,7 +54,9 @@ RECONNECT_INTERVAL = 3.0
 
 
 class Adapter(BaseAdapter):
-    event_classes: Dict[str, Type[Event]] = {
+    event_classes: ClassVar[Dict[str, Type[Event]]] = {
+        EventType.READY.value: ReadyEvent,
+        EventType.RESUMED.value: ResumedEvent,
         EventType.GUILD_CREATE.value: GuildCreateEvent,
         EventType.GUILD_DELETE.value: GuildDeleteEvent,
         EventType.GUILD_UPDATE.value: GuildUpdateEvent,
@@ -58,7 +71,6 @@ class Adapter(BaseAdapter):
         super().__init__(driver, **kwargs)
         self.qqguild_config: Config = Config(**self.config.dict())
         self.tasks: List["asyncio.Task"] = []
-        self.connections: Dict[str, WebSocket] = {}
         self.api_base: Optional[URL] = None
         self.setup()
 
@@ -151,7 +163,6 @@ class Adapter(BaseAdapter):
                         "DEBUG",
                         f"WebSocket Connection to {escape_tag(str(ws_url))} established",
                     )
-                    self.connections[bot.self_id] = ws
 
                     try:
 
@@ -204,32 +215,16 @@ class Adapter(BaseAdapter):
                             await asyncio.sleep(RECONNECT_INTERVAL)
                             continue
 
-                        try:
-                            payload = await self.receive_payload(ws)
-                            assert (
-                                isinstance(payload, Dispatch)
-                                and payload.type == EventType.READY
-                            ), f"Received unexpected payload: {payload!r}"
-                            bot.session_id = payload.data["session_id"]
-                            bot.self_info = payload.data["user"]
-                            bot.sequence = payload.sequence
-                        except Exception as e:
+                        # only connect for single shard
+                        if bot.self_id not in self.bots:
+                            self.bot_connect(bot)
                             log(
-                                "ERROR",
-                                "<r><bg #f8bbd0>Error while receiving server ready event</bg #f8bbd0></r>",
-                                e,
+                                "INFO",
+                                f"<y>Bot {escape_tag(bot.self_id)}</y> connected",
                             )
-                            await asyncio.sleep(RECONNECT_INTERVAL)
-                            continue
-
-                        self.bot_connect(bot)
-                        log(
-                            "INFO",
-                            f"<y>Bot {escape_tag(str(bot.self_info))}</y> connected",
-                        )
                         # start heartbeat
                         heartbeat_task = asyncio.create_task(
-                            self._heartbeat(bot, heartbeat_interval)
+                            self._heartbeat(ws, bot, heartbeat_interval)
                         )
                         while True:
                             payload = await self.receive_payload(ws)
@@ -280,7 +275,6 @@ class Adapter(BaseAdapter):
                         if heartbeat_task:
                             heartbeat_task.cancel()
                             heartbeat_task = None
-                        self.connections.pop(bot.self_id, None)
                         self.bot_disconnect(bot)
 
             except Exception as e:
@@ -293,9 +287,8 @@ class Adapter(BaseAdapter):
 
             await asyncio.sleep(RECONNECT_INTERVAL)
 
-    async def _heartbeat(self, bot: Bot, heartbeat_interval: int):
+    async def _heartbeat(self, ws: WebSocket, bot: Bot, heartbeat_interval: int):
         while True:
-            ws = self.connections[bot.self_id]
             if bot.has_sequence:
                 log("TRACE", f"Heartbeat {bot.sequence}")
                 payload = Heartbeat(data=bot.sequence)
@@ -374,7 +367,7 @@ class Adapter(BaseAdapter):
         assert data.content is not None
         return GatewayWithShards.parse_raw(data.content)
 
-    api_handlers = {
+    api_handlers: ClassVar[Dict[str, Callable[..., Any]]] = {
         # Guild API
         "get_guild": _get_guild,
         # Guild Role API

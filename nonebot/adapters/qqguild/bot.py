@@ -1,4 +1,3 @@
-import asyncio
 from typing import TYPE_CHECKING, Any, Union, Optional
 
 from nonebot.typing import overrides
@@ -7,8 +6,8 @@ from nonebot.message import handle_event
 from nonebot.adapters import Bot as BaseBot
 
 from .model import User
-from .event import Event
 from .config import BotInfo
+from .event import Event, ReadyEvent
 from .message import Message, MessageSegment
 
 if TYPE_CHECKING:
@@ -63,6 +62,9 @@ class Bot(BaseBot):
         self._sequence = sequence
 
     async def handle_event(self, event: Event) -> None:
+        if isinstance(event, ReadyEvent):
+            self.session_id = event.session_id
+            self.self_info = event.user
         await handle_event(self, event)
 
     @overrides(BaseBot)
