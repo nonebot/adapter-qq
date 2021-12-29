@@ -11,6 +11,7 @@ from .message import Message, MessageSegment
 from .model import (
     User,
     Guild,
+    Member,
     Gateway,
     PatchRole,
     CreateRole,
@@ -42,9 +43,10 @@ class Bot(BaseBot):
     def sequence(self, sequence: int) -> None: ...
     # Guild API
     async def get_guild(self, guild_id: str) -> Guild: ...
+    # Guild Role API
     async def get_guild_roles(self, guild_id: str) -> GuildRoles: ...
     async def create_guild_role(
-        self, guild_id: str, name: str, color: int, hoist: Literal[0, 1]
+        self, guild_id: str, name: str, color: int, hoist: bool
     ) -> CreateRole: ...
     async def patch_guild_role(
         self,
@@ -53,8 +55,34 @@ class Bot(BaseBot):
         *,
         name: Optional[str] = None,
         color: Optional[int] = None,
-        hoist: Optional[Literal[0, 1]] = None,
+        hoist: Optional[bool] = None,
     ) -> PatchRole: ...
+    async def delete_guild_role(self, guild_id: str, role_id: str) -> None: ...
+    async def put_guild_member_role(
+        self,
+        guild_id: str,
+        user_id: str,
+        role_id: str,
+        channel_id: Optional[str] = None,
+    ) -> None: ...
+    async def delete_guild_member_role(
+        self,
+        guild_id: str,
+        user_id: str,
+        role_id: str,
+        channel_id: Optional[str] = None,
+    ) -> None: ...
+    # Member API
+    async def get_member(self, guild_id: str, user_id: str) -> Member: ...
+    # Announce API
+    # Channel API
+    # Channel Permission API
+    # Message API
+    # Audio API
+    # User API
+    # Schedule API
+    # Mute API
+    # WebSocket API
     async def get_gateway(self) -> Gateway: ...
     async def get_gateway_with_shards(self) -> GatewayWithShards: ...
     async def handle_event(self, event: Event) -> None: ...
