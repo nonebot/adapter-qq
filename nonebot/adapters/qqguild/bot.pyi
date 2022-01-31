@@ -41,6 +41,9 @@ class Bot(BaseBot):
     def sequence(self) -> int: ...
     @sequence.setter
     def sequence(self, sequence: int) -> None: ...
+    def clear(self) -> None: ...
+    # User API
+    async def get_me(self) -> User: ...
     # Guild API
     async def get_guild(self, guild_id: str) -> Guild: ...
     # Guild Role API
@@ -79,7 +82,6 @@ class Bot(BaseBot):
     # Channel Permission API
     # Message API
     # Audio API
-    # User API
     # Schedule API
     # Mute API
     # WebSocket API

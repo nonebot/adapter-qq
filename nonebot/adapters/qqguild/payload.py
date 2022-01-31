@@ -1,6 +1,6 @@
 from enum import IntEnum
-from typing import Tuple
-from typing_extensions import Literal
+from typing import Tuple, Union
+from typing_extensions import Literal, Annotated
 
 from pydantic import Extra, Field, BaseModel
 
@@ -78,3 +78,12 @@ class Hello(Payload):
 
 class HeartbeatAck(Payload):
     opcode: Literal[Opcode.HEARTBEAT_ACK] = Field(Opcode.HEARTBEAT_ACK, alias="op")
+
+
+PayloadType = Union[
+    Annotated[
+        Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck],
+        Field(discriminator="opcode"),
+    ],
+    Payload,
+]

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple
+from typing import Dict, Type, Tuple
 
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
@@ -7,7 +7,8 @@ from nonebot.utils import escape_tag
 from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
-from .model import User, Guild, Channel
+from .model import BaseChannel
+from .model import User, Guild
 from .model import Message as GuildMessage
 
 
@@ -128,15 +129,15 @@ class ChannelEvent(Event):
         return "notice"
 
 
-class ChannelCreateEvent(ChannelEvent, Channel):
+class ChannelCreateEvent(ChannelEvent, BaseChannel):
     __type__ = EventType.CHANNEL_CREATE
 
 
-class ChannelUpdateEvent(ChannelEvent, Channel):
+class ChannelUpdateEvent(ChannelEvent, BaseChannel):
     __type__ = EventType.CHANNEL_UPDATE
 
 
-class ChannelDeleteEvent(ChannelEvent, Channel):
+class ChannelDeleteEvent(ChannelEvent, BaseChannel):
     __type__ = EventType.CHANNEL_DELETE
 
 
@@ -161,6 +162,18 @@ class AtMessageCreateEvent(MessageEvent, GuildMessage):
 # Message Reaction Event
 
 # Audio Event
+
+event_classes: Dict[str, Type[Event]] = {
+    EventType.READY.value: ReadyEvent,
+    EventType.RESUMED.value: ResumedEvent,
+    EventType.GUILD_CREATE.value: GuildCreateEvent,
+    EventType.GUILD_DELETE.value: GuildDeleteEvent,
+    EventType.GUILD_UPDATE.value: GuildUpdateEvent,
+    EventType.CHANNEL_CREATE.value: ChannelCreateEvent,
+    EventType.CHANNEL_DELETE.value: ChannelDeleteEvent,
+    EventType.CHANNEL_UPDATE.value: ChannelUpdateEvent,
+    EventType.AT_MESSAGE_CREATE.value: AtMessageCreateEvent,
+}
 
 __all__ = [
     "EventType",

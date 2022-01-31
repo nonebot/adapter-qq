@@ -1,17 +1,7 @@
 import sys
 import json
 import asyncio
-from typing import (
-    Any,
-    Dict,
-    List,
-    Type,
-    Tuple,
-    Union,
-    Callable,
-    ClassVar,
-    Optional,
-)
+from typing import Any, List, Tuple, Union, Optional
 
 from pydantic import parse_raw_as
 from nonebot.typing import overrides
@@ -23,8 +13,9 @@ from nonebot.adapters import Adapter as BaseAdapter
 
 from .bot import Bot
 from .utils import log
+from .api import api_handlers
 from .config import Config, BotInfo
-from .model import Guild, Gateway, GuildRoles, GatewayWithShards
+from .event import Event, event_classes
 from .payload import (
     Hello,
     Resume,
@@ -33,39 +24,15 @@ from .payload import (
     Identify,
     Heartbeat,
     Reconnect,
+    PayloadType,
     HeartbeatAck,
     InvalidSession,
-)
-from .event import (
-    Event,
-    EventType,
-    ReadyEvent,
-    ResumedEvent,
-    GuildCreateEvent,
-    GuildDeleteEvent,
-    GuildUpdateEvent,
-    ChannelCreateEvent,
-    ChannelDeleteEvent,
-    ChannelUpdateEvent,
-    AtMessageCreateEvent,
 )
 
 RECONNECT_INTERVAL = 3.0
 
 
 class Adapter(BaseAdapter):
-    event_classes: ClassVar[Dict[str, Type[Event]]] = {
-        EventType.READY.value: ReadyEvent,
-        EventType.RESUMED.value: ResumedEvent,
-        EventType.GUILD_CREATE.value: GuildCreateEvent,
-        EventType.GUILD_DELETE.value: GuildDeleteEvent,
-        EventType.GUILD_UPDATE.value: GuildUpdateEvent,
-        EventType.CHANNEL_CREATE.value: ChannelCreateEvent,
-        EventType.CHANNEL_DELETE.value: ChannelDeleteEvent,
-        EventType.CHANNEL_UPDATE.value: ChannelUpdateEvent,
-        EventType.AT_MESSAGE_CREATE.value: AtMessageCreateEvent,
-    }
-
     @overrides(BaseAdapter)
     def __init__(self, driver: Driver, **kwargs: Any):
         super().__init__(driver, **kwargs)
@@ -182,23 +149,27 @@ class Adapter(BaseAdapter):
                             continue
 
                         if not bot.ready:
-                            payload = Identify(
-                                data={
-                                    "token": self.get_authorization(bot.bot_info),
-                                    "intents": bot.bot_info.current_intent.to_int(),
-                                    "shard": list(shard),
-                                    "properties": {
-                                        "$os": sys.platform,
-                                        "$sdk": "NoneBot2",
+                            payload = Identify.parse_obj(
+                                {
+                                    "data": {
+                                        "token": self.get_authorization(bot.bot_info),
+                                        "intents": bot.bot_info.current_intent.to_int(),
+                                        "shard": list(shard),
+                                        "properties": {
+                                            "$os": sys.platform,
+                                            "$sdk": "NoneBot2",
+                                        },
                                     },
-                                },
+                                }
                             )
                         else:
-                            payload = Resume(
-                                data={
-                                    "token": self.get_authorization(bot.bot_info),
-                                    "session_id": bot.session_id,
-                                    "seq": bot.sequence,
+                            payload = Resume.parse_obj(
+                                {
+                                    "data": {
+                                        "token": self.get_authorization(bot.bot_info),
+                                        "session_id": bot.session_id,
+                                        "seq": bot.sequence,
+                                    }
                                 }
                             )
 
@@ -253,6 +224,13 @@ class Adapter(BaseAdapter):
                                     "Received reconnect event from server. Try to reconnect...",
                                 )
                                 break
+                            elif isinstance(payload, InvalidSession):
+                                bot.clear()
+                                log(
+                                    "Error",
+                                    "Received invalid session event from server. Try to reconnect...",
+                                )
+                                break
                             else:
                                 log(
                                     "WARNING",
@@ -291,7 +269,7 @@ class Adapter(BaseAdapter):
         while True:
             if bot.has_sequence:
                 log("TRACE", f"Heartbeat {bot.sequence}")
-                payload = Heartbeat(data=bot.sequence)
+                payload = Heartbeat.parse_obj({"data": bot.sequence})
                 try:
                     await ws.send(json.dumps(payload.dict()))
                 except Exception:
@@ -308,71 +286,18 @@ class Adapter(BaseAdapter):
         return f"Bot {bot.app_id}.{bot.app_token}"
 
     async def receive_payload(self, ws: WebSocket) -> Payload:
-        return parse_raw_as(
-            Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck, Payload],
-            await ws.receive(),
-        )
+        return parse_raw_as(PayloadType, await ws.receive())
 
     @classmethod
     def payload_to_event(cls, payload: Dispatch) -> Event:
-        EventClass = cls.event_classes.get(payload.type, None)
+        EventClass = event_classes.get(payload.type, None)
         if not EventClass:
             raise ValueError(f"Unknown payload type: {payload.type}")
         return EventClass.parse_obj(payload.data)
 
     @overrides(BaseAdapter)
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
-        api_handler = self.api_handlers.get(api, None)
+        api_handler = api_handlers.get(api, None)
         if api_handler is None:
             raise ValueError(f"Unknown API: {api}")
         return await api_handler(self, bot, **data)
-
-    async def _get_guild(self, bot: Bot, guild_id: str) -> Guild:
-        request = Request(
-            "GET",
-            self.get_api_base() / f"guilds/{guild_id}",
-            headers={"Authorization": self.get_authorization(bot.bot_info)},
-        )
-        data = await self.request(request)
-        assert data.content is not None
-        return Guild.parse_raw(data.content)
-
-    async def _get_guild_roles(self, bot: Bot, guild_id: str) -> GuildRoles:
-        request = Request(
-            "GET",
-            self.get_api_base() / f"guilds/{guild_id}/roles",
-            headers={"Authorization": self.get_authorization(bot.bot_info)},
-        )
-        data = await self.request(request)
-        assert data.content is not None
-        return GuildRoles.parse_raw(data.content)
-
-    async def _get_gateway(self, bot: Bot) -> Gateway:
-        request = Request(
-            "GET",
-            self.get_api_base() / "gateway",
-            headers={"Authorization": self.get_authorization(bot.bot_info)},
-        )
-        data = await self.request(request)
-        assert data.content is not None
-        return Gateway.parse_raw(data.content)
-
-    async def _get_gateway_with_shards(self, bot: Bot) -> GatewayWithShards:
-        request = Request(
-            "GET",
-            self.get_api_base() / "gateway" / "bot",
-            headers={"Authorization": self.get_authorization(bot.bot_info)},
-        )
-        data = await self.request(request)
-        assert data.content is not None
-        return GatewayWithShards.parse_raw(data.content)
-
-    api_handlers: ClassVar[Dict[str, Callable[..., Any]]] = {
-        # Guild API
-        "get_guild": _get_guild,
-        # Guild Role API
-        "get_guild_roles": _get_guild_roles,
-        # WebSocket API
-        "get_gateway": _get_gateway,
-        "get_gateway_with_shards": _get_gateway_with_shards,
-    }

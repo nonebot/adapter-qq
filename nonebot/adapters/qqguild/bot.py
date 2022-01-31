@@ -61,6 +61,10 @@ class Bot(BaseBot):
     def sequence(self, sequence: int) -> None:
         self._sequence = sequence
 
+    def clear(self) -> None:
+        self._session_id = None
+        self._sequence = None
+
     async def handle_event(self, event: Event) -> None:
         if isinstance(event, ReadyEvent):
             self.session_id = event.session_id
