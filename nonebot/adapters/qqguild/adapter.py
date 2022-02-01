@@ -13,7 +13,7 @@ from nonebot.adapters import Adapter as BaseAdapter
 
 from .bot import Bot
 from .utils import log
-from .api import api_handlers
+from .api import API_HANDLERS
 from .config import Config, BotInfo
 from .event import Event, event_classes
 from .payload import (
@@ -297,7 +297,7 @@ class Adapter(BaseAdapter):
 
     @overrides(BaseAdapter)
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
-        api_handler = api_handlers.get(api, None)
+        api_handler = API_HANDLERS.get(api, None)
         if api_handler is None:
             raise ValueError(f"Unknown API: {api}")
         return await api_handler(self, bot, **data)

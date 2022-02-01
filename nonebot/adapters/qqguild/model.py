@@ -67,7 +67,7 @@ class SpeakPermission(IntEnum):
     SPECIFIED = 2
 
 
-class BaseChannel(Model):
+class Channel(Model):
     id: str
     guild_id: str
     name: str
@@ -76,44 +76,48 @@ class BaseChannel(Model):
     position: int
     parent_id: str
     owner_id: str
+    private_type: Optional[PrivateType] = None
+    private_user_ids: Optional[List[str]] = None
+    speak_permission: Optional[SpeakPermission] = None
+    application_id: Optional[str] = None
 
 
-class TextChannel(BaseChannel):
+class TextChannel(Channel):
     type: Literal[ChannelType.TEXT]
     private_type: PrivateType
     speak_permission: SpeakPermission
 
 
-class VoiceChannel(BaseChannel):
+class VoiceChannel(Channel):
     type: Literal[ChannelType.VOICE]
     private_type: PrivateType
     speak_permission: SpeakPermission
 
 
-class ChannelCategory(BaseChannel):
+class ChannelCategory(Channel):
     type: Literal[ChannelType.CATEGORY]
 
 
-class LiveChannel(BaseChannel):
+class LiveChannel(Channel):
     type: Literal[ChannelType.LIVE]
     private_type: PrivateType
     speak_permission: SpeakPermission
 
 
-class AppChannel(BaseChannel):
+class AppChannel(Channel):
     type: Literal[ChannelType.APP]
     private_type: PrivateType
     speak_permission: SpeakPermission
     application_id: str
 
 
-class ForumChannel(BaseChannel):
+class ForumChannel(Channel):
     type: Literal[ChannelType.FORUM]
     private_type: PrivateType
     speak_permission: SpeakPermission
 
 
-Channel = Union[
+_ChannelType = Union[
     Annotated[
         Union[
             TextChannel,
@@ -125,8 +129,20 @@ Channel = Union[
         ],
         Field(discriminator="type"),
     ],
-    BaseChannel,
+    Channel,
 ]
+
+
+# Member API
+class Member(Model):
+    user: User
+    nick: str
+    roles: List[str]
+    joined_at: datetime
+
+
+class MemberWithGuildID(Member):
+    guild_id: str
 
 
 # Guild Role API
@@ -136,7 +152,7 @@ class Role(BoolToIntTransformer, Model):
     color: int
     hoist: bool
     number: int
-    memeber_limit: int
+    member_limit: int
 
 
 class GuildRoles(Model):
@@ -145,13 +161,7 @@ class GuildRoles(Model):
     role_num_limit: str
 
 
-class RoleUpdateFilter(BoolToIntTransformer, Model):
-    name: bool
-    color: bool
-    hoist: bool
-
-
-class RoleUpdateInfo(BoolToIntTransformer, ExcludeNoneTransformer, Model):
+class RoleCreateInfo(BoolToIntTransformer, Model):
     name: Optional[str] = None
     color: Optional[int] = None
     hoist: Optional[bool] = None
@@ -168,23 +178,32 @@ class CreateRole(Model):
     role: Role
 
 
-class PatchRole(Model):
+class UpdateRole(Model):
     guild_id: str
     role_id: str
     role: Role
 
 
-# Member API
-class Member(Model):
-    user: "User"
-    nick: str
-    roles: List[str]
-    joined_at: datetime
+# Channel Permissions API
+class ChannelPermissions(Model):
+    channel_id: str
+    user_id: Optional[str] = None
+    role_id: Optional[str] = None
+    permissions: str
+
+
+class ChannelUserPermissions(ChannelPermissions):
+    user_id: str
+
+
+class ChannelRolePermissions(ChannelPermissions):
+    role_id: str
+
+
+_ChannelPermissionsType = Union[ChannelUserPermissions, ChannelRolePermissions]
 
 
 # Announce API
-
-# Channel Permissions API
 
 # Message API
 class MessageEmbedThumbnail(Model):
@@ -270,24 +289,31 @@ class GatewayWithShards(Gateway):
     session_start_limit: SessionStartLimit
 
 
-Member.update_forward_refs()
 Message.update_forward_refs()
 
 
 __all__ = [
     "Model",
+    "User",
     "Guild",
-    "Role",
-    "GuildRoles",
-    "RoleUpdateFilter",
-    "RoleUpdateInfo",
-    "CreateRole",
-    "PatchRole",
-    "Member",
     "ChannelType",
     "ChannelSubType",
     "PrivateType",
+    "SpeakPermission",
     "Channel",
+    "TextChannel",
+    "VoiceChannel",
+    "ChannelCategory",
+    "LiveChannel",
+    "AppChannel",
+    "ForumChannel",
+    "Member",
+    "MemberWithGuildID",
+    "Role",
+    "GuildRoles",
+    "RoleCreateInfo",
+    "CreateRole",
+    "UpdateRole",
     "MessageEmbedThumbnail",
     "MessageEmbedField",
     "MessageEmbed",
@@ -298,7 +324,6 @@ __all__ = [
     "MessageArk",
     "MessageMember",
     "Message",
-    "User",
     "SessionStartLimit",
     "Gateway",
     "GatewayWithShards",

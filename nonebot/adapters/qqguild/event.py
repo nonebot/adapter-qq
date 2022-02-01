@@ -7,8 +7,7 @@ from nonebot.utils import escape_tag
 from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
-from .model import BaseChannel
-from .model import User, Guild
+from .model import User, Guild, Channel
 from .model import Message as GuildMessage
 
 
@@ -129,15 +128,15 @@ class ChannelEvent(Event):
         return "notice"
 
 
-class ChannelCreateEvent(ChannelEvent, BaseChannel):
+class ChannelCreateEvent(ChannelEvent, Channel):
     __type__ = EventType.CHANNEL_CREATE
 
 
-class ChannelUpdateEvent(ChannelEvent, BaseChannel):
+class ChannelUpdateEvent(ChannelEvent, Channel):
     __type__ = EventType.CHANNEL_UPDATE
 
 
-class ChannelDeleteEvent(ChannelEvent, BaseChannel):
+class ChannelDeleteEvent(ChannelEvent, Channel):
     __type__ = EventType.CHANNEL_DELETE
 
 

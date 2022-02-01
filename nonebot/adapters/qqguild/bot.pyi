@@ -1,5 +1,4 @@
-from typing_extensions import Literal
-from typing import TYPE_CHECKING, Any, Union, Optional
+from typing import TYPE_CHECKING, Any, List, Union, Optional
 
 from nonebot.typing import overrides
 
@@ -12,10 +11,15 @@ from .model import (
     User,
     Guild,
     Member,
+    Channel,
     Gateway,
-    PatchRole,
     CreateRole,
     GuildRoles,
+    UpdateRole,
+    ChannelType,
+    PrivateType,
+    ChannelSubType,
+    SpeakPermission,
     GatewayWithShards,
 )
 
@@ -44,42 +48,90 @@ class Bot(BaseBot):
     def clear(self) -> None: ...
     # User API
     async def get_me(self) -> User: ...
-    # Guild API
-    async def get_guild(self, guild_id: str) -> Guild: ...
-    # Guild Role API
-    async def get_guild_roles(self, guild_id: str) -> GuildRoles: ...
-    async def create_guild_role(
-        self, guild_id: str, name: str, color: int, hoist: bool
-    ) -> CreateRole: ...
-    async def patch_guild_role(
+    async def get_me_guilds(
         self,
-        guild_id: str,
-        role_id: str,
         *,
-        name: Optional[str] = None,
-        color: Optional[int] = None,
-        hoist: Optional[bool] = None,
-    ) -> PatchRole: ...
-    async def delete_guild_role(self, guild_id: str, role_id: str) -> None: ...
-    async def put_guild_member_role(
-        self,
-        guild_id: str,
-        user_id: str,
-        role_id: str,
-        channel_id: Optional[str] = None,
-    ) -> None: ...
-    async def delete_guild_member_role(
-        self,
-        guild_id: str,
-        user_id: str,
-        role_id: str,
-        channel_id: Optional[str] = None,
-    ) -> None: ...
-    # Member API
-    async def get_member(self, guild_id: str, user_id: str) -> Member: ...
-    # Announce API
+        before: str = ...,
+        after: str = ...,
+        limit: int = ...,
+    ) -> List[Guild]: ...
+    # Guild API
+    async def get_guild(self, *, guild_id: str) -> Guild: ...
     # Channel API
+    async def get_channels(self, *, guild_id: str) -> List[Channel]: ...
+    async def get_channel(self, *, channel_id: str) -> Channel: ...
+    async def create_channel(
+        self,
+        *,
+        guild_id: str,
+        name: str,
+        type: Union[ChannelType, int] = ...,
+        sub_type: Union[ChannelSubType, int] = ...,
+        position: int = ...,
+        parent_id: str = ...,
+        private_type: Union[PrivateType, int] = ...,
+        private_user_ids: List[str] = ...,
+        speak_permission: Union[SpeakPermission, int] = ...,
+        application_id: str = ...,
+    ) -> Channel: ...
+    async def update_channel(
+        self,
+        *,
+        channel_id: str,
+        name: str = ...,
+        type: Union[ChannelType, int] = ...,
+        position: int = ...,
+        parent_id: str = ...,
+        private_type: Union[PrivateType, int] = ...,
+        speak_permission: Union[SpeakPermission, int] = ...,
+    ) -> Channel: ...
+    async def delete_channel(self, *, channel_id: str) -> None: ...
+    # Member API
+    async def get_guild_members(
+        self, *, guild_id: str, after: str = ..., limit: int = ...
+    ) -> List[Member]: ...
+    async def get_guild_member(self, *, guild_id: str, user_id: str) -> Member: ...
+    async def delete_guild_member(
+        self, *, guild_id: str, user_id: str, add_blacklist: bool = ...
+    ) -> None: ...
+    # Guild Role API
+    async def get_guild_roles(self, *, guild_id: str) -> GuildRoles: ...
+    async def create_guild_role(
+        self,
+        *,
+        guild_id: str,
+        name: str = ...,
+        color: int = ...,
+        hoist: int = ...,
+    ) -> CreateRole: ...
+    async def update_guild_role(
+        self,
+        *,
+        guild_id: str,
+        role_id: str,
+        name: str = ...,
+        color: int = ...,
+        hoist: int = ...,
+    ) -> UpdateRole: ...
+    async def delete_guild_role(self, *, guild_id: str, role_id: str) -> None: ...
+    async def create_guild_role_member(
+        self,
+        *,
+        guild_id: str,
+        user_id: str,
+        role_id: str,
+        channel_id: Optional[str] = ...,
+    ) -> None: ...
+    async def delete_guild_role_member(
+        self,
+        *,
+        guild_id: str,
+        user_id: str,
+        role_id: str,
+        channel_id: Optional[str] = ...,
+    ) -> None: ...
     # Channel Permission API
+    # Announce API
     # Message API
     # Audio API
     # Schedule API
