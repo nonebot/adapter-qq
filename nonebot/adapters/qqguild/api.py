@@ -1,20 +1,24 @@
-import json
-from typing import TYPE_CHECKING, Any, Dict, List, Union, Callable, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Callable, Optional
 
 from pydantic import parse_raw_as
 from nonebot.drivers import Request
+from pydantic.json import pydantic_encoder
 
 from .model import (
+    DMS,
     User,
     Guild,
     Member,
     Channel,
     Gateway,
+    Message,
     CreateRole,
     GuildRoles,
     UpdateRole,
     RoleCreateInfo,
     GatewayWithShards,
+    ChannelRolePermissions,
+    ChannelUserPermissions,
     _ChannelType,
 )
 
@@ -86,7 +90,7 @@ async def _create_channel(
     request = Request(
         "POST",
         adapter.get_api_base() / f"guilds/{guild_id}/channels",
-        content=json.dumps(data),
+        content=pydantic_encoder(data),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_raw_as(_ChannelType, await _request(adapter, bot, request))
@@ -98,7 +102,7 @@ async def _update_channel(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"channels/{channel_id}",
-        content=json.dumps(data),
+        content=pydantic_encoder(data),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_raw_as(_ChannelType, await _request(adapter, bot, request))
@@ -153,7 +157,7 @@ async def _delete_guild_member(
     request = Request(
         "DELETE",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}",
-        content=json.dumps({"add_blacklist": add_blacklist}),
+        content=pydantic_encoder({"add_blacklist": add_blacklist}),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -178,7 +182,7 @@ async def _create_guild_role(
     request = Request(
         "POST",
         adapter.get_api_base() / f"guilds/{guild_id}/roles",
-        content=json.dumps(data.dict(exclude_none=True)),
+        content=pydantic_encoder(data.dict(exclude_none=True)),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return CreateRole.parse_raw(await _request(adapter, bot, request))
@@ -191,7 +195,7 @@ async def _update_guild_role(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"guilds/{guild_id}/roles/{role_id}",
-        content=json.dumps(data.dict(exclude_none=True)),
+        content=pydantic_encoder(data.dict(exclude_none=True)),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return UpdateRole.parse_raw(await _request(adapter, bot, request))
@@ -223,7 +227,7 @@ async def _create_guild_role_member(
     request = Request(
         "PUT",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}/roles/{role_id}",
-        content=json.dumps(data),
+        content=pydantic_encoder(data),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -244,10 +248,127 @@ async def _delete_guild_role_member(
     request = Request(
         "DELETE",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}/roles/{role_id}",
-        content=json.dumps(data),
+        content=pydantic_encoder(data),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
+
+
+# Channel Permission API
+async def _get_channel_permissions(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, user_id: str
+) -> ChannelUserPermissions:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/members/{user_id}/permissions",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return ChannelUserPermissions.parse_raw(await _request(adapter, bot, request))
+
+
+async def _update_channel_permissions(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, user_id: str, **data
+) -> None:
+    request = Request(
+        "PUT",
+        adapter.get_api_base() / f"channels/{channel_id}/members/{user_id}/permissions",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+async def _get_channel_role_permissions(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, role_id: str
+) -> ChannelRolePermissions:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/roles/{role_id}/permissions",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return ChannelRolePermissions.parse_raw(await _request(adapter, bot, request))
+
+
+async def _update_channel_role_permissions(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, role_id: str, **data
+) -> None:
+    request = Request(
+        "PUT",
+        adapter.get_api_base() / f"channels/{channel_id}/roles/{role_id}/permissions",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+# Message API
+async def _get_message(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, message_id: str
+) -> Message:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/messages/{message_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Message.parse_raw(await _request(adapter, bot, request))
+
+
+async def _get_messages(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, **data
+) -> List[Message]:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/messages",
+        params=data,
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_raw_as(List[Message], await _request(adapter, bot, request))
+
+
+async def _post_message(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, **data
+) -> Message:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"channels/{channel_id}/messages",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Message.parse_raw(await _request(adapter, bot, request))
+
+
+async def _recall_message(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, message_id: str
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"channels/{channel_id}/messages/{message_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+# DMS API
+async def _create_direct_message(adapter: "Adapter", bot: "Bot", **data) -> DMS:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"users/@me/dms",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return DMS.parse_raw(await _request(adapter, bot, request))
+
+
+async def _post_direct_message(
+    adapter: "Adapter", bot: "Bot", *, guild_id: str, **data
+) -> Message:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"dms/{guild_id}/messages",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Message.parse_raw(await _request(adapter, bot, request))
 
 
 # WebSocket API
@@ -292,6 +413,19 @@ API_HANDLERS: Dict[str, Callable[..., Any]] = {
     "delete_guild_role": _delete_guild_role,
     "create_guild_role_member": _create_guild_role_member,
     "delete_guild_role_member": _delete_guild_role_member,
+    # Channel Permission API
+    "get_channel_permissions": _get_channel_permissions,
+    "update_channel_permissions": _update_channel_permissions,
+    "get_channel_role_permissions": _get_channel_role_permissions,
+    "update_channel_role_permissions": _update_channel_role_permissions,
+    # Message API
+    "get_message": _get_message,
+    "get_messages": _get_messages,
+    "post_message": _post_message,
+    "recall_message": _recall_message,
+    # DMS API
+    "create_direct_message": _create_direct_message,
+    "post_direct_message": _post_direct_message,
     # WebSocket API
     "get_gateway": _get_gateway,
     "get_gateway_with_shards": _get_gateway_with_shards,

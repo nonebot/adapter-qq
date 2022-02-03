@@ -8,6 +8,7 @@ from .event import Event
 from .config import BotInfo
 from .message import Message, MessageSegment
 from .model import (
+    DMS,
     User,
     Guild,
     Member,
@@ -15,12 +16,17 @@ from .model import (
     Gateway,
     CreateRole,
     GuildRoles,
+    MessageArk,
     UpdateRole,
     ChannelType,
     PrivateType,
+    MessageEmbed,
     ChannelSubType,
     SpeakPermission,
+    MessageReference,
     GatewayWithShards,
+    ChannelRolePermissions,
+    ChannelUserPermissions,
 )
 
 if TYPE_CHECKING:
@@ -131,8 +137,57 @@ class Bot(BaseBot):
         channel_id: Optional[str] = ...,
     ) -> None: ...
     # Channel Permission API
-    # Announce API
+    async def get_channel_permissions(
+        self, *, channel_id: str, user_id: str
+    ) -> ChannelUserPermissions: ...
+    async def update_channel_permissions(
+        self, *, channel_id: str, user_id: str, add: str = ..., remove: str = ...
+    ) -> None: ...
+    async def get_channel_role_permissions(
+        self, *, channel_id: str, role_id: str
+    ) -> ChannelRolePermissions: ...
+    async def update_channel_role_permissions(
+        self, *, channel_id: str, role_id: str, add: str = ..., remove: str = ...
+    ) -> None: ...
     # Message API
+    async def get_message(self, *, channel_id: str, message_id: str) -> Message: ...
+    async def get_messages(
+        self,
+        *,
+        channel_id: str,
+        around: str = ...,
+        before: str = ...,
+        after: str = ...,
+        limit: int = ...,
+    ) -> List[Message]: ...
+    async def post_message(
+        self,
+        *,
+        channel_id: str,
+        content: str = ...,
+        embed: MessageEmbed = ...,
+        ark: MessageArk = ...,
+        message_reference: MessageReference = ...,
+        image: str = ...,
+        msg_id: str = ...,
+    ) -> Message: ...
+    async def recall_message(self, *, channel_id: str, message_id: str) -> None: ...
+    # DMS API
+    async def create_direct_message(
+        self, *, recipient_id: str, source_guild_id: str
+    ) -> DMS: ...
+    async def post_direct_message(
+        self,
+        *,
+        guild_id: str,
+        content: str = ...,
+        embed: MessageEmbed = ...,
+        ark: MessageArk = ...,
+        message_reference: MessageReference = ...,
+        image: str = ...,
+        msg_id: str = ...,
+    ) -> Message: ...
+    # Announce API
     # Audio API
     # Schedule API
     # Mute API

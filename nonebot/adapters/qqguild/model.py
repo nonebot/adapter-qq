@@ -5,7 +5,11 @@ from typing_extensions import Literal, Annotated
 
 from pydantic import Extra, Field, AnyUrl, BaseModel, root_validator
 
-from .transformer import BoolToIntTransformer, ExcludeNoneTransformer
+from .transformer import (
+    IntToStrTransformer,
+    BoolToIntTransformer,
+    ExcludeNoneTransformer,
+)
 
 
 class Model(BaseModel, extra=Extra.allow):
@@ -185,25 +189,25 @@ class UpdateRole(Model):
 
 
 # Channel Permissions API
-class ChannelPermissions(Model):
+class ChannelPermissions(IntToStrTransformer, Model):
     channel_id: str
     user_id: Optional[str] = None
     role_id: Optional[str] = None
-    permissions: str
+    permissions: int
 
 
 class ChannelUserPermissions(ChannelPermissions):
     user_id: str
+    role_id: None = None
 
 
 class ChannelRolePermissions(ChannelPermissions):
+    user_id: None = None
     role_id: str
 
 
 _ChannelPermissionsType = Union[ChannelUserPermissions, ChannelRolePermissions]
 
-
-# Announce API
 
 # Message API
 class MessageEmbedThumbnail(Model):
@@ -245,11 +249,6 @@ class MessageArk(Model):
     kv: List[MessageArkKv]
 
 
-class MessageMember(Model):
-    roles: List[str]
-    joined_at: datetime
-
-
 class Message(Model):
     id: str
     channel_id: str
@@ -258,15 +257,39 @@ class Message(Model):
     timestamp: datetime
     edited_timestamp: Optional[datetime] = None
     mention_everyone: bool = False
-    author: "User"
+    author: User
     attachments: List[MessageAttachment] = Field(default_factory=list)
     embeds: List[MessageEmbed] = Field(default_factory=list)
-    mentions: List["User"]
-    member: MessageMember
+    mentions: List[User]
+    member: Member
     ark: Optional[MessageArk] = None
+    seq: int
+
+
+class MessageReference(Model):
+    message_id: str
+    ignore_get_message_error: bool
+
+
+class MessageAudited(Model):
+    audit_id: str
+    message_id: str
+    guild_id: str
+    channel_id: str
+    audit_time: datetime
+    create_time: datetime
+
+
+# DMS API
+class DMS(Model):
+    guild_id: str
+    channel_id: str
+    create_time: datetime
 
 
 # Audio API
+
+# Announce API
 
 # Schedule API
 
@@ -287,9 +310,6 @@ class Gateway(Model):
 class GatewayWithShards(Gateway):
     shards: int
     session_start_limit: SessionStartLimit
-
-
-Message.update_forward_refs()
 
 
 __all__ = [
@@ -322,8 +342,10 @@ __all__ = [
     "MessageArkObj",
     "MessageArkKv",
     "MessageArk",
-    "MessageMember",
     "Message",
+    "MessageReference",
+    "MessageAudited",
+    "DMS",
     "SessionStartLimit",
     "Gateway",
     "GatewayWithShards",
