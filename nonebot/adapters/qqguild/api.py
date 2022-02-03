@@ -12,11 +12,15 @@ from .model import (
     Channel,
     Gateway,
     Message,
+    Announce,
+    Schedule,
     CreateRole,
     GuildRoles,
     UpdateRole,
+    AvailableAPIs,
     RoleCreateInfo,
     GatewayWithShards,
+    APIPermissionDemand,
     ChannelRolePermissions,
     ChannelUserPermissions,
     _ChannelType,
@@ -29,7 +33,7 @@ if TYPE_CHECKING:
 
 async def _request(adapter: "Adapter", bot: "Bot", request: Request) -> Any:
     data = await adapter.request(request)
-    assert data.content is not None
+    assert 200 <= data.status_code < 300
     return data.content
 
 
@@ -371,6 +375,172 @@ async def _post_direct_message(
     return Message.parse_raw(await _request(adapter, bot, request))
 
 
+# Mute API
+async def _mute_all(adapter: "Adapter", bot: "Bot", *, guild_id: str, **data) -> None:
+    request = Request(
+        "PATCH",
+        adapter.get_api_base() / f"guilds/{guild_id}/mute",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+async def _mute_member(
+    adapter: "Adapter", bot: "Bot", *, guild_id: str, user_id: str, **data
+) -> None:
+    request = Request(
+        "PATCH",
+        adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}/mute",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+# Announces API
+async def _create_announce(
+    adapter: "Adapter", bot: "Bot", *, guild_id: str, **data
+) -> Announce:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"guilds/{guild_id}/announces",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Announce.parse_raw(await _request(adapter, bot, request))
+
+
+async def _delete_announce(
+    adapter: "Adapter", bot: "Bot", *, guild_id: str, message_id: str
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"guilds/{guild_id}/announces/{message_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+async def _create_channel_announce(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, **data
+) -> Announce:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"channels/{channel_id}/announces",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Announce.parse_raw(await _request(adapter, bot, request))
+
+
+async def _delete_channel_announce(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, message_id: str
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"channels/{channel_id}/announces/{message_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+# Schedule API
+async def _get_channel_schedules(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, **data
+) -> List[Schedule]:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/schedules",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_raw_as(List[Schedule], await _request(adapter, bot, request))
+
+
+async def _get_channel_schedule(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, schedule_id: str
+) -> Schedule:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/schedules/{schedule_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Schedule.parse_raw(await _request(adapter, bot, request))
+
+
+async def _create_channel_schedule(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, **data
+) -> Schedule:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"channels/{channel_id}/schedules",
+        content=pydantic_encoder({"schedule": data}),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Schedule.parse_raw(await _request(adapter, bot, request))
+
+
+async def _update_channel_schedule(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, schedule_id: str, **data
+) -> Schedule:
+    request = Request(
+        "PATCH",
+        adapter.get_api_base() / f"channels/{channel_id}/schedules/{schedule_id}",
+        content=pydantic_encoder({"schedule": data}),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return Schedule.parse_raw(await _request(adapter, bot, request))
+
+
+async def _delete_channel_schedule(
+    adapter: "Adapter", bot: "Bot", *, channel_id: str, schedule_id: str
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"channels/{channel_id}/schedules/{schedule_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+# Audio API
+async def _control_audio(
+    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+) -> None:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"channels/{channel_id}/audio",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
+# Permission API
+async def _get_permissions(
+    adapter: "Adapter", bot: "Bot", *, guild_id: str
+) -> AvailableAPIs:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"guilds/{guild_id}/api_permission",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return AvailableAPIs.parse_raw(await _request(adapter, bot, request))
+
+
+async def _post_permission_demand(
+    adapter: "Adapter", bot: "Bot", *, guild_id: str, **data
+) -> APIPermissionDemand:
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"guilds/{guild_id}/api_permission/demand",
+        content=pydantic_encoder(data),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
 # WebSocket API
 async def _get_gateway(adapter: "Adapter", bot: "Bot") -> Gateway:
     request = Request(
@@ -426,6 +596,25 @@ API_HANDLERS: Dict[str, Callable[..., Any]] = {
     # DMS API
     "create_direct_message": _create_direct_message,
     "post_direct_message": _post_direct_message,
+    # Mute API
+    "mute_all": _mute_all,
+    "mute_member": _mute_member,
+    # Announces API
+    "create_announce": _create_announce,
+    "delete_announce": _delete_announce,
+    "create_channel_announce": _create_channel_announce,
+    "delete_channel_announce": _delete_channel_announce,
+    # Schedule API
+    "get_channel_schedules": _get_channel_schedules,
+    "get_channel_schedule": _get_channel_schedule,
+    "create_channel_schedule": _create_channel_schedule,
+    "update_channel_schedule": _update_channel_schedule,
+    "delete_channel_schedule": _delete_channel_schedule,
+    # Audio API
+    "control_audio": _control_audio,
+    # API Permission API
+    "get_permissions": _get_permissions,
+    "post_permission_demand": _post_permission_demand,
     # WebSocket API
     "get_gateway": _get_gateway,
     "get_gateway_with_shards": _get_gateway_with_shards,

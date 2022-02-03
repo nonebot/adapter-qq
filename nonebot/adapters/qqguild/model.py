@@ -139,7 +139,7 @@ _ChannelType = Union[
 
 # Member API
 class Member(Model):
-    user: User
+    user: Optional[User] = None
     nick: str
     roles: List[str]
     joined_at: datetime
@@ -287,13 +287,89 @@ class DMS(Model):
     create_time: datetime
 
 
-# Audio API
-
 # Announce API
+class Announce(Model):
+    guild_id: str
+    channel_id: str
+    message_id: str
+
 
 # Schedule API
+class Schedule(Model):
+    id: str
+    name: str
+    description: str
+    start_timestamp: datetime
+    end_timestamp: datetime
+    creator: Member
+    jump_channel_id: str
+    remind_type: str
 
-# Mute API
+
+# Emoji API
+class EmojiType(IntEnum):
+    SYSTEM = 1
+    EMOJI = 2
+
+
+class Emoji(Model):
+    id: str
+    type: EmojiType
+
+
+# Reaction API
+class ReactionTargetType(IntEnum):
+    MESSAGE = 0
+    FEED = 1
+    COMMENT = 2
+    REPLY = 3
+
+
+class ReactionTarget(Model):
+    id: str
+    type: ReactionTargetType
+
+
+class MessageReaction(Model):
+    user_id: str
+    guild_id: str
+    channel_id: str
+    target: ReactionTarget
+    emoji: Emoji
+
+
+# Audio API
+class AudioAction(Model):
+    guild_id: str
+    channel_id: str
+    audio_url: Optional[AnyUrl] = None
+    text: Optional[str] = None
+
+
+# Permission API
+class APIPermission(BoolToIntTransformer, Model):
+    path: str
+    method: str
+    desc: str
+    auth_status: bool
+
+
+class AvailableAPIs(Model):
+    apis: List[APIPermission]
+
+
+class APIPermissionDemandIdentify(Model):
+    path: str
+    method: str
+
+
+class APIPermissionDemand(Model):
+    guild_id: str
+    channel_id: str
+    api_identify: APIPermissionDemandIdentify
+    title: str
+    desc: str
+
 
 # WebSocket API
 class SessionStartLimit(Model):
@@ -346,6 +422,17 @@ __all__ = [
     "MessageReference",
     "MessageAudited",
     "DMS",
+    "Announce",
+    "Schedule",
+    "EmojiType",
+    "Emoji",
+    "ReactionTargetType",
+    "ReactionTarget",
+    "MessageReaction",
+    "AudioAction",
+    "AvailableAPIs",
+    "APIPermissionDemandIdentify",
+    "APIPermissionDemand",
     "SessionStartLimit",
     "Gateway",
     "GatewayWithShards",

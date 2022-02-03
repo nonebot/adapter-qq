@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, List, Union, Optional
 
 from nonebot.typing import overrides
@@ -14,6 +15,8 @@ from .model import (
     Member,
     Channel,
     Gateway,
+    Announce,
+    Schedule,
     CreateRole,
     GuildRoles,
     MessageArk,
@@ -21,12 +24,15 @@ from .model import (
     ChannelType,
     PrivateType,
     MessageEmbed,
+    AvailableAPIs,
     ChannelSubType,
     SpeakPermission,
     MessageReference,
     GatewayWithShards,
+    APIPermissionDemand,
     ChannelRolePermissions,
     ChannelUserPermissions,
+    APIPermissionDemandIdentify,
 )
 
 if TYPE_CHECKING:
@@ -187,10 +193,74 @@ class Bot(BaseBot):
         image: str = ...,
         msg_id: str = ...,
     ) -> Message: ...
-    # Announce API
-    # Audio API
-    # Schedule API
     # Mute API
+    async def mute_all(
+        self, *, guild_id: str, mute_end_timestamp: str = ..., mute_seconds: str = ...
+    ) -> None: ...
+    async def mute_member(self, *, guild_id: str, user_id: str) -> None: ...
+    # Announce API
+    async def create_announce(
+        self, *, guild_id: str, channel_id: str, message_id: str
+    ) -> Announce: ...
+    async def delete_announce(self, *, guild_id: str, message_id: str) -> None: ...
+    async def create_channel_announce(
+        self, *, channel_id: str, message_id: str
+    ) -> Announce: ...
+    async def delete_channel_announce(
+        self, *, channel_id: str, message_id: str
+    ) -> None: ...
+    # Schedule API
+    async def get_channel_schedules(
+        self, *, channel_id: str, since: datetime = ...
+    ) -> List[Schedule]: ...
+    async def get_channel_schedule(
+        self, *, channel_id: str, schedule_id: str
+    ) -> Schedule: ...
+    async def create_channel_schedule(
+        self,
+        *,
+        channel_id: str,
+        name: str,
+        description: str,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        remind_type: str,
+        jump_channel_id: str = ...,
+    ) -> Schedule: ...
+    async def update_channel_schedule(
+        self,
+        *,
+        channel_id: str,
+        schedule_id: str,
+        name: str = ...,
+        description: str = ...,
+        start_timestamp: datetime = ...,
+        end_timestamp: datetime = ...,
+        jump_channel_id: str = ...,
+        remind_type: str = ...,
+    ) -> Schedule: ...
+    async def delete_channel_schedule(
+        self, *, channel_id: str, schedule_id: str
+    ) -> None: ...
+    # Audio API
+    async def control_audio(
+        self,
+        *,
+        channel_id: str,
+        audio_url: str = ...,
+        text: str = ...,
+        status: int = ...,
+    ) -> None: ...
+    # API Permission API
+    async def get_permissions(self, *, guild_id: str) -> AvailableAPIs: ...
+    async def post_permission_demand(
+        self,
+        *,
+        guild_id: str,
+        channel_id: str,
+        api_identify: APIPermissionDemandIdentify,
+        desc: str,
+    ) -> APIPermissionDemand: ...
     # WebSocket API
     async def get_gateway(self) -> Gateway: ...
     async def get_gateway_with_shards(self) -> GatewayWithShards: ...
