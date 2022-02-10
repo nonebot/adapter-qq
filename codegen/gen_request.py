@@ -7,15 +7,18 @@ from urllib.parse import urlparse
 from yaml import SafeLoader, load
 
 from .config import Config
-from .gen_api_client import TYPES_MAP
+from .gen_api_client import TYPES_MAP, generate_type
 
 TEMPLATE = """
+import json
 from typing import TYPE_CHECKING
 
+from pydantic import parse_obj_as
 from nonebot.drivers import Request
 from pydantic.json import pydantic_encoder
 
-from .request import _request
+from .client import *
+from .request import _request, _exclude_none
 
 if TYPE_CHECKING:
     from nonebot.adapters.qqguild.bot import Bot
@@ -23,6 +26,10 @@ if TYPE_CHECKING:
 
 
 {defenitions}
+
+API_HANDLERS = {{
+{handlers}
+}}
 """
 
 
@@ -48,7 +55,7 @@ def generate_request(source: str, config: Config) -> None:
             handlers[name] = f"_{name}"
 
             parameters = operation.get("parameters", [])
-            has_query = False
+            queries = []
             if parameters:
                 method_str += "*, "
             for param in parameters:
@@ -61,7 +68,7 @@ def generate_request(source: str, config: Config) -> None:
 
                 in_ = param.get("in", "path")
                 if in_ == "query":
-                    has_query = True
+                    queries.append(param_name)
 
                 method_str += ", "
 
@@ -83,7 +90,17 @@ def generate_request(source: str, config: Config) -> None:
                 has_body = True
 
             method_str = method_str.removesuffix(", ")
-            method_str += "):"
+            method_str += ")"
+
+            responses = operation.get("responses", {})
+            response = responses.get(200, {}) or responses.get("default", {})
+            return_schema = (
+                response.get("content", {})
+                .get("application/json", {})
+                .get("schema", {})
+            )
+            return_type = generate_type(f"{name}_return", return_schema, [], [])
+            method_str += f" -> {return_type}:"
 
             definitions.append(method_str)
 
@@ -91,16 +108,49 @@ def generate_request(source: str, config: Config) -> None:
                 indent(
                     f"request = Request(\n"
                     f'    "{method.upper()}",\n'
-                    f'    adapter.get_api_base() / "{path}",\n'
+                    f'    adapter.get_api_base() / f"{path.removeprefix("/")}",',
+                    " " * 4,
+                )
+            )
+            if queries:
+                query_dict = ", ".join(f'"{q}": {q}' for q in queries)
+                definitions.append(
+                    indent(f"    params=_exclude_none({{{query_dict}}}),", " " * 4)
+                )
+            if has_body:
+                definitions.append(
+                    indent(
+                        "    content=json.dumps(data, default=pydantic_encoder),",
+                        " " * 4,
+                    )
+                )
+
+            definitions.append(
+                indent(
                     f'    headers={{"Authorization": adapter.get_authorization(bot.bot_info)}},\n'
-                    f")\n"
-                    f"return await _request(adapter, bot, request)",
+                    f")",
                     " " * 4,
                 )
             )
 
+            if return_type == "None":
+                definitions.append(
+                    indent(
+                        f"return await _request(adapter, bot, request)",
+                        " " * 4,
+                    )
+                )
+            else:
+                definitions.append(
+                    indent(
+                        f"return parse_obj_as({return_type}, await _request(adapter, bot, request))",
+                        " " * 4,
+                    )
+                )
+
     definition = "\n".join(definitions)
-    generated = TEMPLATE.format(defenitions=definition)
+    handler = indent(",\n".join(f'"{k}": {v}' for k, v in handlers.items()), " " * 4)
+    generated = TEMPLATE.format(defenitions=definition, handlers=handler)
     output_file = Path(config.handle_output)
     with output_file.open("w", encoding="utf-8") as f:
         f.write(generated)

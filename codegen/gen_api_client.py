@@ -10,13 +10,14 @@ from .config import Config
 
 TEMPLATE = """
 from typing import TYPE_CHECKING
-from typing_extensions import TypedDict
+
+from pydantic import Extra, BaseModel
 
 from .model import *
 
-if TYPE_CHECKING:
-
 {types}
+
+if TYPE_CHECKING:
 
 {defenitions}
 
@@ -34,12 +35,20 @@ def generate_object(
     name: str, schema: dict, types: List[str], definitions: List[str]
 ) -> str:
     temp = []
-    temp.append(f"class {name}(TypedDict):")
+    temp.append(f"class {name}(BaseModel, extra=Extra.allow):")
+    required = schema.get("required", [])
     for property_name, property in schema.get("properties", {}).items():
         property_type = generate_type(
             f"{name}_{property_name}", property, types, definitions
         )
-        temp.append(indent(f"{property_name}: {property_type}", " " * 4))
+        property_str = f"{property_name}: "
+
+        if property_name not in required:
+            property_str += f"Optional[{property_type}] = None"
+        else:
+            property_str += f"{property_type}"
+
+        temp.append(indent(property_str, " " * 4))
 
     types.extend(temp)
     return name
@@ -82,7 +91,7 @@ def generate_api_client(source: str, config: Config) -> None:
                 .removesuffix(".html")
                 .replace("-", "_")
             )
-            method_str = indent(f"def {name}(self, ", " " * 4)
+            method_str = indent(f"async def {name}(self, ", " " * 4)
 
             parameters = operation.get("parameters", [])
             if parameters:
@@ -141,7 +150,7 @@ def generate_api_client(source: str, config: Config) -> None:
             definitions.append(method_str)
 
     definition = indent("\n".join(definitions), " " * 4)
-    type = indent("\n".join(types), " " * 4)
+    type = "\n".join(types)
     generated = TEMPLATE.format(types=type, defenitions=definition)
     output_file = Path(config.client_output)
     with output_file.open("w", encoding="utf-8") as f:

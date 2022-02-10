@@ -7,6 +7,8 @@ from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
 from .utils import escape, unescape
+from .api import Message as GuildMessage
+from .api import MessageArk, MessageEmbed
 
 
 class MessageSegment(BaseMessageSegment["Message"]):
@@ -14,6 +16,14 @@ class MessageSegment(BaseMessageSegment["Message"]):
     @overrides(BaseMessageSegment)
     def get_message_class(cls) -> Type["Message"]:
         return Message
+
+    @staticmethod
+    def ark(ark: MessageArk) -> "Ark":
+        return Ark("ark", data={"ark": ark})
+
+    @staticmethod
+    def embed(embed: MessageEmbed) -> "Embed":
+        return Embed("embed", data={"embed": embed})
 
     @staticmethod
     def emoji(id: int) -> "Emoji":
@@ -66,6 +76,24 @@ class MentionChannel(MessageSegment):
         return f"#<{self.data['channel_id']}>"
 
 
+class Attachment(MessageSegment):
+    @overrides(MessageSegment)
+    def __str__(self) -> str:
+        return f"<attachment:{self.data['attachment']}>"
+
+
+class Embed(MessageSegment):
+    @overrides(MessageSegment)
+    def __str__(self) -> str:
+        return f"<embed:{self.data['embed']}>"
+
+
+class Ark(MessageSegment):
+    @overrides(MessageSegment)
+    def __str__(self) -> str:
+        return f"<ark:{self.data['ark']}>"
+
+
 class Message(BaseMessage[MessageSegment]):
     @classmethod
     @overrides(BaseMessage)
@@ -100,3 +128,19 @@ class Message(BaseMessage[MessageSegment]):
             text_begin = embed.pos + embed.end()
             yield MentionUser("mention_user", {"user_id": embed.group("id")})
         yield Text("text", {"text": msg[text_begin:]})
+
+    @classmethod
+    def from_guild_message(cls, message: GuildMessage) -> "Message":
+        msg = Message()
+        if message.content:
+            msg.extend(Message(message.content))
+        if message.attachments:
+            msg.extend(
+                Attachment("attachment", data={"attachment": seg})
+                for seg in message.attachments
+            )
+        if message.embeds:
+            msg.extend(Embed("embed", data={"embed": seg}) for seg in message.embeds)
+        if message.ark:
+            msg.append(Ark("ark", data={"ark": message.ark}))
+        return msg

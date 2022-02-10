@@ -80,7 +80,9 @@ class Adapter(BaseAdapter):
     async def run_bot(self, bot_info: BotInfo) -> None:
         bot = Bot(self, bot_info)
         try:
-            gateway_info = await bot.get_gateway_with_shards()
+            gateway_info = await bot.shard_url_get()
+            if not gateway_info.url:
+                raise ValueError("Failed to get gateway url")
             ws_url = URL(gateway_info.url)
         except Exception as e:
             log(
@@ -90,7 +92,11 @@ class Adapter(BaseAdapter):
             )
             return
 
-        if gateway_info.session_start_limit.remaining <= 0:
+        remain = (
+            gateway_info.session_start_limit
+            and gateway_info.session_start_limit.remaining
+        )
+        if remain and remain <= 0:
             log(
                 "ERROR",
                 "<r><bg #f8bbd0>Failed to establish connection to QQ Guild "
@@ -107,13 +113,16 @@ class Adapter(BaseAdapter):
             )
             return
 
-        for i in range(gateway_info.shards):
+        shards = gateway_info.shards or 1
+        for i in range(shards):
             self.tasks.append(
-                asyncio.create_task(
-                    self._forward_ws(bot, ws_url, (i, gateway_info.shards))
-                )
+                asyncio.create_task(self._forward_ws(bot, ws_url, (i, shards)))
             )
-            await asyncio.sleep(gateway_info.session_start_limit.max_concurrency)
+            await asyncio.sleep(
+                gateway_info.session_start_limit
+                and gateway_info.session_start_limit.max_concurrency
+                or 1
+            )
 
     async def _forward_ws(self, bot: Bot, ws_url: URL, shard: Tuple[int, int]) -> None:
         request = Request(

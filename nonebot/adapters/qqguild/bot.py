@@ -5,16 +5,17 @@ from nonebot.message import handle_event
 
 from nonebot.adapters import Bot as BaseBot
 
-from .model import User
 from .config import BotInfo
-from .event import Event, ReadyEvent
+from .api import User, ApiClient
+from .api.request import _exclude_none
 from .message import Message, MessageSegment
+from .event import Event, ReadyEvent, MessageEvent
 
 if TYPE_CHECKING:
     from .adapter import Adapter
 
 
-class Bot(BaseBot):
+class Bot(BaseBot, ApiClient):
     @overrides(BaseBot)
     def __init__(self, adapter: "Adapter", bot_info: BotInfo):
         super().__init__(adapter, bot_info.app_id)
@@ -78,4 +79,20 @@ class Bot(BaseBot):
         message: Union[str, Message, MessageSegment],
         **kwargs,
     ) -> Any:
-        ...
+        if not isinstance(event, MessageEvent) or not event.channel_id or not event.id:
+            raise RuntimeError("Event cannot be replied to!")
+        message = MessageSegment.text(message) if isinstance(message, str) else message
+        message = Message(message) if not isinstance(message, Message) else message
+
+        content = message.extract_plain_text() or None
+        embed = message["embed"] or None
+        if embed:
+            embed = embed[-1].data["embed"]
+        ark = message["ark"] or None
+        if ark:
+            ark = ark[-1].data["ark"]
+        return await self.post_messages(
+            channel_id=event.channel_id,
+            msg_id=event.id,
+            **_exclude_none({"content": content, "embed": embed, "ark": ark}),
+        )

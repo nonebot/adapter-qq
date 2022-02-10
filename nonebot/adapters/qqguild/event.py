@@ -7,8 +7,8 @@ from nonebot.utils import escape_tag
 from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
-from .model import User, Guild, Channel
-from .model import Message as GuildMessage
+from .api import User, Guild, Channel
+from .api import Message as GuildMessage
 
 
 class EventType(str, Enum):
@@ -143,19 +143,20 @@ class ChannelDeleteEvent(ChannelEvent, Channel):
 # Guild Member Event
 
 # Message Event
-class MessageEvent(Event):
+class MessageEvent(Event, GuildMessage):
     @overrides(BaseEvent)
     def get_type(self) -> str:
         return "message"
 
 
-class AtMessageCreateEvent(MessageEvent, GuildMessage):
+class AtMessageCreateEvent(MessageEvent):
     __type__ = EventType.AT_MESSAGE_CREATE
-    content: Message
 
     @overrides(Event)
     def get_message(self) -> Message:
-        return self.content
+        if not hasattr(self, "_message"):
+            setattr(self, "_message", Message.from_guild_message(self))
+        return getattr(self, "_message")
 
 
 # Message Reaction Event

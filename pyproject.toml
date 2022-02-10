@@ -37,6 +37,7 @@ nonebot2 = { git = "https://github.com/nonebot/nonebot2.git", branch = "dev" }
 # name = "aliyun"
 # url = "https://mirrors.aliyun.com/pypi/simple/"
 # default = true
+pre-commit = "^2.17.0"
 
 [tool.black]
 line-length = 88
