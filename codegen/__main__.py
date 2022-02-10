@@ -1,6 +1,7 @@
 from .config import get_config
 from .get_source import get_source
 from .gen_model import generate_model
+from .gen_request import generate_request
 from .gen_api_client import generate_api_client
 
 if __name__ == "__main__":
@@ -8,3 +9,4 @@ if __name__ == "__main__":
     source = get_source(config)
     generate_model(source, config)
     generate_api_client(source, config)
+    generate_request(source, config)

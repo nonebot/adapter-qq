@@ -7,7 +7,8 @@ from datamodel_code_generator.__main__ import Config as BaseConfig
 
 
 class Config(BaseConfig):
-    ...
+    client_output: str
+    handle_output: str
 
 
 def get_config() -> Config:

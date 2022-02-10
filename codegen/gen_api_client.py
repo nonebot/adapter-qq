@@ -1,5 +1,6 @@
 import warnings
 from typing import List
+from pathlib import Path
 from textwrap import indent
 from urllib.parse import urlparse
 
@@ -11,11 +12,13 @@ TEMPLATE = """
 from typing import TYPE_CHECKING
 from typing_extensions import TypedDict
 
+from .model import *
+
 if TYPE_CHECKING:
 
 {types}
 
-{defenition}
+{defenitions}
 
 else:
 
@@ -50,11 +53,13 @@ def generate_type(
     elif not schema:
         return "None"
 
-    type: str = schema.get("type", None)
+    type: str = schema.get("type", "object")
     if type == "object":
         return generate_object(name, schema, types, definitions)
     elif type in TYPES_MAP:
         return TYPES_MAP[type]
+    elif type == "array":
+        return f"List[{generate_type(name, schema['items'], types, definitions)}]"
     else:
         raise ValueError(f"Unknown type {type}, schema: {schema}")
 
@@ -77,13 +82,17 @@ def generate_api_client(source: str, config: Config) -> None:
                 .removesuffix(".html")
                 .replace("-", "_")
             )
-            method_str = indent(f"def _{name}(self, *, ", " " * 4)
+            method_str = indent(f"def {name}(self, ", " " * 4)
 
             parameters = operation.get("parameters", [])
+            if parameters:
+                method_str += "*, "
             for param in parameters:
                 param_name = param["name"]
-                param_type = param["type"]
-                method_str += f"{param_name}: {TYPES_MAP[param_type]}"
+                param_type = generate_type(
+                    f"{name}_param_{param_name}", param["schema"], types, definitions
+                )
+                method_str += f"{param_name}: {param_type}"
 
                 required = param.get("required", False)
                 if not required:
@@ -91,6 +100,32 @@ def generate_api_client(source: str, config: Config) -> None:
 
                 method_str += ", "
 
+            request_body = operation.get("requestBody", {})
+            schema = (
+                request_body.get("content", {})
+                .get("application/json", {})
+                .get("schema", {})
+            )
+            if "$ref" in schema:
+                schema = (
+                    content.get("components", {})
+                    .get("schemas", {})
+                    .get(schema["$ref"].split("/")[-1])
+                )
+            if schema:
+                required = schema.get("required", [])
+                for property_name, property in schema.get("properties", {}).items():
+                    property_type = generate_type(
+                        f"{name}_body_{property_name}", property, types, definitions
+                    )
+                    method_str += f"{property_name}: {property_type}"
+
+                    if property_name not in required:
+                        method_str += " = ..."
+
+                    method_str += ", "
+
+            method_str = method_str.removesuffix(", ")
             method_str += ")"
 
             responses = operation.get("responses", {})
@@ -100,9 +135,14 @@ def generate_api_client(source: str, config: Config) -> None:
                 .get("application/json", {})
                 .get("schema", {})
             )
-            method_str += (
-                f" -> {generate_type(name, return_schema, types, definitions)}"
-            )
+            method_str += f" -> {generate_type(f'{name}_return', return_schema, types, definitions)}"
 
             method_str += ": ..."
             definitions.append(method_str)
+
+    definition = indent("\n".join(definitions), " " * 4)
+    type = indent("\n".join(types), " " * 4)
+    generated = TEMPLATE.format(types=type, defenitions=definition)
+    output_file = Path(config.client_output)
+    with output_file.open("w", encoding="utf-8") as f:
+        f.write(generated)

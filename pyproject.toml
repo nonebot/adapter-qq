@@ -56,6 +56,8 @@ extra_standard_library = ["typing_extensions"]
 [tool.codegen]
 url = "https://tencent-connect.github.io/bot-oas/v1/openapi.yaml"
 output = "nonebot/adapters/qqguild/api/model.py"
+client-output = "nonebot/adapters/qqguild/api/client.py"
+handle-output = "nonebot/adapters/qqguild/api/handle.py"
 field-constraints = true
 target-python-version = "3.7"
 
