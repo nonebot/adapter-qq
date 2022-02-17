@@ -29,15 +29,16 @@ nonebot2 = "^2.0.0-beta.1"
 isort = "^5.10.1"
 black = "^21.11b1"
 httpx = "^0.22.0"
+pre-commit = "^2.17.0"
+pytest-asyncio = "^0.18.1"
 datamodel-code-generator = "^0.11.19"
 nonebug = { git = "https://github.com/nonebot/nonebug.git" }
-nonebot2 = { git = "https://github.com/nonebot/nonebot2.git", branch = "dev" }
+nonebot2 = { git = "https://github.com/nonebot/nonebot2.git" }
 
 # [[tool.poetry.source]]
 # name = "aliyun"
 # url = "https://mirrors.aliyun.com/pypi/simple/"
 # default = true
-pre-commit = "^2.17.0"
 
 [tool.black]
 line-length = 88
