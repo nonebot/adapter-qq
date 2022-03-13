@@ -1,0 +1,11 @@
+from typing import List
+
+from pydantic import BaseModel
+
+
+{% for model in models %}
+class {{ model.to_annotation() }}(BaseModel):
+    {% for prop_name, prop_type in model.properties.items() -%}
+    {{ prop_name }}: {{ prop_type.to_annotation() }}{% if prop_name not in model.required %} = None{% endif %}
+    {% endfor %}
+{% endfor %}

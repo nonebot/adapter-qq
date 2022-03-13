@@ -1,0 +1,9 @@
+{%- if api.body is none -%}
+{%- set body_params = {} -%}
+{%- elif api.body.type == "object" -%}
+{%- set body_params = api.body.properties -%}
+{%- else -%}
+{%- set body_params = {} -%}
+{%- endif -%}{%- for prop_name, prop_type in body_params.items() -%}
+, {{prop_name}}: {{prop_type.to_annotation()}}{%- if prop_name not in body_params.required %} = ...{% endif -%}
+{%- endfor -%}

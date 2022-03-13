@@ -1,0 +1,19 @@
+from typing import TYPE_CHECKING, List
+
+from pydantic import Extra, BaseModel
+
+from .model import *
+
+if TYPE_CHECKING:
+
+    class ApiClient:
+    {% for api in apis %}
+        {% set has_param = api.path_param or api.query_param or api.body -%}
+        async def {{api.name}}(self{% if has_param %}, *{% endif %}{% include "param.jinja" %}{% include "body.jinja" %}) -> {{api.return_type.to_annotation() if api.return_type else "None"}}:
+            ...
+    {% endfor %}
+
+else:
+
+    class ApiClient:
+        ...

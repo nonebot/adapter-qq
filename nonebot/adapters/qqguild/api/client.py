@@ -1,69 +1,41 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from pydantic import Extra, BaseModel
 
 from .model import *
 
-
-class get_guild_roles_return(BaseModel, extra=Extra.allow):
-    guild_id: Optional[str] = None
-    roles: Optional[List[Role]] = None
-    role_num_limit: Optional[str] = None
-
-
-class post_guild_role_return(BaseModel, extra=Extra.allow):
-    role_id: Optional[str] = None
-    role: Optional[GuildRole] = None
-
-
-class patch_guild_role_return(BaseModel, extra=Extra.allow):
-    guild_id: Optional[str] = None
-    role_id: Optional[str] = None
-    role: Optional[GuildRole] = None
-
-
-class url_get_return(BaseModel, extra=Extra.allow):
-    url: Optional[str] = None
-
-
-class shard_url_get_return(BaseModel, extra=Extra.allow):
-    url: Optional[str] = None
-    shards: Optional[int] = None
-    session_start_limit: Optional[SessionStartLimit] = None
-
-
 if TYPE_CHECKING:
 
     class ApiClient:
-        async def get_guild(self, *, guild_id: str) -> Guild:
+        async def get_guild(self, guild_id: str) -> Guild:
             ...
 
         async def me(self) -> User:
             ...
 
         async def guilds(
-            self, *, before: str = ..., after: str = ..., limit: int = ...
+            self, before: str = ..., after: str = ..., limit: float = ...
         ) -> List[Guild]:
             ...
 
-        async def get_channels(self, *, guild_id: str) -> List[Channel]:
+        async def get_channels(self, guild_id: str) -> List[Channel]:
             ...
 
         async def post_channels(
             self,
             *,
             guild_id: str,
-            name: str,
-            type: ChannelType,
-            sub_type: ChannelSubType,
+            name: str = ...,
+            type: int = ...,
+            sub_type: int = ...,
             position: int = ...,
             parent_id: str = ...,
-            private_type: PrivateType = ...,
+            private_type: int = ...,
             private_user_ids: List[str] = ...,
         ) -> List[Channel]:
             ...
 
-        async def get_channel(self, *, channel_id: str) -> Channel:
+        async def get_channel(self, channel_id: str) -> Channel:
             ...
 
         async def patch_channel(
@@ -71,23 +43,23 @@ if TYPE_CHECKING:
             *,
             channel_id: str,
             name: str = ...,
-            type: ChannelType = ...,
-            sub_type: ChannelSubType = ...,
+            type: int = ...,
+            sub_type: int = ...,
             position: int = ...,
             parent_id: str = ...,
-            private_type: PrivateType = ...,
+            private_type: int = ...,
         ) -> Channel:
             ...
 
-        async def delete_channel(self, *, channel_id: str) -> None:
+        async def delete_channel(self, channel_id: str) -> None:
             ...
 
         async def get_members(
-            self, *, guild_id: str, after: str = ..., limit: int = ...
+            self, guild_id: str, after: str = ..., limit: float = ...
         ) -> List[Member]:
             ...
 
-        async def get_member(self, *, guild_id: str, user_id: str) -> Member:
+        async def get_member(self, guild_id: str, user_id: str) -> Member:
             ...
 
         async def delete_member(
@@ -95,12 +67,17 @@ if TYPE_CHECKING:
         ) -> None:
             ...
 
-        async def get_guild_roles(self, *, guild_id: str) -> get_guild_roles_return:
+        async def get_guild_roles(self, guild_id: str) -> GetGuildRolesReturn:
             ...
 
         async def post_guild_role(
-            self, *, guild_id: str, name: str, color: int = ..., hoist: int = ...
-        ) -> post_guild_role_return:
+            self,
+            *,
+            guild_id: str,
+            name: str = ...,
+            color: float = ...,
+            hoist: float = ...,
+        ) -> PostGuildRoleReturn:
             ...
 
         async def patch_guild_role(
@@ -109,12 +86,12 @@ if TYPE_CHECKING:
             guild_id: str,
             role_id: str,
             name: str = ...,
-            color: int = ...,
-            hoist: int = ...,
-        ) -> patch_guild_role_return:
+            color: float = ...,
+            hoist: float = ...,
+        ) -> PatchGuildRoleReturn:
             ...
 
-        async def delete_guild_role(self, *, guild_id: str, role_id: str) -> None:
+        async def delete_guild_role(self, guild_id: str, role_id: str) -> None:
             ...
 
         async def put_guild_member_role(
@@ -128,7 +105,7 @@ if TYPE_CHECKING:
             ...
 
         async def get_channel_permissions(
-            self, *, channel_id: str, user_id: str
+            self, channel_id: str, user_id: str
         ) -> ChannelPermissions:
             ...
 
@@ -138,7 +115,7 @@ if TYPE_CHECKING:
             ...
 
         async def get_channel_roles_permissions(
-            self, *, channel_id: str, role_id: str
+            self, channel_id: str, role_id: str
         ) -> ChannelPermissions:
             ...
 
@@ -147,9 +124,7 @@ if TYPE_CHECKING:
         ) -> None:
             ...
 
-        async def get_message_of_id(
-            self, *, channel_id: str, message_id: str
-        ) -> Message:
+        async def get_message_of_id(self, channel_id: str, message_id: str) -> Message:
             ...
 
         async def post_messages(
@@ -165,7 +140,9 @@ if TYPE_CHECKING:
         ) -> Message:
             ...
 
-        async def post_dms(self, recipient_id: str, source_guild_id: str) -> List[DMS]:
+        async def post_dms(
+            self, *, recipient_id: str = ..., source_guild_id: str = ...
+        ) -> List[DMS]:
             ...
 
         async def post_dms_messages(
@@ -201,22 +178,20 @@ if TYPE_CHECKING:
             ...
 
         async def post_guild_announces(
-            self, *, guild_id: str, message_id: str, channel_id: str
+            self, *, guild_id: str, message_id: str = ..., channel_id: str = ...
         ) -> None:
             ...
 
-        async def delete_guild_announces(
-            self, *, guild_id: str, message_id: str
-        ) -> None:
+        async def delete_guild_announces(self, guild_id: str, message_id: str) -> None:
             ...
 
         async def post_channel_announces(
-            self, *, channel_id: str, message_id: str
+            self, *, channel_id: str, message_id: str = ...
         ) -> Announces:
             ...
 
         async def delete_channel_announces(
-            self, *, channel_id: str, message_id: str
+            self, channel_id: str, message_id: str
         ) -> None:
             ...
 
@@ -229,17 +204,17 @@ if TYPE_CHECKING:
             self,
             *,
             channel_id: str,
-            name: str,
+            name: str = ...,
             description: str = ...,
-            start_timestamp: str,
-            end_timestamp: str,
+            start_timestamp: str = ...,
+            end_timestamp: str = ...,
             creator: Member = ...,
             jump_channel_id: str = ...,
-            remind_type: str,
+            remind_type: str = ...,
         ) -> Schedule:
             ...
 
-        async def get_schedule(self, *, channel_id: str, schedule_id: str) -> Schedule:
+        async def get_schedule(self, channel_id: str, schedule_id: str) -> Schedule:
             ...
 
         async def patch_schedule(
@@ -257,7 +232,7 @@ if TYPE_CHECKING:
         ) -> Schedule:
             ...
 
-        async def delete_schedule(self, *, channel_id: str, schedule_id: str) -> None:
+        async def delete_schedule(self, channel_id: str, schedule_id: str) -> None:
             ...
 
         async def audio_control(
@@ -266,13 +241,11 @@ if TYPE_CHECKING:
             channel_id: str,
             audio_url: str = ...,
             text: str = ...,
-            status: AudioControlStatus = ...,
+            status: int = ...,
         ) -> None:
             ...
 
-        async def get_guild_api_permission(
-            self, *, guild_id: str
-        ) -> List[APIPermission]:
+        async def get_guild_api_permission(self, guild_id: str) -> List[APIPermission]:
             ...
 
         async def post_api_permission_demand(
@@ -285,10 +258,29 @@ if TYPE_CHECKING:
         ) -> List[APIPermissionDemand]:
             ...
 
-        async def url_get(self) -> url_get_return:
+        async def url_get(self) -> UrlGetReturn:
             ...
 
-        async def shard_url_get(self) -> shard_url_get_return:
+        async def shard_url_get(self) -> ShardUrlGetReturn:
+            ...
+
+        async def put_message_reaction(
+            self, channel_id: str, message_id: str, type: int, id: str
+        ) -> None:
+            ...
+
+        async def delete_own_message_reaction(
+            self, channel_id: str, message_id: str, type: int, id: str
+        ) -> None:
+            ...
+
+        async def put_pins_message(self, channel_id: str, message_id: str) -> None:
+            ...
+
+        async def delete_pins_message(self, channel_id: str, message_id: str) -> None:
+            ...
+
+        async def get_pins_message(self, channel_id: str) -> PinsMessage:
             ...
 
 else:
