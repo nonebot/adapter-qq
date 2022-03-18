@@ -7,8 +7,9 @@ from nonebot.utils import escape_tag
 from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
-from .api import User, Guild, Channel
 from .api import Message as GuildMessage
+from .api import User, Guild, Member, Channel
+from .api import MessageAudited, MessageReaction
 
 
 class EventType(str, Enum):
@@ -29,12 +30,19 @@ class EventType(str, Enum):
     GUILD_MEMBER_UPDATE = "GUILD_MEMBER_UPDATE"
     GUILD_MEMBER_REMOVE = "GUILD_MEMBER_REMOVE"
 
+    # GUILD_MESSAGES
+    MESSAGE_CREATE = "MESSAGE_CREATE"
+
     # GUILD_MESSAGE_REACTIONS
     MESSAGE_REACTION_ADD = "MESSAGE_REACTION_ADD"
     MESSAGE_REACTION_REMOVE = "MESSAGE_REACTION_REMOVE"
 
     # DIRECT_MESSAGE
     DIRECT_MESSAGE_CREATE = "DIRECT_MESSAGE_CREATE"
+
+    # MESSAGE_AUDIT
+    MESSAGE_AUDIT_PASS = "MESSAGE_AUDIT_PASS"
+    MESSAGE_AUDIT_REJECT = "MESSAGE_AUDIT_REJECT"
 
     # FORUM_EVENT
     THREAD_CREATE = "THREAD_CREATE"
@@ -103,54 +111,74 @@ class ResumedEvent(MetaEvent):
 
 
 # Guild Event
-class GuildEvent(Event):
+class GuildEvent(Event, Guild):
+    op_user_id: str
+
     @overrides(BaseEvent)
     def get_type(self) -> str:
         return "notice"
 
 
-class GuildCreateEvent(GuildEvent, Guild):
+class GuildCreateEvent(GuildEvent):
     __type__ = EventType.GUILD_CREATE
 
 
-class GuildUpdateEvent(GuildEvent, Guild):
+class GuildUpdateEvent(GuildEvent):
     __type__ = EventType.GUILD_UPDATE
 
 
-class GuildDeleteEvent(GuildEvent, Guild):
+class GuildDeleteEvent(GuildEvent):
     __type__ = EventType.GUILD_DELETE
 
 
 # Channel Event
-class ChannelEvent(Event):
+class ChannelEvent(Event, Channel):
+    op_user_id: str
+
     @overrides(BaseEvent)
     def get_type(self) -> str:
         return "notice"
 
 
-class ChannelCreateEvent(ChannelEvent, Channel):
+class ChannelCreateEvent(ChannelEvent):
     __type__ = EventType.CHANNEL_CREATE
 
 
-class ChannelUpdateEvent(ChannelEvent, Channel):
+class ChannelUpdateEvent(ChannelEvent):
     __type__ = EventType.CHANNEL_UPDATE
 
 
-class ChannelDeleteEvent(ChannelEvent, Channel):
+class ChannelDeleteEvent(ChannelEvent):
     __type__ = EventType.CHANNEL_DELETE
 
 
 # Guild Member Event
+class GuildMemberEvent(Event, Member):
+    guild_id: str
+    op_user_id: str
+
+    @overrides(BaseEvent)
+    def get_type(self) -> str:
+        return "notice"
+
+
+class GuildMemberAddEvent(GuildMemberEvent):
+    __type__ = EventType.GUILD_MEMBER_ADD
+
+
+class GuildMemberUpdateEvent(GuildMemberEvent):
+    __type__ = EventType.GUILD_MEMBER_UPDATE
+
+
+class GuildMemberRemoveEvent(GuildMemberEvent):
+    __type__ = EventType.GUILD_MEMBER_REMOVE
+
 
 # Message Event
 class MessageEvent(Event, GuildMessage):
     @overrides(BaseEvent)
     def get_type(self) -> str:
         return "message"
-
-
-class AtMessageCreateEvent(MessageEvent):
-    __type__ = EventType.AT_MESSAGE_CREATE
 
     @overrides(Event)
     def get_message(self) -> Message:
@@ -159,9 +187,49 @@ class AtMessageCreateEvent(MessageEvent):
         return getattr(self, "_message")
 
 
-# Message Reaction Event
+class MessageCreateEvent(MessageEvent):
+    __type__ = EventType.MESSAGE_CREATE
 
-# Audio Event
+
+class AtMessageCreateEvent(MessageEvent):
+    __type__ = EventType.AT_MESSAGE_CREATE
+
+
+class DirectMessageCreateEvent(MessageEvent):
+    __type__ = EventType.DIRECT_MESSAGE_CREATE
+
+
+# Message Audit Event
+class MessageAuditEvent(Event, MessageAudited):
+    @overrides(BaseEvent)
+    def get_type(self) -> str:
+        return "notice"
+
+
+class MessageAuditPassEvent(MessageAuditEvent):
+    __type__ = EventType.MESSAGE_AUDIT_PASS
+
+
+class MessageAuditRejectEvent(MessageAuditEvent):
+    __type__ = EventType.MESSAGE_AUDIT_REJECT
+
+
+# Message Reaction Event
+class MessageReactionEvent(Event, MessageReaction):
+    @overrides(BaseEvent)
+    def get_type(self) -> str:
+        return "notice"
+
+
+class MessageReactionAddEvent(MessageReactionEvent):
+    __type__ = EventType.MESSAGE_REACTION_ADD
+
+
+class MessageReactionRemoveEvent(MessageReactionEvent):
+    __type__ = EventType.MESSAGE_REACTION_REMOVE
+
+
+# TODO: Audio Event
 
 event_classes: Dict[str, Type[Event]] = {
     EventType.READY.value: ReadyEvent,
@@ -172,7 +240,16 @@ event_classes: Dict[str, Type[Event]] = {
     EventType.CHANNEL_CREATE.value: ChannelCreateEvent,
     EventType.CHANNEL_DELETE.value: ChannelDeleteEvent,
     EventType.CHANNEL_UPDATE.value: ChannelUpdateEvent,
+    EventType.GUILD_MEMBER_ADD.value: GuildMemberAddEvent,
+    EventType.GUILD_MEMBER_UPDATE.value: GuildMemberUpdateEvent,
+    EventType.GUILD_MEMBER_REMOVE.value: GuildMemberRemoveEvent,
+    EventType.MESSAGE_CREATE.value: MessageCreateEvent,
     EventType.AT_MESSAGE_CREATE.value: AtMessageCreateEvent,
+    EventType.DIRECT_MESSAGE_CREATE.value: DirectMessageCreateEvent,
+    EventType.MESSAGE_AUDIT_PASS.value: MessageAuditPassEvent,
+    EventType.MESSAGE_AUDIT_REJECT.value: MessageAuditRejectEvent,
+    EventType.MESSAGE_REACTION_ADD.value: MessageReactionAddEvent,
+    EventType.MESSAGE_REACTION_REMOVE.value: MessageReactionRemoveEvent,
 }
 
 __all__ = [

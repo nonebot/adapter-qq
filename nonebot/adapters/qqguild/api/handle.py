@@ -60,7 +60,7 @@ async def _post_channels(
     request = Request(
         "POST",
         adapter.get_api_base() / f"guilds/{guild_id}/channels",
-        content=ChannelCreate(**data).json(exclude_none=True),
+        json=ChannelCreate(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(List[Channel], await _request(adapter, bot, request))
@@ -81,7 +81,7 @@ async def _patch_channel(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"channels/{channel_id}",
-        content=ChannelUpdate(**data).json(exclude_none=True),
+        json=ChannelUpdate(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(Channel, await _request(adapter, bot, request))
@@ -129,7 +129,7 @@ async def _delete_member(
     request = Request(
         "DELETE",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}",
-        content=DeleteMemberBody(**data).json(exclude_none=True),
+        json=DeleteMemberBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -152,7 +152,7 @@ async def _post_guild_role(
     request = Request(
         "POST",
         adapter.get_api_base() / f"guilds/{guild_id}/roles",
-        content=PostGuildRoleBody(**data).json(exclude_none=True),
+        json=PostGuildRoleBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(PostGuildRoleReturn, await _request(adapter, bot, request))
@@ -164,7 +164,7 @@ async def _patch_guild_role(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"guilds/{guild_id}/roles/{role_id}",
-        content=PatchGuildRoleBody(**data).json(exclude_none=True),
+        json=PatchGuildRoleBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(PatchGuildRoleReturn, await _request(adapter, bot, request))
@@ -187,7 +187,7 @@ async def _put_guild_member_role(
     request = Request(
         "PUT",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}/roles/{role_id}",
-        content=PutGuildMemberRoleBody(**data).json(exclude_none=True),
+        json=PutGuildMemberRoleBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -199,7 +199,7 @@ async def _delete_guild_member_role(
     request = Request(
         "DELETE",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}/roles/{role_id}",
-        content=DeleteGuildMemberRoleBody(**data).json(exclude_none=True),
+        json=DeleteGuildMemberRoleBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -222,7 +222,7 @@ async def _put_channel_permissions(
     request = Request(
         "PUT",
         adapter.get_api_base() / f"channels/{channel_id}/members/{user_id}/permissions",
-        content=PutChannelPermissionsBody(**data).json(exclude_none=True),
+        json=PutChannelPermissionsBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -245,7 +245,7 @@ async def _put_channel_roles_permissions(
     request = Request(
         "PUT",
         adapter.get_api_base() / f"channels/{channel_id}/roles/{role_id}/permissions",
-        content=PutChannelRolesPermissionsBody(**data).json(exclude_none=True),
+        json=PutChannelRolesPermissionsBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -268,7 +268,7 @@ async def _post_messages(
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/messages",
-        content=MessageSend(**data).json(exclude_none=True),
+        json=MessageSend(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(Message, await _request(adapter, bot, request))
@@ -278,7 +278,7 @@ async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> List[DMS]:
     request = Request(
         "POST",
         adapter.get_api_base() / f"users/@me/dms",
-        content=PostDmsBody(**data).json(exclude_none=True),
+        json=PostDmsBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(List[DMS], await _request(adapter, bot, request))
@@ -290,7 +290,7 @@ async def _post_dms_messages(
     request = Request(
         "POST",
         adapter.get_api_base() / f"dms/{guild_id}/messages",
-        content=MessageSend(**data).json(exclude_none=True),
+        json=MessageSend(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(List[Message], await _request(adapter, bot, request))
@@ -302,7 +302,7 @@ async def _patch_guild_mute(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"guilds/{guild_id}/mute",
-        content=PatchGuildMuteBody(**data).json(exclude_none=True),
+        json=PatchGuildMuteBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -314,7 +314,7 @@ async def _patch_guild_member_mute(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"guilds/{guild_id}/members/{user_id}/mute",
-        content=PatchGuildMemberMuteBody(**data).json(exclude_none=True),
+        json=PatchGuildMemberMuteBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -326,7 +326,7 @@ async def _post_guild_announces(
     request = Request(
         "POST",
         adapter.get_api_base() / f"guilds/{guild_id}/announces",
-        content=PostGuildAnnouncesBody(**data).json(exclude_none=True),
+        json=PostGuildAnnouncesBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -349,7 +349,7 @@ async def _post_channel_announces(
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/announces",
-        content=PostChannelAnnouncesBody(**data).json(exclude_none=True),
+        json=PostChannelAnnouncesBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(Announces, await _request(adapter, bot, request))
@@ -372,7 +372,7 @@ async def _get_schedules(
     request = Request(
         "GET",
         adapter.get_api_base() / f"channels/{channel_id}/schedules",
-        content=GetSchedulesBody(**data).json(exclude_none=True),
+        json=GetSchedulesBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(List[Schedule], await _request(adapter, bot, request))
@@ -384,7 +384,7 @@ async def _post_schedule(
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/schedules",
-        content=ScheduleCreate(**data).json(exclude_none=True),
+        json=ScheduleCreate(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(Schedule, await _request(adapter, bot, request))
@@ -407,7 +407,7 @@ async def _patch_schedule(
     request = Request(
         "PATCH",
         adapter.get_api_base() / f"channels/{channel_id}/schedules/{schedule_id}",
-        content=ScheduleUpdate(**data).json(exclude_none=True),
+        json=ScheduleUpdate(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(Schedule, await _request(adapter, bot, request))
@@ -430,7 +430,7 @@ async def _audio_control(
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/audio",
-        content=AudioControl(**data).json(exclude_none=True),
+        json=AudioControl(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return await _request(adapter, bot, request)
@@ -453,7 +453,7 @@ async def _post_api_permission_demand(
     request = Request(
         "POST",
         adapter.get_api_base() / f"guilds/{guild_id}/api_permission/demand",
-        content=PostApiPermissionDemandBody(**data).json(exclude_none=True),
+        json=PostApiPermissionDemandBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(

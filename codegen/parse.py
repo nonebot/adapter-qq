@@ -8,7 +8,7 @@ from pydantic import parse_obj_as
 
 from .config import Config
 from .source import Source
-from .model import API, Type, DataType, PathParam, QueryParam
+from .model import API, Type, Object, DataType, PathParam, QueryParam, obj_schemas
 
 current_source: ContextVar[Source] = ContextVar("current_source")
 
@@ -43,14 +43,21 @@ def _resolve_ref(obj: DataType, loc: Tuple[str, ...]) -> DataType:
 
 def _schema_to_model(schema: dict, loc: Tuple[str, ...]) -> Type:
     schema = _resolve_ref(schema, loc)
-    return parse_obj_as(Type, schema)
+    model = parse_obj_as(Type, schema)
+    if isinstance(model, Object):
+        obj_schemas[model.name] = model
+    return model
 
 
 def parse(source: Source) -> List[API]:
     apis: List[API] = []
     current_source.set(source)
 
-    paths = source.data.get("paths", {})
+    schemas = source.data.get("components", {}).get("schemas", {})
+    for schema_name, schema in schemas.items():
+        _schema_to_model(schema, (schema_name,))
+
+    paths = source.data.get("paths", {}) or {}
     for path, path_item in paths.items():
         path_token = None
         if "$ref" in path_item:

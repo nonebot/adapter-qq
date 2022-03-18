@@ -21,7 +21,7 @@ async def _{{api.name}}(adapter: "Adapter", bot: "Bot"{% if has_param %}, *{% en
         "{{api.method|upper}}",
         adapter.get_api_base() / f"{{api.path.removeprefix('/')}}",{% if queries %}
         params=_exclude_none({{'{'}}{{queries|join(", ")}}{{'}'}}),{% endif %}{% if api.body %}
-        content={{api.body.to_annotation()}}(**data).json(exclude_none=True),{% endif %}
+        json={{api.body.to_annotation()}}(**data).dict(exclude_none=True),{% endif %}
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     {% if api.return_type -%}

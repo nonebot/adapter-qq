@@ -24,6 +24,16 @@ class User(BaseModel):
     union_user_account: Optional[str] = None
 
 
+class ChannelCreate(BaseModel):
+    name: str
+    type: int
+    sub_type: int
+    position: Optional[int] = None
+    parent_id: Optional[str] = None
+    private_type: Optional[int] = None
+    private_user_ids: Optional[List[str]] = None
+
+
 class Channel(BaseModel):
     id: Optional[str] = None
     guild_id: Optional[str] = None
@@ -36,16 +46,6 @@ class Channel(BaseModel):
     private_type: Optional[int] = None
     speak_permission: Optional[int] = None
     application_id: Optional[str] = None
-
-
-class ChannelCreate(BaseModel):
-    name: str
-    type: int
-    sub_type: int
-    position: Optional[int] = None
-    parent_id: Optional[str] = None
-    private_type: Optional[int] = None
-    private_user_ids: Optional[List[str]] = None
 
 
 class ChannelUpdate(BaseModel):
@@ -216,12 +216,6 @@ class PostDmsBody(BaseModel):
     source_guild_id: str
 
 
-class DMS(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    create_time: Optional[str] = None
-
-
 class PatchGuildMuteBody(BaseModel):
     mute_end_timestamp: Optional[str] = None
     mute_seconds: Optional[str] = None
@@ -251,6 +245,16 @@ class GetSchedulesBody(BaseModel):
     since: Optional[int] = None
 
 
+class ScheduleCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    start_timestamp: str
+    end_timestamp: str
+    creator: Optional[Member] = None
+    jump_channel_id: Optional[str] = None
+    remind_type: str
+
+
 class Schedule(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
@@ -260,16 +264,6 @@ class Schedule(BaseModel):
     creator: Optional[Member] = None
     jump_channel_id: Optional[str] = None
     remind_type: Optional[str] = None
-
-
-class ScheduleCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    start_timestamp: str
-    end_timestamp: str
-    creator: Optional[Member] = None
-    jump_channel_id: Optional[str] = None
-    remind_type: str
 
 
 class ScheduleUpdate(BaseModel):
@@ -288,13 +282,6 @@ class AudioControl(BaseModel):
     status: Optional[int] = None
 
 
-class APIPermission(BaseModel):
-    path: Optional[str] = None
-    method: Optional[str] = None
-    desc: Optional[str] = None
-    auth_status: Optional[int] = None
-
-
 class APIPermissionDemandIdentify(BaseModel):
     path: Optional[str] = None
     name: Optional[str] = None
@@ -303,14 +290,6 @@ class APIPermissionDemandIdentify(BaseModel):
 class PostApiPermissionDemandBody(BaseModel):
     channel_id: Optional[str] = None
     api_identify: Optional[APIPermissionDemandIdentify] = None
-    desc: Optional[str] = None
-
-
-class APIPermissionDemand(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    api_identify: Optional[APIPermissionDemandIdentify] = None
-    title: Optional[str] = None
     desc: Optional[str] = None
 
 
@@ -335,3 +314,46 @@ class PinsMessage(BaseModel):
     guild_id: Optional[str] = None
     channel_id: Optional[str] = None
     message_ids: Optional[List[str]] = None
+
+
+class MessageAudited(BaseModel):
+    url: Optional[str] = None
+
+
+class DMS(BaseModel):
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    create_time: Optional[str] = None
+
+
+class Emoji(BaseModel):
+    id: Optional[str] = None
+    type: Optional[int] = None
+
+
+class ReactionTarget(BaseModel):
+    id: Optional[str] = None
+    type: Optional[str] = None
+
+
+class MessageReaction(BaseModel):
+    user_id: Optional[str] = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    target: Optional[ReactionTarget] = None
+    emoji: Optional[Emoji] = None
+
+
+class APIPermission(BaseModel):
+    path: Optional[str] = None
+    method: Optional[str] = None
+    desc: Optional[str] = None
+    auth_status: Optional[int] = None
+
+
+class APIPermissionDemand(BaseModel):
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    api_identify: Optional[APIPermissionDemandIdentify] = None
+    title: Optional[str] = None
+    desc: Optional[str] = None

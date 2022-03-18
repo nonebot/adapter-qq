@@ -9,6 +9,7 @@ class Intents(BaseModel):
     guild_messages: bool = False
     guild_message_reactions: bool = True
     direct_message: bool = False
+    message_audit: bool = False
     forum_event: bool = False
     audio_action: bool = False
     at_messages: bool = True
@@ -20,6 +21,7 @@ class Intents(BaseModel):
             | self.guild_messages << 9
             | self.guild_message_reactions << 10
             | self.direct_message << 12
+            | self.message_audit << 27
             | self.forum_event << 28
             | self.audio_action << 29
             | self.at_messages << 30

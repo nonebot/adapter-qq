@@ -73,7 +73,7 @@ class MentionEveryone(MessageSegment):
 class MentionChannel(MessageSegment):
     @overrides(MessageSegment)
     def __str__(self) -> str:
-        return f"#<{self.data['channel_id']}>"
+        return f"<#{self.data['channel_id']}>"
 
 
 class Attachment(MessageSegment):
@@ -124,10 +124,12 @@ class Message(BaseMessage[MessageSegment]):
             r"\<@!?(?P<id>\w+?)\>",
             msg,
         ):
-            yield Text("text", {"text": msg[text_begin : embed.pos + embed.start()]})
+            content = msg[text_begin : embed.pos + embed.start()]
+            if content:
+                yield Text("text", {"text": unescape(content)})
             text_begin = embed.pos + embed.end()
             yield MentionUser("mention_user", {"user_id": embed.group("id")})
-        yield Text("text", {"text": msg[text_begin:]})
+        yield Text("text", {"text": unescape(msg[text_begin:])})
 
     @classmethod
     def from_guild_message(cls, message: GuildMessage) -> "Message":

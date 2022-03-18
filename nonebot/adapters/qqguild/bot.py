@@ -15,6 +15,48 @@ if TYPE_CHECKING:
     from .adapter import Adapter
 
 
+def _check_at_me(bot: "Bot", event: MessageEvent):
+    def _is_at_me_seg(segment: MessageSegment) -> bool:
+        return (
+            segment.type == "mention_user"
+            and str(segment.data.get("user_id")) == bot.self_info.id
+        )
+
+    message = event.get_message()
+
+    # ensure message is not empty
+    if not message:
+        message.append(MessageSegment.text(""))
+
+    deleted = False
+    if _is_at_me_seg(message[0]):
+        message.pop(0)
+        deleted = True
+        if message and message[0].type == "text":
+            message[0].data["text"] = message[0].data["text"].lstrip()
+            if not message[0].data["text"]:
+                del message[0]
+
+    if not deleted:
+        # check the last segment
+        i = -1
+        last_msg_seg = message[i]
+        if (
+            last_msg_seg.type == "text"
+            and not last_msg_seg.data["text"].strip()
+            and len(message) >= 2
+        ):
+            i -= 1
+            last_msg_seg = message[i]
+
+        if _is_at_me_seg(last_msg_seg):
+            deleted = True
+            del message[i:]
+
+    if not message:
+        message.append(MessageSegment.text(""))
+
+
 class Bot(BaseBot, ApiClient):
     @overrides(BaseBot)
     def __init__(self, adapter: "Adapter", bot_info: BotInfo):
@@ -70,6 +112,8 @@ class Bot(BaseBot, ApiClient):
         if isinstance(event, ReadyEvent):
             self.session_id = event.session_id
             self.self_info = event.user
+        elif isinstance(event, MessageEvent):
+            _check_at_me(self, event)
         await handle_event(self, event)
 
     @overrides(BaseBot)

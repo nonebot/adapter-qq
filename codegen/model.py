@@ -58,10 +58,6 @@ class Object(BaseModel):
     properties: Dict[str, "Type"]
     required: List[str] = Field(default_factory=list)
 
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-        obj_schemas[self.name] = self
-
     def to_annotation(self):
         return snake_to_pascal(self.name)
 
