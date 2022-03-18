@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import Extra, BaseModel
 
@@ -14,7 +14,10 @@ if TYPE_CHECKING:
             ...
 
         async def guilds(
-            self, before: str = ..., after: str = ..., limit: float = ...
+            self,
+            before: Optional[str] = ...,
+            after: Optional[str] = ...,
+            limit: Optional[float] = ...,
         ) -> List[Guild]:
             ...
 
@@ -55,7 +58,10 @@ if TYPE_CHECKING:
             ...
 
         async def get_members(
-            self, guild_id: str, after: str = ..., limit: float = ...
+            self,
+            guild_id: str,
+            after: Optional[str] = ...,
+            limit: Optional[float] = ...,
         ) -> List[Member]:
             ...
 

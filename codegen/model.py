@@ -65,6 +65,12 @@ class Object(BaseModel):
     def to_annotation(self):
         return snake_to_pascal(self.name)
 
+    def property_annotation(self, name: str):
+        annotation = self.properties[name].to_annotation()
+        if name not in self.required:
+            annotation = f"Optional[{annotation}]"
+        return annotation
+
 
 class String(BaseModel):
     type: Literal[TypeEnum.string]
@@ -83,11 +89,23 @@ class PathParam(BaseModel):
     required: bool = False
     type: Type
 
+    def to_annotation(self):
+        annotation = self.type.to_annotation()
+        if not self.required:
+            annotation = f"Optional[{annotation}]"
+        return annotation
+
 
 class QueryParam(BaseModel):
     name: str
     required: bool = False
     type: Type
+
+    def to_annotation(self):
+        annotation = self.type.to_annotation()
+        if not self.required:
+            annotation = f"Optional[{annotation}]"
+        return annotation
 
 
 class API(BaseModel):

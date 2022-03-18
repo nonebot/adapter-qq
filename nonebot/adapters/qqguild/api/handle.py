@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import parse_obj_as
 from nonebot.drivers import Request
@@ -32,9 +32,9 @@ async def _me(adapter: "Adapter", bot: "Bot") -> User:
 async def _guilds(
     adapter: "Adapter",
     bot: "Bot",
-    before: str = ...,
-    after: str = ...,
-    limit: float = ...,
+    before: Optional[str] = ...,
+    after: Optional[str] = ...,
+    limit: Optional[float] = ...,
 ) -> List[Guild]:
     request = Request(
         "GET",
@@ -97,7 +97,11 @@ async def _delete_channel(adapter: "Adapter", bot: "Bot", channel_id: str) -> No
 
 
 async def _get_members(
-    adapter: "Adapter", bot: "Bot", guild_id: str, after: str = ..., limit: float = ...
+    adapter: "Adapter",
+    bot: "Bot",
+    guild_id: str,
+    after: Optional[str] = ...,
+    limit: Optional[float] = ...,
 ) -> List[Member]:
     request = Request(
         "GET",

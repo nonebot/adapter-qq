@@ -1,3 +1,3 @@
 {%- for path_param in api.path_params + api.query_params -%}
-, {{path_param.name}}: {{path_param.type.to_annotation()}}{%- if not path_param.required %} = ...{% endif -%}
+, {{path_param.name}}: {{path_param.to_annotation()}}{%- if not path_param.required %} = ...{% endif -%}
 {%- endfor -%}

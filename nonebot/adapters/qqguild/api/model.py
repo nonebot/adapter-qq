@@ -1,214 +1,214 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 
 class Guild(BaseModel):
-    id: str = None
-    name: str = None
-    icon: str = None
-    owner_id: str = None
-    owner: bool = None
-    member_count: int = None
-    max_members: int = None
-    description: str = None
-    joined_at: str = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    icon: Optional[str] = None
+    owner_id: Optional[str] = None
+    owner: Optional[bool] = None
+    member_count: Optional[int] = None
+    max_members: Optional[int] = None
+    description: Optional[str] = None
+    joined_at: Optional[str] = None
 
 
 class User(BaseModel):
-    id: str = None
-    username: str = None
-    avatar: str = None
-    bot: bool = None
-    union_openid: str = None
-    union_user_account: str = None
+    id: Optional[str] = None
+    username: Optional[str] = None
+    avatar: Optional[str] = None
+    bot: Optional[bool] = None
+    union_openid: Optional[str] = None
+    union_user_account: Optional[str] = None
 
 
 class Channel(BaseModel):
-    id: str = None
-    guild_id: str = None
-    name: str = None
-    type: int = None
-    sub_type: int = None
-    position: int = None
-    parent_id: str = None
-    owner_id: str = None
-    private_type: int = None
-    speak_permission: int = None
-    application_id: str = None
+    id: Optional[str] = None
+    guild_id: Optional[str] = None
+    name: Optional[str] = None
+    type: Optional[int] = None
+    sub_type: Optional[int] = None
+    position: Optional[int] = None
+    parent_id: Optional[str] = None
+    owner_id: Optional[str] = None
+    private_type: Optional[int] = None
+    speak_permission: Optional[int] = None
+    application_id: Optional[str] = None
 
 
 class ChannelCreate(BaseModel):
     name: str
     type: int
     sub_type: int
-    position: int = None
-    parent_id: str = None
-    private_type: int = None
-    private_user_ids: List[str] = None
+    position: Optional[int] = None
+    parent_id: Optional[str] = None
+    private_type: Optional[int] = None
+    private_user_ids: Optional[List[str]] = None
 
 
 class ChannelUpdate(BaseModel):
-    name: str = None
-    type: int = None
-    sub_type: int = None
-    position: int = None
-    parent_id: str = None
-    private_type: int = None
+    name: Optional[str] = None
+    type: Optional[int] = None
+    sub_type: Optional[int] = None
+    position: Optional[int] = None
+    parent_id: Optional[str] = None
+    private_type: Optional[int] = None
 
 
 class Member(BaseModel):
-    user: User = None
-    nick: str = None
-    roles: List[str] = None
-    joined_at: str = None
+    user: Optional[User] = None
+    nick: Optional[str] = None
+    roles: Optional[List[str]] = None
+    joined_at: Optional[str] = None
 
 
 class DeleteMemberBody(BaseModel):
-    add_blacklist: bool = None
+    add_blacklist: Optional[bool] = None
 
 
 class Role(BaseModel):
-    id: str = None
-    name: str = None
-    color: int = None
-    hoist: int = None
-    number: int = None
-    member_limit: int = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    color: Optional[int] = None
+    hoist: Optional[int] = None
+    number: Optional[int] = None
+    member_limit: Optional[int] = None
 
 
 class GetGuildRolesReturn(BaseModel):
-    guild_id: str = None
-    roles: List[Role] = None
-    role_num_limit: str = None
+    guild_id: Optional[str] = None
+    roles: Optional[List[Role]] = None
+    role_num_limit: Optional[str] = None
 
 
 class PostGuildRoleBody(BaseModel):
     name: str
-    color: float = None
-    hoist: float = None
+    color: Optional[float] = None
+    hoist: Optional[float] = None
 
 
 class GuildRole(BaseModel):
-    id: str = None
-    name: str = None
-    color: float = None
-    hoist: float = None
-    number: float = None
-    member_limit: float = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    color: Optional[float] = None
+    hoist: Optional[float] = None
+    number: Optional[float] = None
+    member_limit: Optional[float] = None
 
 
 class PostGuildRoleReturn(BaseModel):
-    role_id: str = None
-    role: GuildRole = None
+    role_id: Optional[str] = None
+    role: Optional[GuildRole] = None
 
 
 class PatchGuildRoleBody(BaseModel):
-    name: str = None
-    color: float = None
-    hoist: float = None
+    name: Optional[str] = None
+    color: Optional[float] = None
+    hoist: Optional[float] = None
 
 
 class PatchGuildRoleReturn(BaseModel):
-    guild_id: str = None
-    role_id: str = None
-    role: GuildRole = None
+    guild_id: Optional[str] = None
+    role_id: Optional[str] = None
+    role: Optional[GuildRole] = None
 
 
 class PutGuildMemberRoleBody(BaseModel):
-    id: str = None
+    id: Optional[str] = None
 
 
 class DeleteGuildMemberRoleBody(BaseModel):
-    id: str = None
+    id: Optional[str] = None
 
 
 class ChannelPermissions(BaseModel):
-    channel_id: str = None
-    user_id: str = None
-    role_id: str = None
-    permissions: str = None
+    channel_id: Optional[str] = None
+    user_id: Optional[str] = None
+    role_id: Optional[str] = None
+    permissions: Optional[str] = None
 
 
 class PutChannelPermissionsBody(BaseModel):
-    add: str = None
-    remove: str = None
+    add: Optional[str] = None
+    remove: Optional[str] = None
 
 
 class PutChannelRolesPermissionsBody(BaseModel):
-    add: str = None
-    remove: str = None
+    add: Optional[str] = None
+    remove: Optional[str] = None
 
 
 class MessageAttachment(BaseModel):
-    url: str = None
+    url: Optional[str] = None
 
 
 class MessageEmbedThumbnail(BaseModel):
-    url: str = None
+    url: Optional[str] = None
 
 
 class MessageEmbedField(BaseModel):
-    name: str = None
+    name: Optional[str] = None
 
 
 class MessageEmbed(BaseModel):
-    title: str = None
-    prompt: str = None
-    thumbnail: MessageEmbedThumbnail = None
-    fields: List[MessageEmbedField] = None
+    title: Optional[str] = None
+    prompt: Optional[str] = None
+    thumbnail: Optional[MessageEmbedThumbnail] = None
+    fields: Optional[List[MessageEmbedField]] = None
 
 
 class MessageArkObjKv(BaseModel):
-    key: str = None
-    value: str = None
+    key: Optional[str] = None
+    value: Optional[str] = None
 
 
 class MessageArkObj(BaseModel):
-    obj_kv: List[MessageArkObjKv] = None
+    obj_kv: Optional[List[MessageArkObjKv]] = None
 
 
 class MessageArkKv(BaseModel):
-    key: str = None
-    value: str = None
-    obj: List[MessageArkObj] = None
+    key: Optional[str] = None
+    value: Optional[str] = None
+    obj: Optional[List[MessageArkObj]] = None
 
 
 class MessageArk(BaseModel):
-    template_id: int = None
-    kv: List[MessageArkKv] = None
+    template_id: Optional[int] = None
+    kv: Optional[List[MessageArkKv]] = None
 
 
 class MessageReference(BaseModel):
-    message_id: str = None
-    ignore_get_message_error: bool = None
+    message_id: Optional[str] = None
+    ignore_get_message_error: Optional[bool] = None
 
 
 class Message(BaseModel):
-    id: str = None
-    channel_id: str = None
-    guild_id: str = None
-    content: str = None
-    timestamp: str = None
-    edited_timestamp: str = None
-    mention_everyone: bool = None
-    author: User = None
-    attachments: List[MessageAttachment] = None
-    embeds: List[MessageEmbed] = None
-    mentions: List[User] = None
-    member: Member = None
-    ark: MessageArk = None
-    seq: int = None
-    message_reference: MessageReference = None
+    id: Optional[str] = None
+    channel_id: Optional[str] = None
+    guild_id: Optional[str] = None
+    content: Optional[str] = None
+    timestamp: Optional[str] = None
+    edited_timestamp: Optional[str] = None
+    mention_everyone: Optional[bool] = None
+    author: Optional[User] = None
+    attachments: Optional[List[MessageAttachment]] = None
+    embeds: Optional[List[MessageEmbed]] = None
+    mentions: Optional[List[User]] = None
+    member: Optional[Member] = None
+    ark: Optional[MessageArk] = None
+    seq: Optional[int] = None
+    message_reference: Optional[MessageReference] = None
 
 
 class MessageSend(BaseModel):
-    content: str = None
-    embed: MessageEmbed = None
-    ark: MessageArk = None
-    message_reference: MessageReference = None
-    image: str = None
-    msg_id: str = None
+    content: Optional[str] = None
+    embed: Optional[MessageEmbed] = None
+    ark: Optional[MessageArk] = None
+    message_reference: Optional[MessageReference] = None
+    image: Optional[str] = None
+    msg_id: Optional[str] = None
 
 
 class PostDmsBody(BaseModel):
@@ -217,19 +217,19 @@ class PostDmsBody(BaseModel):
 
 
 class DMS(BaseModel):
-    guild_id: str = None
-    channel_id: str = None
-    create_time: str = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    create_time: Optional[str] = None
 
 
 class PatchGuildMuteBody(BaseModel):
-    mute_end_timestamp: str = None
-    mute_seconds: str = None
+    mute_end_timestamp: Optional[str] = None
+    mute_seconds: Optional[str] = None
 
 
 class PatchGuildMemberMuteBody(BaseModel):
-    mute_end_timestamp: str = None
-    mute_seconds: str = None
+    mute_end_timestamp: Optional[str] = None
+    mute_seconds: Optional[str] = None
 
 
 class PostGuildAnnouncesBody(BaseModel):
@@ -242,96 +242,96 @@ class PostChannelAnnouncesBody(BaseModel):
 
 
 class Announces(BaseModel):
-    guild_id: str = None
-    channel_id: str = None
-    message_id: str = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    message_id: Optional[str] = None
 
 
 class GetSchedulesBody(BaseModel):
-    since: int = None
+    since: Optional[int] = None
 
 
 class Schedule(BaseModel):
-    id: str = None
-    name: str = None
-    description: str = None
-    start_timestamp: str = None
-    end_timestamp: str = None
-    creator: Member = None
-    jump_channel_id: str = None
-    remind_type: str = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    start_timestamp: Optional[str] = None
+    end_timestamp: Optional[str] = None
+    creator: Optional[Member] = None
+    jump_channel_id: Optional[str] = None
+    remind_type: Optional[str] = None
 
 
 class ScheduleCreate(BaseModel):
     name: str
-    description: str = None
+    description: Optional[str] = None
     start_timestamp: str
     end_timestamp: str
-    creator: Member = None
-    jump_channel_id: str = None
+    creator: Optional[Member] = None
+    jump_channel_id: Optional[str] = None
     remind_type: str
 
 
 class ScheduleUpdate(BaseModel):
-    name: str = None
-    description: str = None
-    start_timestamp: str = None
-    end_timestamp: str = None
-    creator: Member = None
-    jump_channel_id: str = None
-    remind_type: str = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    start_timestamp: Optional[str] = None
+    end_timestamp: Optional[str] = None
+    creator: Optional[Member] = None
+    jump_channel_id: Optional[str] = None
+    remind_type: Optional[str] = None
 
 
 class AudioControl(BaseModel):
-    audio_url: str = None
-    text: str = None
-    status: int = None
+    audio_url: Optional[str] = None
+    text: Optional[str] = None
+    status: Optional[int] = None
 
 
 class APIPermission(BaseModel):
-    path: str = None
-    method: str = None
-    desc: str = None
-    auth_status: int = None
+    path: Optional[str] = None
+    method: Optional[str] = None
+    desc: Optional[str] = None
+    auth_status: Optional[int] = None
 
 
 class APIPermissionDemandIdentify(BaseModel):
-    path: str = None
-    name: str = None
+    path: Optional[str] = None
+    name: Optional[str] = None
 
 
 class PostApiPermissionDemandBody(BaseModel):
-    channel_id: str = None
-    api_identify: APIPermissionDemandIdentify = None
-    desc: str = None
+    channel_id: Optional[str] = None
+    api_identify: Optional[APIPermissionDemandIdentify] = None
+    desc: Optional[str] = None
 
 
 class APIPermissionDemand(BaseModel):
-    guild_id: str = None
-    channel_id: str = None
-    api_identify: APIPermissionDemandIdentify = None
-    title: str = None
-    desc: str = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    api_identify: Optional[APIPermissionDemandIdentify] = None
+    title: Optional[str] = None
+    desc: Optional[str] = None
 
 
 class UrlGetReturn(BaseModel):
-    url: str = None
+    url: Optional[str] = None
 
 
 class SessionStartLimit(BaseModel):
-    total: int = None
-    remaining: int = None
-    reset_after: int = None
-    max_concurrency: int = None
+    total: Optional[int] = None
+    remaining: Optional[int] = None
+    reset_after: Optional[int] = None
+    max_concurrency: Optional[int] = None
 
 
 class ShardUrlGetReturn(BaseModel):
-    url: str = None
-    shards: int = None
-    session_start_limit: SessionStartLimit = None
+    url: Optional[str] = None
+    shards: Optional[int] = None
+    session_start_limit: Optional[SessionStartLimit] = None
 
 
 class PinsMessage(BaseModel):
-    guild_id: str = None
-    channel_id: str = None
-    message_ids: List[str] = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    message_ids: Optional[List[str]] = None
