@@ -60,7 +60,7 @@ def _check_at_me(bot: "Bot", event: MessageEvent):
 class Bot(BaseBot, ApiClient):
     @overrides(BaseBot)
     def __init__(self, adapter: "Adapter", bot_info: BotInfo):
-        super().__init__(adapter, bot_info.app_id)
+        super().__init__(adapter, bot_info.id)
         self.bot_info: BotInfo = bot_info
         self._session_id: Optional[str] = None
         self._self_info: Optional[User] = None
@@ -73,7 +73,7 @@ class Bot(BaseBot, ApiClient):
     @property
     def session_id(self) -> str:
         if self._session_id is None:
-            raise RuntimeError(f"Bot {self.bot_info.app_id} is not connected!")
+            raise RuntimeError(f"Bot {self.bot_info.id} is not connected!")
         return self._session_id
 
     @session_id.setter
@@ -97,7 +97,7 @@ class Bot(BaseBot, ApiClient):
     @property
     def sequence(self) -> int:
         if self._sequence is None:
-            raise RuntimeError(f"Bot {self.bot_info.app_id} is not connected!")
+            raise RuntimeError(f"Bot {self.bot_info.id} is not connected!")
         return self._sequence
 
     @sequence.setter
@@ -128,7 +128,7 @@ class Bot(BaseBot, ApiClient):
         message = MessageSegment.text(message) if isinstance(message, str) else message
         message = Message(message) if not isinstance(message, Message) else message
 
-        content = message.extract_plain_text() or None
+        content = message.extract_content() or None
         embed = message["embed"] or None
         if embed:
             embed = embed[-1].data["embed"]

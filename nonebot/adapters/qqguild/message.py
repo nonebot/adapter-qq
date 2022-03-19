@@ -26,8 +26,8 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Embed("embed", data={"embed": embed})
 
     @staticmethod
-    def emoji(id: int) -> "Emoji":
-        return Emoji("emoji", data={"id": str(id)})
+    def emoji(id: str) -> "Emoji":
+        return Emoji("emoji", data={"id": id})
 
     @staticmethod
     def mention_user(user_id: str) -> "MentionUser":
@@ -121,15 +121,24 @@ class Message(BaseMessage[MessageSegment]):
     def _construct(msg: str) -> Iterable[MessageSegment]:
         text_begin = 0
         for embed in re.finditer(
-            r"\<@!?(?P<id>\w+?)\>",
+            r"\<(?P<type>(?:@|#|emoji:))!?(?P<id>\w+?)\>",
             msg,
         ):
             content = msg[text_begin : embed.pos + embed.start()]
             if content:
                 yield Text("text", {"text": unescape(content)})
             text_begin = embed.pos + embed.end()
-            yield MentionUser("mention_user", {"user_id": embed.group("id")})
-        yield Text("text", {"text": unescape(msg[text_begin:])})
+            if embed.group("type") == "@":
+                yield MentionUser("mention_user", {"user_id": embed.group("id")})
+            elif embed.group("type") == "#":
+                yield MentionChannel(
+                    "mention_channel", {"channel_id": embed.group("id")}
+                )
+            else:
+                yield Emoji("emoji", {"id": embed.group("id")})
+        content = msg[text_begin:]
+        if content:
+            yield Text("text", {"text": unescape(msg[text_begin:])})
 
     @classmethod
     def from_guild_message(cls, message: GuildMessage) -> "Message":
@@ -146,3 +155,10 @@ class Message(BaseMessage[MessageSegment]):
         if message.ark:
             msg.append(Ark("ark", data={"ark": message.ark}))
         return msg
+
+    def extract_content(self) -> str:
+        return "".join(
+            str(seg)
+            for seg in self
+            if seg.type in ("text", "emoji", "mention_user", "mention_channel")
+        )

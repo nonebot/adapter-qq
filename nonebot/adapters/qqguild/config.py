@@ -29,11 +29,11 @@ class Intents(BaseModel):
 
 
 class BotInfo(BaseModel):
-    app_id: str = Field(alias="id")
-    app_token: str = Field(alias="token")
-    app_secret: str = Field(alias="secret")
-    current_shard: Optional[Tuple[int, int]] = Field(None, alias="shard")
-    current_intent: Intents = Field(default_factory=Intents, alias="intent")
+    id: str = Field(alias="id")
+    token: str = Field(alias="token")
+    secret: str = Field(alias="secret")
+    shard: Optional[Tuple[int, int]] = None
+    intent: Intents = Field(default_factory=Intents)
 
 
 class Config(BaseModel):

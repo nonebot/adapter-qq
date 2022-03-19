@@ -105,11 +105,9 @@ class Adapter(BaseAdapter):
             )
             return
 
-        if bot_info.current_shard is not None:
+        if bot_info.shard is not None:
             self.tasks.append(
-                asyncio.create_task(
-                    self._forward_ws(bot, ws_url, bot_info.current_shard)
-                )
+                asyncio.create_task(self._forward_ws(bot, ws_url, bot_info.shard))
             )
             return
 
@@ -158,11 +156,15 @@ class Adapter(BaseAdapter):
                             continue
 
                         if not bot.ready:
+                            print(
+                                bot.bot_info.intent,
+                                bot.bot_info.intent.to_int(),
+                            )
                             payload = Identify.parse_obj(
                                 {
                                     "data": {
                                         "token": self.get_authorization(bot.bot_info),
-                                        "intents": bot.bot_info.current_intent.to_int(),
+                                        "intents": bot.bot_info.intent.to_int(),
                                         "shard": list(shard),
                                         "properties": {
                                             "$os": sys.platform,
@@ -292,7 +294,7 @@ class Adapter(BaseAdapter):
             return URL(self.qqguild_config.qqguild_api_base)
 
     def get_authorization(self, bot: BotInfo) -> str:
-        return f"Bot {bot.app_id}.{bot.app_token}"
+        return f"Bot {bot.id}.{bot.token}"
 
     async def receive_payload(self, ws: WebSocket) -> Payload:
         return parse_raw_as(PayloadType, await ws.receive())
