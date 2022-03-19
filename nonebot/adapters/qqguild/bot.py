@@ -138,5 +138,7 @@ class Bot(BaseBot, ApiClient):
         return await self.post_messages(
             channel_id=event.channel_id,
             msg_id=event.id,
-            **_exclude_none({"content": content, "embed": embed, "ark": ark}),
+            content=content,
+            embed=embed,
+            ark=ark,
         )

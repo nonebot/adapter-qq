@@ -31,10 +31,10 @@ if TYPE_CHECKING:
             name: str = ...,
             type: int = ...,
             sub_type: int = ...,
-            position: int = ...,
-            parent_id: str = ...,
-            private_type: int = ...,
-            private_user_ids: List[str] = ...,
+            position: Optional[int] = ...,
+            parent_id: Optional[str] = ...,
+            private_type: Optional[int] = ...,
+            private_user_ids: Optional[List[str]] = ...,
         ) -> List[Channel]:
             ...
 
@@ -45,12 +45,12 @@ if TYPE_CHECKING:
             self,
             *,
             channel_id: str,
-            name: str = ...,
-            type: int = ...,
-            sub_type: int = ...,
-            position: int = ...,
-            parent_id: str = ...,
-            private_type: int = ...,
+            name: Optional[str] = ...,
+            type: Optional[int] = ...,
+            sub_type: Optional[int] = ...,
+            position: Optional[int] = ...,
+            parent_id: Optional[str] = ...,
+            private_type: Optional[int] = ...,
         ) -> Channel:
             ...
 
@@ -69,7 +69,7 @@ if TYPE_CHECKING:
             ...
 
         async def delete_member(
-            self, *, guild_id: str, user_id: str, add_blacklist: bool = ...
+            self, *, guild_id: str, user_id: str, add_blacklist: Optional[bool] = ...
         ) -> None:
             ...
 
@@ -81,8 +81,8 @@ if TYPE_CHECKING:
             *,
             guild_id: str,
             name: str = ...,
-            color: float = ...,
-            hoist: float = ...,
+            color: Optional[float] = ...,
+            hoist: Optional[float] = ...,
         ) -> PostGuildRoleReturn:
             ...
 
@@ -91,9 +91,9 @@ if TYPE_CHECKING:
             *,
             guild_id: str,
             role_id: str,
-            name: str = ...,
-            color: float = ...,
-            hoist: float = ...,
+            name: Optional[str] = ...,
+            color: Optional[float] = ...,
+            hoist: Optional[float] = ...,
         ) -> PatchGuildRoleReturn:
             ...
 
@@ -101,12 +101,12 @@ if TYPE_CHECKING:
             ...
 
         async def put_guild_member_role(
-            self, *, guild_id: str, role_id: str, user_id: str, id: str = ...
+            self, *, guild_id: str, role_id: str, user_id: str, id: Optional[str] = ...
         ) -> None:
             ...
 
         async def delete_guild_member_role(
-            self, *, guild_id: str, role_id: str, user_id: str, id: str = ...
+            self, *, guild_id: str, role_id: str, user_id: str, id: Optional[str] = ...
         ) -> None:
             ...
 
@@ -116,7 +116,12 @@ if TYPE_CHECKING:
             ...
 
         async def put_channel_permissions(
-            self, *, channel_id: str, user_id: str, add: str = ..., remove: str = ...
+            self,
+            *,
+            channel_id: str,
+            user_id: str,
+            add: Optional[str] = ...,
+            remove: Optional[str] = ...,
         ) -> None:
             ...
 
@@ -126,7 +131,12 @@ if TYPE_CHECKING:
             ...
 
         async def put_channel_roles_permissions(
-            self, *, channel_id: str, role_id: str, add: str = ..., remove: str = ...
+            self,
+            *,
+            channel_id: str,
+            role_id: str,
+            add: Optional[str] = ...,
+            remove: Optional[str] = ...,
         ) -> None:
             ...
 
@@ -137,12 +147,12 @@ if TYPE_CHECKING:
             self,
             *,
             channel_id: str,
-            content: str = ...,
-            embed: MessageEmbed = ...,
-            ark: MessageArk = ...,
-            message_reference: MessageReference = ...,
-            image: str = ...,
-            msg_id: str = ...,
+            content: Optional[str] = ...,
+            embed: Optional[MessageEmbed] = ...,
+            ark: Optional[MessageArk] = ...,
+            message_reference: Optional[MessageReference] = ...,
+            image: Optional[str] = ...,
+            msg_id: Optional[str] = ...,
         ) -> Message:
             ...
 
@@ -155,12 +165,12 @@ if TYPE_CHECKING:
             self,
             *,
             guild_id: str,
-            content: str = ...,
-            embed: MessageEmbed = ...,
-            ark: MessageArk = ...,
-            message_reference: MessageReference = ...,
-            image: str = ...,
-            msg_id: str = ...,
+            content: Optional[str] = ...,
+            embed: Optional[MessageEmbed] = ...,
+            ark: Optional[MessageArk] = ...,
+            message_reference: Optional[MessageReference] = ...,
+            image: Optional[str] = ...,
+            msg_id: Optional[str] = ...,
         ) -> List[Message]:
             ...
 
@@ -168,8 +178,8 @@ if TYPE_CHECKING:
             self,
             *,
             guild_id: str,
-            mute_end_timestamp: str = ...,
-            mute_seconds: str = ...,
+            mute_end_timestamp: Optional[str] = ...,
+            mute_seconds: Optional[str] = ...,
         ) -> None:
             ...
 
@@ -178,8 +188,8 @@ if TYPE_CHECKING:
             *,
             guild_id: str,
             user_id: str,
-            mute_end_timestamp: str = ...,
-            mute_seconds: str = ...,
+            mute_end_timestamp: Optional[str] = ...,
+            mute_seconds: Optional[str] = ...,
         ) -> None:
             ...
 
@@ -202,7 +212,7 @@ if TYPE_CHECKING:
             ...
 
         async def get_schedules(
-            self, *, channel_id: str, since: int = ...
+            self, *, channel_id: str, since: Optional[int] = ...
         ) -> List[Schedule]:
             ...
 
@@ -211,11 +221,11 @@ if TYPE_CHECKING:
             *,
             channel_id: str,
             name: str = ...,
-            description: str = ...,
+            description: Optional[str] = ...,
             start_timestamp: str = ...,
             end_timestamp: str = ...,
-            creator: Member = ...,
-            jump_channel_id: str = ...,
+            creator: Optional[Member] = ...,
+            jump_channel_id: Optional[str] = ...,
             remind_type: str = ...,
         ) -> Schedule:
             ...
@@ -228,13 +238,13 @@ if TYPE_CHECKING:
             *,
             channel_id: str,
             schedule_id: str,
-            name: str = ...,
-            description: str = ...,
-            start_timestamp: str = ...,
-            end_timestamp: str = ...,
-            creator: Member = ...,
-            jump_channel_id: str = ...,
-            remind_type: str = ...,
+            name: Optional[str] = ...,
+            description: Optional[str] = ...,
+            start_timestamp: Optional[str] = ...,
+            end_timestamp: Optional[str] = ...,
+            creator: Optional[Member] = ...,
+            jump_channel_id: Optional[str] = ...,
+            remind_type: Optional[str] = ...,
         ) -> Schedule:
             ...
 
@@ -245,9 +255,9 @@ if TYPE_CHECKING:
             self,
             *,
             channel_id: str,
-            audio_url: str = ...,
-            text: str = ...,
-            status: int = ...,
+            audio_url: Optional[str] = ...,
+            text: Optional[str] = ...,
+            status: Optional[int] = ...,
         ) -> None:
             ...
 
@@ -258,9 +268,9 @@ if TYPE_CHECKING:
             self,
             *,
             guild_id: str,
-            channel_id: str = ...,
-            api_identify: APIPermissionDemandIdentify = ...,
-            desc: str = ...,
+            channel_id: Optional[str] = ...,
+            api_identify: Optional[APIPermissionDemandIdentify] = ...,
+            desc: Optional[str] = ...,
         ) -> List[APIPermissionDemand]:
             ...
 

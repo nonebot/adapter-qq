@@ -199,6 +199,7 @@ class Message(BaseModel):
     member: Optional[Member] = None
     ark: Optional[MessageArk] = None
     seq: Optional[int] = None
+    seq_in_channel: Optional[str] = None
     message_reference: Optional[MessageReference] = None
 
 
@@ -317,7 +318,13 @@ class PinsMessage(BaseModel):
 
 
 class MessageAudited(BaseModel):
-    url: Optional[str] = None
+    audit_id: Optional[str] = None
+    message_id: Optional[str] = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    audit_time: Optional[str] = None
+    create_time: Optional[str] = None
+    seq_in_channel: Optional[str] = None
 
 
 class DMS(BaseModel):
