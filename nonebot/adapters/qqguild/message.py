@@ -160,5 +160,6 @@ class Message(BaseMessage[MessageSegment]):
         return "".join(
             str(seg)
             for seg in self
-            if seg.type in ("text", "emoji", "mention_user", "mention_channel")
+            if seg.type
+            in ("text", "emoji", "mention_user", "mention_everyone", "mention_channel")
         )
