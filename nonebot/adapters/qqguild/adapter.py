@@ -1,7 +1,7 @@
 import sys
 import json
 import asyncio
-from typing import Any, List, Tuple, Union, Optional
+from typing import Any, List, Tuple, Optional
 
 from pydantic import parse_raw_as
 from nonebot.typing import overrides
@@ -10,6 +10,7 @@ from nonebot.exception import WebSocketClosed
 from nonebot.drivers import URL, Driver, Request, WebSocket, ForwardDriver
 
 from nonebot.adapters import Adapter as BaseAdapter
+from nonebot.adapters.qqguild.exception import ApiNotAvailable
 
 from .bot import Bot
 from .utils import log
@@ -310,5 +311,5 @@ class Adapter(BaseAdapter):
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
         api_handler = API_HANDLERS.get(api, None)
         if api_handler is None:
-            raise ValueError(f"Unknown API: {api}")
+            raise ApiNotAvailable
         return await api_handler(self, bot, **data)
