@@ -70,8 +70,17 @@ class Object(BaseModel):
 
 class String(BaseModel):
     type: Literal[TypeEnum.string]
+    format: Optional[str] = None
 
     def to_annotation(self):
+        if self.format and self.format.startswith("int"):
+            return "int"
+        elif self.format == "date":
+            return "date"
+        elif self.format == "date-time":
+            return "datetime"
+        elif self.format in ("byte", "binary"):
+            return "bytes"
         return "str"
 
 

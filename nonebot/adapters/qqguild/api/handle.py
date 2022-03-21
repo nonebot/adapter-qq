@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from nonebot.adapters.qqguild.adapter import Adapter
 
 
-async def _get_guild(adapter: "Adapter", bot: "Bot", guild_id: str) -> Guild:
+async def _get_guild(adapter: "Adapter", bot: "Bot", guild_id: int) -> Guild:
     request = Request(
         "GET",
         adapter.get_api_base() / f"guilds/{guild_id}",
@@ -45,7 +45,7 @@ async def _guilds(
     return parse_obj_as(List[Guild], await _request(adapter, bot, request))
 
 
-async def _get_channels(adapter: "Adapter", bot: "Bot", guild_id: str) -> List[Channel]:
+async def _get_channels(adapter: "Adapter", bot: "Bot", guild_id: int) -> List[Channel]:
     request = Request(
         "GET",
         adapter.get_api_base() / f"guilds/{guild_id}/channels",
@@ -55,7 +55,7 @@ async def _get_channels(adapter: "Adapter", bot: "Bot", guild_id: str) -> List[C
 
 
 async def _post_channels(
-    adapter: "Adapter", bot: "Bot", guild_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> List[Channel]:
     request = Request(
         "POST",
@@ -66,7 +66,7 @@ async def _post_channels(
     return parse_obj_as(List[Channel], await _request(adapter, bot, request))
 
 
-async def _get_channel(adapter: "Adapter", bot: "Bot", channel_id: str) -> Channel:
+async def _get_channel(adapter: "Adapter", bot: "Bot", channel_id: int) -> Channel:
     request = Request(
         "GET",
         adapter.get_api_base() / f"channels/{channel_id}",
@@ -76,7 +76,7 @@ async def _get_channel(adapter: "Adapter", bot: "Bot", channel_id: str) -> Chann
 
 
 async def _patch_channel(
-    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Channel:
     request = Request(
         "PATCH",
@@ -87,7 +87,7 @@ async def _patch_channel(
     return parse_obj_as(Channel, await _request(adapter, bot, request))
 
 
-async def _delete_channel(adapter: "Adapter", bot: "Bot", channel_id: str) -> None:
+async def _delete_channel(adapter: "Adapter", bot: "Bot", channel_id: int) -> None:
     request = Request(
         "DELETE",
         adapter.get_api_base() / f"channels/{channel_id}",
@@ -99,7 +99,7 @@ async def _delete_channel(adapter: "Adapter", bot: "Bot", channel_id: str) -> No
 async def _get_members(
     adapter: "Adapter",
     bot: "Bot",
-    guild_id: str,
+    guild_id: int,
     after: Optional[str] = ...,
     limit: Optional[float] = ...,
 ) -> List[Member]:
@@ -113,7 +113,7 @@ async def _get_members(
 
 
 async def _get_member(
-    adapter: "Adapter", bot: "Bot", guild_id: str, user_id: str
+    adapter: "Adapter", bot: "Bot", guild_id: int, user_id: int
 ) -> Member:
     request = Request(
         "GET",
@@ -124,7 +124,7 @@ async def _get_member(
 
 
 async def _delete_member(
-    adapter: "Adapter", bot: "Bot", guild_id: str, user_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, user_id: int, **data
 ) -> None:
     request = Request(
         "DELETE",
@@ -136,7 +136,7 @@ async def _delete_member(
 
 
 async def _get_guild_roles(
-    adapter: "Adapter", bot: "Bot", guild_id: str
+    adapter: "Adapter", bot: "Bot", guild_id: int
 ) -> GetGuildRolesReturn:
     request = Request(
         "GET",
@@ -147,7 +147,7 @@ async def _get_guild_roles(
 
 
 async def _post_guild_role(
-    adapter: "Adapter", bot: "Bot", guild_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> PostGuildRoleReturn:
     request = Request(
         "POST",
@@ -159,7 +159,7 @@ async def _post_guild_role(
 
 
 async def _patch_guild_role(
-    adapter: "Adapter", bot: "Bot", guild_id: str, role_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, role_id: int, **data
 ) -> PatchGuildRoleReturn:
     request = Request(
         "PATCH",
@@ -171,7 +171,7 @@ async def _patch_guild_role(
 
 
 async def _delete_guild_role(
-    adapter: "Adapter", bot: "Bot", guild_id: str, role_id: str
+    adapter: "Adapter", bot: "Bot", guild_id: int, role_id: int
 ) -> None:
     request = Request(
         "DELETE",
@@ -182,7 +182,7 @@ async def _delete_guild_role(
 
 
 async def _put_guild_member_role(
-    adapter: "Adapter", bot: "Bot", guild_id: str, role_id: str, user_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, role_id: int, user_id: int, **data
 ) -> None:
     request = Request(
         "PUT",
@@ -194,7 +194,7 @@ async def _put_guild_member_role(
 
 
 async def _delete_guild_member_role(
-    adapter: "Adapter", bot: "Bot", guild_id: str, role_id: str, user_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, role_id: int, user_id: int, **data
 ) -> None:
     request = Request(
         "DELETE",
@@ -206,7 +206,7 @@ async def _delete_guild_member_role(
 
 
 async def _get_channel_permissions(
-    adapter: "Adapter", bot: "Bot", channel_id: str, user_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, user_id: int
 ) -> ChannelPermissions:
     request = Request(
         "GET",
@@ -217,7 +217,7 @@ async def _get_channel_permissions(
 
 
 async def _put_channel_permissions(
-    adapter: "Adapter", bot: "Bot", channel_id: str, user_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, user_id: int, **data
 ) -> None:
     request = Request(
         "PUT",
@@ -229,7 +229,7 @@ async def _put_channel_permissions(
 
 
 async def _get_channel_roles_permissions(
-    adapter: "Adapter", bot: "Bot", channel_id: str, role_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, role_id: int
 ) -> ChannelPermissions:
     request = Request(
         "GET",
@@ -240,7 +240,7 @@ async def _get_channel_roles_permissions(
 
 
 async def _put_channel_roles_permissions(
-    adapter: "Adapter", bot: "Bot", channel_id: str, role_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, role_id: int, **data
 ) -> None:
     request = Request(
         "PUT",
@@ -252,7 +252,7 @@ async def _put_channel_roles_permissions(
 
 
 async def _get_message_of_id(
-    adapter: "Adapter", bot: "Bot", channel_id: str, message_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str
 ) -> Message:
     request = Request(
         "GET",
@@ -263,7 +263,7 @@ async def _get_message_of_id(
 
 
 async def _post_messages(
-    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
     request = Request(
         "POST",
@@ -285,7 +285,7 @@ async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> List[DMS]:
 
 
 async def _post_dms_messages(
-    adapter: "Adapter", bot: "Bot", guild_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> List[Message]:
     request = Request(
         "POST",
@@ -297,7 +297,7 @@ async def _post_dms_messages(
 
 
 async def _patch_guild_mute(
-    adapter: "Adapter", bot: "Bot", guild_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> None:
     request = Request(
         "PATCH",
@@ -309,7 +309,7 @@ async def _patch_guild_mute(
 
 
 async def _patch_guild_member_mute(
-    adapter: "Adapter", bot: "Bot", guild_id: str, user_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, user_id: int, **data
 ) -> None:
     request = Request(
         "PATCH",
@@ -321,7 +321,7 @@ async def _patch_guild_member_mute(
 
 
 async def _post_guild_announces(
-    adapter: "Adapter", bot: "Bot", guild_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> None:
     request = Request(
         "POST",
@@ -333,7 +333,7 @@ async def _post_guild_announces(
 
 
 async def _delete_guild_announces(
-    adapter: "Adapter", bot: "Bot", guild_id: str, message_id: str
+    adapter: "Adapter", bot: "Bot", guild_id: int, message_id: str
 ) -> None:
     request = Request(
         "DELETE",
@@ -344,7 +344,7 @@ async def _delete_guild_announces(
 
 
 async def _post_channel_announces(
-    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Announces:
     request = Request(
         "POST",
@@ -356,7 +356,7 @@ async def _post_channel_announces(
 
 
 async def _delete_channel_announces(
-    adapter: "Adapter", bot: "Bot", channel_id: str, message_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str
 ) -> None:
     request = Request(
         "DELETE",
@@ -367,7 +367,7 @@ async def _delete_channel_announces(
 
 
 async def _get_schedules(
-    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> List[Schedule]:
     request = Request(
         "GET",
@@ -379,7 +379,7 @@ async def _get_schedules(
 
 
 async def _post_schedule(
-    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Schedule:
     request = Request(
         "POST",
@@ -391,7 +391,7 @@ async def _post_schedule(
 
 
 async def _get_schedule(
-    adapter: "Adapter", bot: "Bot", channel_id: str, schedule_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, schedule_id: int
 ) -> Schedule:
     request = Request(
         "GET",
@@ -402,7 +402,7 @@ async def _get_schedule(
 
 
 async def _patch_schedule(
-    adapter: "Adapter", bot: "Bot", channel_id: str, schedule_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, schedule_id: int, **data
 ) -> Schedule:
     request = Request(
         "PATCH",
@@ -414,7 +414,7 @@ async def _patch_schedule(
 
 
 async def _delete_schedule(
-    adapter: "Adapter", bot: "Bot", channel_id: str, schedule_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, schedule_id: int
 ) -> None:
     request = Request(
         "DELETE",
@@ -425,7 +425,7 @@ async def _delete_schedule(
 
 
 async def _audio_control(
-    adapter: "Adapter", bot: "Bot", channel_id: str, **data
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> None:
     request = Request(
         "POST",
@@ -437,7 +437,7 @@ async def _audio_control(
 
 
 async def _get_guild_api_permission(
-    adapter: "Adapter", bot: "Bot", guild_id: str
+    adapter: "Adapter", bot: "Bot", guild_id: int
 ) -> List[APIPermission]:
     request = Request(
         "GET",
@@ -448,7 +448,7 @@ async def _get_guild_api_permission(
 
 
 async def _post_api_permission_demand(
-    adapter: "Adapter", bot: "Bot", guild_id: str, **data
+    adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> List[APIPermissionDemand]:
     request = Request(
         "POST",
@@ -480,7 +480,7 @@ async def _shard_url_get(adapter: "Adapter", bot: "Bot") -> ShardUrlGetReturn:
 
 
 async def _put_message_reaction(
-    adapter: "Adapter", bot: "Bot", channel_id: str, message_id: str, type: int, id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str, type: int, id: str
 ) -> None:
     request = Request(
         "PUT",
@@ -492,7 +492,7 @@ async def _put_message_reaction(
 
 
 async def _delete_own_message_reaction(
-    adapter: "Adapter", bot: "Bot", channel_id: str, message_id: str, type: int, id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str, type: int, id: str
 ) -> None:
     request = Request(
         "DELETE",
@@ -504,7 +504,7 @@ async def _delete_own_message_reaction(
 
 
 async def _put_pins_message(
-    adapter: "Adapter", bot: "Bot", channel_id: str, message_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str
 ) -> None:
     request = Request(
         "PUT",
@@ -515,7 +515,7 @@ async def _put_pins_message(
 
 
 async def _delete_pins_message(
-    adapter: "Adapter", bot: "Bot", channel_id: str, message_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str
 ) -> None:
     request = Request(
         "DELETE",
@@ -526,7 +526,7 @@ async def _delete_pins_message(
 
 
 async def _get_pins_message(
-    adapter: "Adapter", bot: "Bot", channel_id: str
+    adapter: "Adapter", bot: "Bot", channel_id: int
 ) -> PinsMessage:
     request = Request(
         "GET",

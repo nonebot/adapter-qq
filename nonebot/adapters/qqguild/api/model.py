@@ -4,10 +4,10 @@ from pydantic import BaseModel
 
 
 class Guild(BaseModel):
-    id: Optional[str] = None
+    id: Optional[int] = None
     name: Optional[str] = None
     icon: Optional[str] = None
-    owner_id: Optional[str] = None
+    owner_id: Optional[int] = None
     owner: Optional[bool] = None
     member_count: Optional[int] = None
     max_members: Optional[int] = None
@@ -16,7 +16,7 @@ class Guild(BaseModel):
 
 
 class User(BaseModel):
-    id: Optional[str] = None
+    id: Optional[int] = None
     username: Optional[str] = None
     avatar: Optional[str] = None
     bot: Optional[bool] = None
@@ -29,20 +29,20 @@ class ChannelCreate(BaseModel):
     type: int
     sub_type: int
     position: Optional[int] = None
-    parent_id: Optional[str] = None
+    parent_id: Optional[int] = None
     private_type: Optional[int] = None
-    private_user_ids: Optional[List[str]] = None
+    private_user_ids: Optional[List[int]] = None
 
 
 class Channel(BaseModel):
-    id: Optional[str] = None
-    guild_id: Optional[str] = None
+    id: Optional[int] = None
+    guild_id: Optional[int] = None
     name: Optional[str] = None
     type: Optional[int] = None
     sub_type: Optional[int] = None
     position: Optional[int] = None
     parent_id: Optional[str] = None
-    owner_id: Optional[str] = None
+    owner_id: Optional[int] = None
     private_type: Optional[int] = None
     speak_permission: Optional[int] = None
     application_id: Optional[str] = None
@@ -53,14 +53,14 @@ class ChannelUpdate(BaseModel):
     type: Optional[int] = None
     sub_type: Optional[int] = None
     position: Optional[int] = None
-    parent_id: Optional[str] = None
+    parent_id: Optional[int] = None
     private_type: Optional[int] = None
 
 
 class Member(BaseModel):
     user: Optional[User] = None
     nick: Optional[str] = None
-    roles: Optional[List[str]] = None
+    roles: Optional[List[int]] = None
     joined_at: Optional[str] = None
 
 
@@ -69,7 +69,7 @@ class DeleteMemberBody(BaseModel):
 
 
 class Role(BaseModel):
-    id: Optional[str] = None
+    id: Optional[int] = None
     name: Optional[str] = None
     color: Optional[int] = None
     hoist: Optional[int] = None
@@ -90,7 +90,7 @@ class PostGuildRoleBody(BaseModel):
 
 
 class GuildRole(BaseModel):
-    id: Optional[str] = None
+    id: Optional[int] = None
     name: Optional[str] = None
     color: Optional[float] = None
     hoist: Optional[float] = None
@@ -124,9 +124,9 @@ class DeleteGuildMemberRoleBody(BaseModel):
 
 
 class ChannelPermissions(BaseModel):
-    channel_id: Optional[str] = None
-    user_id: Optional[str] = None
-    role_id: Optional[str] = None
+    channel_id: Optional[int] = None
+    user_id: Optional[int] = None
+    role_id: Optional[int] = None
     permissions: Optional[str] = None
 
 
@@ -186,8 +186,8 @@ class MessageReference(BaseModel):
 
 class Message(BaseModel):
     id: Optional[str] = None
-    channel_id: Optional[str] = None
-    guild_id: Optional[str] = None
+    channel_id: Optional[int] = None
+    guild_id: Optional[int] = None
     content: Optional[str] = None
     timestamp: Optional[str] = None
     edited_timestamp: Optional[str] = None
@@ -237,8 +237,8 @@ class PostChannelAnnouncesBody(BaseModel):
 
 
 class Announces(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
+    guild_id: Optional[int] = None
+    channel_id: Optional[int] = None
     message_id: Optional[str] = None
 
 
@@ -249,31 +249,31 @@ class GetSchedulesBody(BaseModel):
 class ScheduleCreate(BaseModel):
     name: str
     description: Optional[str] = None
-    start_timestamp: str
-    end_timestamp: str
+    start_timestamp: int
+    end_timestamp: int
     creator: Optional[Member] = None
-    jump_channel_id: Optional[str] = None
+    jump_channel_id: Optional[int] = None
     remind_type: str
 
 
 class Schedule(BaseModel):
-    id: Optional[str] = None
+    id: Optional[int] = None
     name: Optional[str] = None
     description: Optional[str] = None
-    start_timestamp: Optional[str] = None
-    end_timestamp: Optional[str] = None
+    start_timestamp: Optional[int] = None
+    end_timestamp: Optional[int] = None
     creator: Optional[Member] = None
-    jump_channel_id: Optional[str] = None
+    jump_channel_id: Optional[int] = None
     remind_type: Optional[str] = None
 
 
 class ScheduleUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    start_timestamp: Optional[str] = None
-    end_timestamp: Optional[str] = None
+    start_timestamp: Optional[int] = None
+    end_timestamp: Optional[int] = None
     creator: Optional[Member] = None
-    jump_channel_id: Optional[str] = None
+    jump_channel_id: Optional[int] = None
     remind_type: Optional[str] = None
 
 
@@ -312,8 +312,8 @@ class ShardUrlGetReturn(BaseModel):
 
 
 class PinsMessage(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
+    guild_id: Optional[int] = None
+    channel_id: Optional[int] = None
     message_ids: Optional[List[str]] = None
 
 
@@ -328,7 +328,7 @@ class MessageAudited(BaseModel):
 
 
 class DMS(BaseModel):
-    guild_id: Optional[str] = None
+    guild_id: Optional[int] = None
     channel_id: Optional[str] = None
     create_time: Optional[str] = None
 
@@ -344,9 +344,9 @@ class ReactionTarget(BaseModel):
 
 
 class MessageReaction(BaseModel):
-    user_id: Optional[str] = None
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
+    user_id: Optional[int] = None
+    guild_id: Optional[int] = None
+    channel_id: Optional[int] = None
     target: Optional[ReactionTarget] = None
     emoji: Optional[Emoji] = None
 
@@ -359,8 +359,8 @@ class APIPermission(BaseModel):
 
 
 class APIPermissionDemand(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
+    guild_id: Optional[int] = None
+    channel_id: Optional[int] = None
     api_identify: Optional[APIPermissionDemandIdentify] = None
     title: Optional[str] = None
     desc: Optional[str] = None
