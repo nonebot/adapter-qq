@@ -7,7 +7,6 @@ from nonebot.adapters import Bot as BaseBot
 
 from .config import BotInfo
 from .api import User, ApiClient
-from .api.request import _exclude_none
 from .message import Message, MessageSegment
 from .event import Event, ReadyEvent, MessageEvent
 
@@ -16,10 +15,14 @@ if TYPE_CHECKING:
 
 
 def _check_at_me(bot: "Bot", event: MessageEvent):
+    if event.mentions is not None and bot.self_info.id in [
+        user.id for user in event.mentions
+    ]:
+        event.to_me = True
+
     def _is_at_me_seg(segment: MessageSegment) -> bool:
-        return (
-            segment.type == "mention_user"
-            and str(segment.data.get("user_id")) == bot.self_info.id
+        return segment.type == "mention_user" and segment.data.get("user_id") == str(
+            bot.self_info.id
         )
 
     message = event.get_message()

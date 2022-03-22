@@ -161,6 +161,14 @@ class GuildMemberEvent(Event, Member):
     def get_type(self) -> str:
         return "notice"
 
+    @overrides(Event)
+    def get_user_id(self) -> str:
+        return str(self.user.id)  # type: ignore
+
+    @overrides(Event)
+    def get_session_id(self) -> str:
+        return str(self.user.id)  # type: ignore
+
 
 class GuildMemberAddEvent(GuildMemberEvent):
     __type__ = EventType.GUILD_MEMBER_ADD
@@ -176,15 +184,29 @@ class GuildMemberRemoveEvent(GuildMemberEvent):
 
 # Message Event
 class MessageEvent(Event, GuildMessage):
+    to_me: bool = False
+
     @overrides(BaseEvent)
     def get_type(self) -> str:
         return "message"
+
+    @overrides(Event)
+    def get_user_id(self) -> str:
+        return str(self.author.id)  # type: ignore
+
+    @overrides(Event)
+    def get_session_id(self) -> str:
+        return str(self.author.id)  # type: ignore
 
     @overrides(Event)
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
             setattr(self, "_message", Message.from_guild_message(self))
         return getattr(self, "_message")
+
+    @overrides(Event)
+    def is_tome(self) -> bool:
+        return self.to_me
 
 
 class MessageCreateEvent(MessageEvent):
@@ -193,10 +215,12 @@ class MessageCreateEvent(MessageEvent):
 
 class AtMessageCreateEvent(MessageEvent):
     __type__ = EventType.AT_MESSAGE_CREATE
+    to_me: bool = True
 
 
 class DirectMessageCreateEvent(MessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
+    to_me: bool = True
 
 
 # Message Audit Event
@@ -219,6 +243,14 @@ class MessageReactionEvent(Event, MessageReaction):
     @overrides(BaseEvent)
     def get_type(self) -> str:
         return "notice"
+
+    @overrides(Event)
+    def get_user_id(self) -> str:
+        return str(self.user_id)
+
+    @overrides(Event)
+    def get_session_id(self) -> str:
+        return str(self.user_id)
 
 
 class MessageReactionAddEvent(MessageReactionEvent):

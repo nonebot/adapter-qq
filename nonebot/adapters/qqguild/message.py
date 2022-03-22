@@ -30,12 +30,12 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Emoji("emoji", data={"id": id})
 
     @staticmethod
-    def mention_user(user_id: str) -> "MentionUser":
-        return MentionUser("mention_user", {"user_id": user_id})
+    def mention_user(user_id: int) -> "MentionUser":
+        return MentionUser("mention_user", {"user_id": str(user_id)})
 
     @staticmethod
-    def mention_channel(channel_id: str) -> "MentionChannel":
-        return MentionChannel("mention_channel", {"channel_id": channel_id})
+    def mention_channel(channel_id: int) -> "MentionChannel":
+        return MentionChannel("mention_channel", {"channel_id": str(channel_id)})
 
     @staticmethod
     def text(content: str) -> "Text":
