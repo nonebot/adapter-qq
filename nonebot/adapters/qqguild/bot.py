@@ -36,7 +36,7 @@ def _check_at_me(bot: "Bot", event: MessageEvent):
         message.pop(0)
         deleted = True
         if message and message[0].type == "text":
-            message[0].data["text"] = message[0].data["text"].lstrip()
+            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
             if not message[0].data["text"]:
                 del message[0]
 
