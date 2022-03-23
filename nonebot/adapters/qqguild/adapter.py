@@ -50,7 +50,7 @@ class Adapter(BaseAdapter):
     def setup(self) -> None:
         if not isinstance(self.driver, ForwardDriver):
             raise RuntimeError(
-                f"Current driver {self.config.driver} don't support forward connections!"
+                f"Current driver {self.config.driver} doesn't support forward connections!"
                 "QQ Guild Adapter need a ForwardDriver to work."
             )
         self.driver.on_startup(self.startup)
