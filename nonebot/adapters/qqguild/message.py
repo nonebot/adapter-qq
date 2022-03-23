@@ -30,6 +30,10 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Emoji("emoji", data={"id": id})
 
     @staticmethod
+    def image(url: str) -> "Attachment":
+        return Attachment("attachment", data={"url": url})
+
+    @staticmethod
     def mention_user(user_id: int) -> "MentionUser":
         return MentionUser("mention_user", {"user_id": str(user_id)})
 
@@ -79,7 +83,7 @@ class MentionChannel(MessageSegment):
 class Attachment(MessageSegment):
     @overrides(MessageSegment)
     def __str__(self) -> str:
-        return f"<attachment:{self.data['attachment']}>"
+        return f"<attachment:{self.data['url']}>"
 
 
 class Embed(MessageSegment):
@@ -147,8 +151,9 @@ class Message(BaseMessage[MessageSegment]):
             msg.extend(Message(message.content))
         if message.attachments:
             msg.extend(
-                Attachment("attachment", data={"attachment": seg})
+                Attachment("attachment", data={"url": seg.url})
                 for seg in message.attachments
+                if seg.url
             )
         if message.embeds:
             msg.extend(Embed("embed", data={"embed": seg}) for seg in message.embeds)

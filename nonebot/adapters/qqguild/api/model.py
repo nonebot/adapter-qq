@@ -62,7 +62,7 @@ class Member(BaseModel):
     user: Optional[User] = None
     nick: Optional[str] = None
     roles: Optional[List[int]] = None
-    joined_at: Optional[str] = None
+    joined_at: Optional[datetime] = None
 
 
 class DeleteMemberBody(BaseModel):
@@ -190,8 +190,8 @@ class Message(BaseModel):
     channel_id: Optional[int] = None
     guild_id: Optional[int] = None
     content: Optional[str] = None
-    timestamp: Optional[str] = None
-    edited_timestamp: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    edited_timestamp: Optional[datetime] = None
     mention_everyone: Optional[bool] = None
     author: Optional[User] = None
     attachments: Optional[List[MessageAttachment]] = None
@@ -323,15 +323,15 @@ class MessageAudited(BaseModel):
     message_id: Optional[str] = None
     guild_id: Optional[str] = None
     channel_id: Optional[str] = None
-    audit_time: Optional[str] = None
-    create_time: Optional[str] = None
+    audit_time: Optional[datetime] = None
+    create_time: Optional[datetime] = None
     seq_in_channel: Optional[str] = None
 
 
 class DMS(BaseModel):
     guild_id: Optional[int] = None
     channel_id: Optional[str] = None
-    create_time: Optional[str] = None
+    create_time: Optional[int] = None
 
 
 class Emoji(BaseModel):

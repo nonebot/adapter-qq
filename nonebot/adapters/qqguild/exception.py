@@ -28,6 +28,15 @@ class ActionFailed(BaseActionFailed, QQGuildAdapterException):
             body = json.loads(response.content)
             self._prepare_body(body)
 
+    def __repr__(self) -> str:
+        return (
+            f"<ActionFailed: {self.status_code}, code={self.code}, "
+            f"message={self.message}, data={self.data}>"
+        )
+
+    def __str__(self):
+        return self.__repr__()
+
     def _prepare_body(self, body: dict):
         self.code = body.get("code", None)
         self.message = body.get("message", None)

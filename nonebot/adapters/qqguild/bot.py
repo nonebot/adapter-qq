@@ -138,10 +138,14 @@ class Bot(BaseBot, ApiClient):
         ark = message["ark"] or None
         if ark:
             ark = ark[-1].data["ark"]
+        image = message["attachment"] or None
+        if image:
+            image = image[-1].data["url"]
         return await self.post_messages(
             channel_id=event.channel_id,
             msg_id=event.id,
             content=content,
             embed=embed,
             ark=ark,
+            image=image,
         )

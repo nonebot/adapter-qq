@@ -157,10 +157,6 @@ class Adapter(BaseAdapter):
                             continue
 
                         if not bot.ready:
-                            print(
-                                bot.bot_info.intent,
-                                bot.bot_info.intent.to_int(),
-                            )
                             payload = Identify.parse_obj(
                                 {
                                     "data": {
@@ -309,6 +305,7 @@ class Adapter(BaseAdapter):
 
     @overrides(BaseAdapter)
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
+        log("DEBUG", f"Calling API <y>{api}</y>")
         api_handler = API_HANDLERS.get(api, None)
         if api_handler is None:
             raise ApiNotAvailable
