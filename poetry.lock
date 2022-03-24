@@ -379,7 +379,7 @@ all = ["Quart (>=0.16.0,<0.17.0)", "aiohttp[speedups] (>=3.7.4,<4.0.0)", "httpx[
 type = "git"
 url = "https://github.com/nonebot/nonebot2.git"
 reference = "master"
-resolved_reference = "78a90ef7aa8ff6c7c433402b4dec1428a302139f"
+resolved_reference = "3c8e705bb0052bb45a3983b8e46bf4ea417b3c21"
 
 [[package]]
 name = "nonebug"
@@ -739,7 +739,7 @@ testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", 
 
 [[package]]
 name = "watchgod"
-version = "0.8"
+version = "0.8.1"
 description = "Simple, modern file watching and code reload in python."
 category = "main"
 optional = false
@@ -1271,8 +1271,8 @@ virtualenv = [
     {file = "virtualenv-20.13.4.tar.gz", hash = "sha256:ce8901d3bbf3b90393498187f2d56797a8a452fb2d0d7efc6fd837554d6f679c"},
 ]
 watchgod = [
-    {file = "watchgod-0.8-py3-none-any.whl", hash = "sha256:339c2cfede1ccc1e277bbf5e82e42886f3c80801b01f45ab10d9461c4118b5eb"},
-    {file = "watchgod-0.8.tar.gz", hash = "sha256:29a1d8f25e1721ddb73981652ca318c47387ffb12ec4171ddd7b9d01540033b1"},
+    {file = "watchgod-0.8.1-py3-none-any.whl", hash = "sha256:4ba20c2fa3e63df706ab50e694b9453b05395fadb7cbbfd984d71fb1547d485d"},
+    {file = "watchgod-0.8.1.tar.gz", hash = "sha256:c12d15f3df7d11e740704e45398277f75f1d78f46ad59ca9d7505bfd8b8d3086"},
 ]
 websockets = [
     {file = "websockets-10.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d5396710f86a306cf52f87fd8ea594a0e894ba0cc5a36059eaca3a477dc332aa"},
