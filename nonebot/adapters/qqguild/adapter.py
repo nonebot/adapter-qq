@@ -300,7 +300,10 @@ class Adapter(BaseAdapter):
     def payload_to_event(cls, payload: Dispatch) -> Event:
         EventClass = event_classes.get(payload.type, None)
         if not EventClass:
-            raise ValueError(f"Unknown payload type: {payload.type}")
+            log("WARNING", f"Unknown payload type: {payload.type}")
+            event = Event.parse_obj(payload.data)
+            event.__type__ = payload.type  # type: ignore
+            return event
         return EventClass.parse_obj(payload.data)
 
     @overrides(BaseAdapter)
