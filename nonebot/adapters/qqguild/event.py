@@ -32,6 +32,8 @@ class EventType(str, Enum):
 
     # GUILD_MESSAGES
     MESSAGE_CREATE = "MESSAGE_CREATE"
+    MESSAGE_DELETE = "MESSAGE_DELETE"
+    DIRECT_MESSAGE_DELETE = "DIRECT_MESSAGE_DELETE"
 
     # GUILD_MESSAGE_REACTIONS
     MESSAGE_REACTION_ADD = "MESSAGE_REACTION_ADD"
@@ -253,6 +255,14 @@ class MessageReactionEvent(Event, MessageReaction):
         return str(self.user_id)
 
 
+class MessageDeleteEvent(MessageReactionEvent):
+    __type__ = EventType.MESSAGE_DELETE
+
+
+class DirectMessageDeleteEvent(MessageReactionEvent):
+    __type__ = EventType.DIRECT_MESSAGE_DELETE
+
+
 class MessageReactionAddEvent(MessageReactionEvent):
     __type__ = EventType.MESSAGE_REACTION_ADD
 
@@ -307,6 +317,8 @@ __all__ = [
     "MessageAuditPassEvent",
     "MessageAuditRejectEvent",
     "MessageReactionEvent",
+    "MessageDeleteEvent",
+    "DirectMessageDeleteEvent",
     "MessageReactionAddEvent",
     "MessageReactionRemoveEvent",
 ]
