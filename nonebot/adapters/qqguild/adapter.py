@@ -235,7 +235,7 @@ class Adapter(BaseAdapter):
                             elif isinstance(payload, InvalidSession):
                                 bot.clear()
                                 log(
-                                    "Error",
+                                    "ERROR",
                                     "Received invalid session event from server. Try to reconnect...",
                                 )
                                 break
