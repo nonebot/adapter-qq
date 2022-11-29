@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-adapter-qqguild"
-version = "0.1.1"
+version = "0.1.2"
 description = "QQ Guild adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
@@ -21,28 +21,23 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7.3"
+python = "^3.8"
 pydantic = "^1.9.0"
 nonebot2 = "^2.0.0-beta.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 isort = "^5.10.1"
 black = "^22.1.0"
-httpx = "^0.22.0"
 Jinja2 = "^3.0.3"
+nonemoji = "^0.1.3"
 pre-commit = "^2.17.0"
-pytest-asyncio = "^0.18.1"
+pytest-asyncio = "^0.20.2"
+httpx = ">=0.22.0, <1.0.0"
 nonebug = { git = "https://github.com/nonebot/nonebug.git" }
 nonebot2 = { git = "https://github.com/nonebot/nonebot2.git" }
 
-# [[tool.poetry.source]]
-# name = "aliyun"
-# url = "https://mirrors.aliyun.com/pypi/simple/"
-# default = true
-
 [tool.black]
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310"]
 include = '\.pyi?$'
 extend-exclude = '''
 '''
