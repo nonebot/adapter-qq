@@ -275,14 +275,14 @@ async def _post_messages(
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
 
-async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> List[DMS]:
+async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> DMS:
     request = Request(
         "POST",
         adapter.get_api_base() / f"users/@me/dms",
         json=PostDmsBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
-    return parse_obj_as(List[DMS], await _request(adapter, bot, request))
+    return parse_obj_as(DMS, await _request(adapter, bot, request))
 
 
 async def _post_dms_messages(

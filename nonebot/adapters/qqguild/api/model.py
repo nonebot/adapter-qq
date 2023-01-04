@@ -185,6 +185,18 @@ class MessageReference(BaseModel):
     ignore_get_message_error: Optional[bool] = None
 
 
+class MessageMarkdownParams(BaseModel):
+    key: Optional[str]
+    values: Optional[List[str]]
+
+
+class MessageMarkdown(BaseModel):
+    template_id: Optional[int]
+    custom_template_id: Optional[str]
+    params: Optional[MessageMarkdownParams]
+    content: Optional[str]
+
+
 class Message(BaseModel):
     id: Optional[str] = None
     channel_id: Optional[int] = None
@@ -208,6 +220,7 @@ class MessageSend(BaseModel):
     content: Optional[str] = None
     embed: Optional[MessageEmbed] = None
     ark: Optional[MessageArk] = None
+    markdown: Optional[MessageMarkdown] = None
     message_reference: Optional[MessageReference] = None
     image: Optional[str] = None
     msg_id: Optional[str] = None
@@ -329,9 +342,9 @@ class MessageAudited(BaseModel):
 
 
 class DMS(BaseModel):
-    guild_id: Optional[int] = None
+    guild_id: Optional[str] = None
     channel_id: Optional[str] = None
-    create_time: Optional[int] = None
+    create_time: Optional[str] = None
 
 
 class Emoji(BaseModel):
