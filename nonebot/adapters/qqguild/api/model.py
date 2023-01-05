@@ -342,9 +342,9 @@ class MessageAudited(BaseModel):
 
 
 class DMS(BaseModel):
-    guild_id: Optional[str] = None
+    guild_id: Optional[int] = None
     channel_id: Optional[str] = None
-    create_time: Optional[str] = None
+    create_time: Optional[datetime] = None
 
 
 class Emoji(BaseModel):
