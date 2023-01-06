@@ -197,6 +197,45 @@ class MessageMarkdown(BaseModel):
     content: Optional[str]
 
 
+class Permission(BaseModel):
+    type: Optional[int] = None
+    specify_role_ids: Optional[List[str]] = None
+    specify_user_ids: Optional[List[str]] = None
+
+
+class Action(BaseModel):
+    type: Optional[int] = None
+    permission: Optional[Permission] = None
+    click_limit: Optional[int] = None
+    data: Optional[str] = None
+    at_bot_show_channel_list: Optional[bool] = None
+
+
+class RenderData(BaseModel):
+    label: Optional[str] = None
+    visited_label: Optional[str] = None
+    style: Optional[int] = None
+
+
+class Button(BaseModel):
+    id: Optional[str] = None
+    render_data: Optional[bool] = None
+    action: Optional[bool] = None
+
+
+class InlineKeyboardRow(BaseModel):
+    buttons: Optional[List[Button]] = None
+
+
+class InlineKeyboard(BaseModel):
+    rows: Optional[InlineKeyboardRow] = None
+
+
+class MessageKeyboard(BaseModel):
+    id: Optional[str] = None
+    content: Optional[InlineKeyboard] = None
+
+
 class Message(BaseModel):
     id: Optional[str] = None
     channel_id: Optional[int] = None
@@ -216,12 +255,18 @@ class Message(BaseModel):
     message_reference: Optional[MessageReference] = None
 
 
+class MessageDelete(BaseModel):
+    message: Optional[Message] = None
+    op_user: Optional[User] = None
+
+
 class MessageSend(BaseModel):
     content: Optional[str] = None
     embed: Optional[MessageEmbed] = None
     ark: Optional[MessageArk] = None
     markdown: Optional[MessageMarkdown] = None
     message_reference: Optional[MessageReference] = None
+    keyboard: Optional[MessageKeyboard] = None
     image: Optional[str] = None
     msg_id: Optional[str] = None
 
