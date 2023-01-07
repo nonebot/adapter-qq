@@ -129,23 +129,26 @@ class Bot(BaseBot, ApiClient):
         if not isinstance(event, MessageEvent) or not event.channel_id or not event.id:
             raise RuntimeError("Event cannot be replied to!")
         message = MessageSegment.text(message) if isinstance(message, str) else message
-        message = Message(message) if not isinstance(message, Message) else message
+        message = message if isinstance(message, Message) else Message(message)
 
         content = message.extract_content() or None
-        embed = message["embed"] or None
-        if embed:
+        if embed := (message["embed"] or None):
             embed = embed[-1].data["embed"]
-        ark = message["ark"] or None
-        if ark:
+        if ark := (message["ark"] or None):
             ark = ark[-1].data["ark"]
-        image = message["attachment"] or None
-        if image:
+        if image := (message["attachment"] or None):
             image = image[-1].data["url"]
+        if file_image := (message["file_imag"] or None):
+            file_image = file_image[-1].data["content"]
+        if markdown := (message["markdown"] or None):
+            markdown = markdown[-1].data["markdown"]
         return await self.post_messages(
             channel_id=event.channel_id,
             msg_id=event.id,
             content=content,
-            embed=embed,
-            ark=ark,
-            image=image,
+            embed=embed,  # type: ignore
+            ark=ark,  # type: ignore
+            image=image,  # type: ignore
+            file_image=file_image,  # type: ignore
+            markdown=markdown,  # type: ignore
         )

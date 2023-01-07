@@ -269,6 +269,7 @@ class MessageSend(BaseModel):
     keyboard: Optional[MessageKeyboard] = None
     image: Optional[str] = None
     msg_id: Optional[str] = None
+    file_image: Optional[bytes] = None
 
 
 class PostDmsBody(BaseModel):

@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime
 from typing import TYPE_CHECKING, List, Optional
 
@@ -266,11 +267,21 @@ async def _get_message_of_id(
 async def _post_messages(
     adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
+    data_ = {}
+    for k, v in MessageSend(**data).dict(exclude_none=True).items():
+        if isinstance(v, bytes):
+            data_[k] = (k, v)
+        else:
+            if isinstance(v, dict):
+                # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
+                # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#form-data-%E6%A0%BC%E5%BC%8F%E7%A4%BA%E4%BE%8B
+                v = json.dumps(v)
+            data_[k] = (None, v, "text/plain")
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/messages",
-        json=MessageSend(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+        files=data_,
     )
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
