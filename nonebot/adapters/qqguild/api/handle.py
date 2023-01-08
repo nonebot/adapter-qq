@@ -1,6 +1,7 @@
 import json
+from functools import partial
 from datetime import date, datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pydantic import parse_obj_as
 from nonebot.drivers import Request
@@ -267,22 +268,26 @@ async def _get_message_of_id(
 async def _post_messages(
     adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
-    data_ = {}
-    for k, v in MessageSend(**data).dict(exclude_none=True).items():
-        if isinstance(v, bytes):
-            data_[k] = (k, v)
-        else:
-            if isinstance(v, dict):
-                # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
-                # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#form-data-%E6%A0%BC%E5%BC%8F%E7%A4%BA%E4%BE%8B
-                v = json.dumps(v)
-            data_[k] = (None, v, "text/plain")
-    request = Request(
+    partial_request = partial(
+        Request,
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/messages",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
-        files=data_,
     )
+    model_data = MessageSend(**data).dict(exclude_none=True)
+    if file_image := model_data.pop("file_image", None):
+        # 使用 multipart/form-data
+        data_: Dict[str, Any] = {"file_image": ("file_image", file_image)}
+        for k, v in model_data.items():
+            if isinstance(v, (dict, list)):
+                # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
+                # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#content-type
+                data_[k] = (None, json.dumps({k: v}), "application/json")
+            else:
+                data_[k] = (None, v, "text/plain")
+        request = partial_request(files=data_)
+    else:
+        request = partial_request(json=model_data)
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
 
