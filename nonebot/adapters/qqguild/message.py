@@ -1,5 +1,6 @@
 import re
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Type, Tuple, Union, Iterable
 
 from nonebot.typing import overrides
@@ -35,9 +36,11 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Attachment("attachment", data={"url": url})
 
     @staticmethod
-    def file_image(data: Union[bytes, BytesIO]) -> "LocalImage":
+    def file_image(data: Union[bytes, BytesIO, Path]) -> "LocalImage":
         if isinstance(data, BytesIO):
             data = data.getvalue()
+        elif isinstance(data, Path):
+            data = data.read_bytes()
         return LocalImage("file_image", data={"content": data})
 
     @staticmethod
