@@ -268,12 +268,6 @@ async def _get_message_of_id(
 async def _post_messages(
     adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
-    partial_request = partial(
-        Request,
-        "POST",
-        adapter.get_api_base() / f"channels/{channel_id}/messages",
-        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
-    )
     model_data = MessageSend(**data).dict(exclude_none=True)
     if file_image := model_data.pop("file_image", None):
         # 使用 multipart/form-data
@@ -285,9 +279,15 @@ async def _post_messages(
                 data_[k] = (None, json.dumps({k: v}), "application/json")
             else:
                 data_[k] = (None, v, "text/plain")
-        request = partial_request(files=data_)
+        params = {"files": data_}
     else:
-        request = partial_request(json=model_data)
+        params = {"json": model_data}
+    request = Request(
+        "POST",
+        adapter.get_api_base() / f"channels/{channel_id}/messages",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+        **params,
+    )
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
 
