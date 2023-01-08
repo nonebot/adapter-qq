@@ -5,9 +5,9 @@ description = "QQ Guild adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://v2.nonebot.dev/"
+homepage = "https://github.com/nonebot/adapter-qqguild"
 repository = "https://github.com/nonebot/adapter-qqguild"
-documentation = "https://v2.nonebot.dev/"
+documentation = "https://github.com/nonebot/adapter-qqguild#readme"
 keywords = ["bot", "qq", "qqbot", "qqguild"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",

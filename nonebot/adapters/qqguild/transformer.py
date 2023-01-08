@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, Union, Optional
 
 from pydantic import BaseModel
 
@@ -10,10 +10,10 @@ class ExcludeNoneTransformer(BaseModel):
     def dict(
         self,
         *,
-        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
         by_alias: bool = False,
-        skip_defaults: bool = None,
+        skip_defaults: Optional[bool] = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         **kwargs: Any,
@@ -33,10 +33,10 @@ class BoolToIntTransformer(BaseModel):
     def dict(
         self,
         *,
-        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
         by_alias: bool = False,
-        skip_defaults: bool = None,
+        skip_defaults: Optional[bool] = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
@@ -60,10 +60,10 @@ class IntToStrTransformer(BaseModel):
     def dict(
         self,
         *,
-        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
         by_alias: bool = False,
-        skip_defaults: bool = None,
+        skip_defaults: Optional[bool] = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
@@ -87,9 +87,9 @@ class AliasExportTransformer(BaseModel):
     def dict(
         self,
         *,
-        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        skip_defaults: bool = None,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny", None] = None,
+        skip_defaults: Optional[bool] = None,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
