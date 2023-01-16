@@ -138,7 +138,7 @@ class Bot(BaseBot, ApiClient):
             ark = ark[-1].data["ark"]
         if image := (message["attachment"] or None):
             image = image[-1].data["url"]
-        if file_image := (message["file_imag"] or None):
+        if file_image := (message["file_image"] or None):
             file_image = file_image[-1].data["content"]
         if markdown := (message["markdown"] or None):
             markdown = markdown[-1].data["markdown"]
