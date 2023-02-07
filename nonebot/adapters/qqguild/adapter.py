@@ -140,7 +140,6 @@ class Adapter(BaseAdapter):
                     )
 
                     try:
-
                         try:
                             payload = await self.receive_payload(ws)
                             assert isinstance(
