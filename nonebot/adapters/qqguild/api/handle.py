@@ -301,14 +301,14 @@ async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> DMS:
 
 async def _post_dms_messages(
     adapter: "Adapter", bot: "Bot", guild_id: int, **data
-) -> List[Message]:
+) -> Message:
     request = Request(
         "POST",
         adapter.get_api_base() / f"dms/{guild_id}/messages",
         json=MessageSend(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
-    return parse_obj_as(List[Message], await _request(adapter, bot, request))
+    return parse_obj_as(Message, await _request(adapter, bot, request))
 
 
 async def _patch_guild_mute(
