@@ -79,7 +79,7 @@ class Adapter(BaseAdapter):
                 task.cancel()
 
     async def run_bot(self, bot_info: BotInfo) -> None:
-        bot = Bot(self, bot_info)
+        bot = Bot(self, bot_info.id, bot_info)
         try:
             gateway_info = await bot.shard_url_get()
             if not gateway_info.url:

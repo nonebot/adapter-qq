@@ -62,8 +62,8 @@ def _check_at_me(bot: "Bot", event: MessageEvent):
 
 class Bot(BaseBot, ApiClient):
     @overrides(BaseBot)
-    def __init__(self, adapter: "Adapter", bot_info: BotInfo):
-        super().__init__(adapter, bot_info.id)
+    def __init__(self, adapter: "Adapter", self_id: str, bot_info: BotInfo):
+        super().__init__(adapter, self_id)
         self.bot_info: BotInfo = bot_info
         self._session_id: Optional[str] = None
         self._self_info: Optional[User] = None
@@ -76,7 +76,7 @@ class Bot(BaseBot, ApiClient):
     @property
     def session_id(self) -> str:
         if self._session_id is None:
-            raise RuntimeError(f"Bot {self.bot_info.id} is not connected!")
+            raise RuntimeError(f"Bot {self.self_id} is not connected!")
         return self._session_id
 
     @session_id.setter
