@@ -142,6 +142,8 @@ class Bot(BaseBot, ApiClient):
             file_image = file_image[-1].data["content"]
         if markdown := (message["markdown"] or None):
             markdown = markdown[-1].data["markdown"]
+        if reference := (message["reference"] or None):
+            reference = reference[-1].data["reference"]
 
         # 私信需要使用 post_dms_messages
         # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
@@ -155,6 +157,7 @@ class Bot(BaseBot, ApiClient):
                 image=image,  # type: ignore
                 file_image=file_image,  # type: ignore
                 markdown=markdown,  # type: ignore
+                message_reference=reference,  # type: ignore
             )
 
         return await self.post_messages(
@@ -166,4 +169,5 @@ class Bot(BaseBot, ApiClient):
             image=image,  # type: ignore
             file_image=file_image,  # type: ignore
             markdown=markdown,  # type: ignore
+            message_reference=reference,  # type: ignore
         )
