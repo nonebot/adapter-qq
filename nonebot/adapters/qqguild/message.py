@@ -1,7 +1,7 @@
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Type, Tuple, Union, Iterable
+from typing import Type, Union, Iterable
 
 from nonebot.typing import overrides
 
@@ -10,7 +10,7 @@ from nonebot.adapters import MessageSegment as BaseMessageSegment
 
 from .utils import escape, unescape
 from .api import Message as GuildMessage
-from .api import MessageArk, MessageEmbed
+from .api import MessageArk, MessageEmbed, MessageReference
 
 
 class MessageSegment(BaseMessageSegment["Message"]):
@@ -50,6 +50,10 @@ class MessageSegment(BaseMessageSegment["Message"]):
     @staticmethod
     def mention_channel(channel_id: int) -> "MentionChannel":
         return MentionChannel("mention_channel", {"channel_id": str(channel_id)})
+
+    @staticmethod
+    def reference(reference: MessageReference) -> "Reference":
+        return Reference("reference", data={"reference": reference})
 
     @staticmethod
     def text(content: str) -> "Text":
@@ -114,6 +118,12 @@ class LocalImage(MessageSegment):
         return "<local_image>"
 
 
+class Reference(MessageSegment):
+    @overrides(MessageSegment)
+    def __str__(self) -> str:
+        return "<reference>"
+
+
 class Message(BaseMessage[MessageSegment]):
     @classmethod
     @overrides(BaseMessage)
@@ -175,6 +185,10 @@ class Message(BaseMessage[MessageSegment]):
             msg.extend(Embed("embed", data={"embed": seg}) for seg in message.embeds)
         if message.ark:
             msg.append(Ark("ark", data={"ark": message.ark}))
+        if message.message_reference:
+            msg.append(
+                Reference("reference", data={"reference": message.message_reference})
+            )
         return msg
 
     def extract_content(self) -> str:
