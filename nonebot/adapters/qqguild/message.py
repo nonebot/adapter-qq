@@ -52,6 +52,10 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return MentionChannel("mention_channel", {"channel_id": str(channel_id)})
 
     @staticmethod
+    def mention_everyone() -> "MentionEveryone":
+        return MentionEveryone("mention_everyone", {})
+
+    @staticmethod
     def reference(reference: MessageReference) -> "Reference":
         return Reference("reference", data={"reference": reference})
 
@@ -189,6 +193,8 @@ class Message(BaseMessage[MessageSegment]):
             msg.append(
                 Reference("reference", data={"reference": message.message_reference})
             )
+        if message.mention_everyone:
+            msg.append(MessageSegment.mention_everyone())
         return msg
 
     def extract_content(self) -> str:
