@@ -146,7 +146,7 @@ if TYPE_CHECKING:
         ) -> Message:
             ...
 
-        async def delete_message_of_id(
+        async def delete_message(
             self,
             *,
             channel_id: int,

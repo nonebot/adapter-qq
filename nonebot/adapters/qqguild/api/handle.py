@@ -263,7 +263,7 @@ async def _get_message_of_id(
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
 
-async def _delete_message_of_id(
+async def _delete_message(
     adapter: "Adapter",
     bot: "Bot",
     channel_id: int,
@@ -590,7 +590,7 @@ API_HANDLERS = {
     "get_channel_roles_permissions": _get_channel_roles_permissions,
     "put_channel_roles_permissions": _put_channel_roles_permissions,
     "get_message_of_id": _get_message_of_id,
-    "delete_message_of_id": _delete_message_of_id,
+    "delete_message": _delete_message,
     "post_messages": _post_messages,
     "post_dms": _post_dms,
     "post_dms_messages": _post_dms_messages,
