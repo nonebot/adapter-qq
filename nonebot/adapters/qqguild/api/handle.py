@@ -263,6 +263,22 @@ async def _get_message_of_id(
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
 
+async def _delete_message_of_id(
+    adapter: "Adapter",
+    bot: "Bot",
+    channel_id: int,
+    message_id: str,
+    hidetip: bool = False,
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"channels/{channel_id}/messages/{message_id}",
+        params={"hidetip": str(hidetip).lower()},
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
 async def _post_messages(
     adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
@@ -574,6 +590,7 @@ API_HANDLERS = {
     "get_channel_roles_permissions": _get_channel_roles_permissions,
     "put_channel_roles_permissions": _put_channel_roles_permissions,
     "get_message_of_id": _get_message_of_id,
+    "delete_message_of_id": _delete_message_of_id,
     "post_messages": _post_messages,
     "post_dms": _post_dms,
     "post_dms_messages": _post_dms_messages,
