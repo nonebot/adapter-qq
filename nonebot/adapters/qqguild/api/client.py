@@ -141,7 +141,18 @@ if TYPE_CHECKING:
         ) -> None:
             ...
 
-        async def get_message_of_id(self, channel_id: int, message_id: str) -> Message:
+        async def get_message_of_id(
+            self, *, channel_id: int, message_id: str
+        ) -> Message:
+            ...
+
+        async def delete_message_of_id(
+            self,
+            *,
+            channel_id: int,
+            message_id: str,
+            hidetip: bool = False,
+        ) -> None:
             ...
 
         async def post_messages(
