@@ -8,7 +8,6 @@ from nonebot.typing import overrides
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
-from .event import MessageEvent
 from .utils import escape, unescape
 from .api import Message as GuildMessage
 from .api import MessageArk, MessageEmbed, MessageReference
@@ -178,13 +177,6 @@ class Message(BaseMessage[MessageSegment]):
     @classmethod
     def from_guild_message(cls, message: GuildMessage) -> "Message":
         msg = Message()
-        to_me = False
-        if isinstance(message, MessageEvent) and message.to_me:
-            to_me = True
-        if message.message_reference and not to_me:
-            msg.append(
-                Reference("reference", data={"reference": message.message_reference})
-            )
         if message.mention_everyone:
             msg.append(MessageSegment.mention_everyone())
         if message.content:
