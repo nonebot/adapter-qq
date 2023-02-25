@@ -254,14 +254,13 @@ async def _put_channel_roles_permissions(
 
 async def _get_message_of_id(
     adapter: "Adapter", bot: "Bot", channel_id: int, message_id: str
-) -> Message:
+) -> MessageGet:
     request = Request(
         "GET",
         adapter.get_api_base() / f"channels/{channel_id}/messages/{message_id}",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
-    resp = await _request(adapter, bot, request)
-    return parse_obj_as(Message, resp["message"])
+    return parse_obj_as(MessageGet, await _request(adapter, bot, request))
 
 
 async def _delete_message(

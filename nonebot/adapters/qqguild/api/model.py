@@ -255,6 +255,10 @@ class Message(BaseModel):
     message_reference: Optional[MessageReference] = None
 
 
+class MessageGet(BaseModel):
+    message: Optional[Message] = None
+
+
 class MessageDelete(BaseModel):
     message: Optional[Message] = None
     op_user: Optional[User] = None
