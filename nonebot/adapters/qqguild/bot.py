@@ -5,6 +5,7 @@ from nonebot.message import handle_event
 
 from nonebot.adapters import Bot as BaseBot
 
+from .utils import log
 from .config import BotInfo
 from .api import User, ApiClient
 from .message import Message, MessageSegment
@@ -12,6 +13,25 @@ from .event import Event, ReadyEvent, MessageEvent, DirectMessageCreateEvent
 
 if TYPE_CHECKING:
     from .adapter import Adapter
+
+
+async def _check_reply(bot: "Bot", event: MessageEvent) -> None:
+    """检查消息中存在的回复，赋值 `event.reply`, `event.to_me`。
+
+    参数:
+        bot: Bot 对象
+        event: MessageEvent 对象
+    """
+    if event.message_reference is None:
+        return
+    try:
+        event.reply = await bot.get_message_of_id(
+            channel_id=event.channel_id, message_id=event.message_reference.message_id  # type: ignore
+        )
+        if event.reply.message.author.id == bot.self_info.id:  # type: ignore
+            event.to_me = True
+    except Exception as e:
+        log("WARNING", f"Error when getting message reply info: {repr(e)}", e)
 
 
 def _check_at_me(bot: "Bot", event: MessageEvent):
@@ -116,6 +136,7 @@ class Bot(BaseBot, ApiClient):
             self.session_id = event.session_id
             self.self_info = event.user
         elif isinstance(event, MessageEvent):
+            await _check_reply(self, event)
             _check_at_me(self, event)
         await handle_event(self, event)
 
