@@ -177,6 +177,12 @@ class Message(BaseMessage[MessageSegment]):
     @classmethod
     def from_guild_message(cls, message: GuildMessage) -> "Message":
         msg = Message()
+        if message.message_reference:
+            msg.append(
+                Reference("reference", data={"reference": message.message_reference})
+            )
+        if message.mention_everyone:
+            msg.append(MessageSegment.mention_everyone())
         if message.content:
             msg.extend(Message(message.content))
         if message.attachments:
@@ -189,12 +195,6 @@ class Message(BaseMessage[MessageSegment]):
             msg.extend(Embed("embed", data={"embed": seg}) for seg in message.embeds)
         if message.ark:
             msg.append(Ark("ark", data={"ark": message.ark}))
-        if message.message_reference:
-            msg.append(
-                Reference("reference", data={"reference": message.message_reference})
-            )
-        if message.mention_everyone:
-            msg.append(MessageSegment.mention_everyone())
         return msg
 
     def extract_content(self) -> str:
