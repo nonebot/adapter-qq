@@ -260,7 +260,8 @@ async def _get_message_of_id(
         adapter.get_api_base() / f"channels/{channel_id}/messages/{message_id}",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
-    return parse_obj_as(Message, await _request(adapter, bot, request))
+    resp = await _request(adapter, bot, request)
+    return parse_obj_as(Message, resp["message"])
 
 
 async def _delete_message(
