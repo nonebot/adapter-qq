@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://v2.nonebot.dev/"><img src="https://raw.githubusercontent.com/nonebot/adapter-qqguild/master/assets/logo.png" width="500" alt="nonebot-adapter-qqguild"></a>
+  <a href="https://v2.nonebot.dev/"><img src="https://raw.githubusercontent.com/nonebot/adapter-qqguild/master/assets/logo.png" width="200" height="200" alt="nonebot-adapter-qqguild"></a>
 </p>
 
 <div align="center">
