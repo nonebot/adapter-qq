@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Type, Tuple
+from typing import Dict, Type, Tuple, Optional
 
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
@@ -9,7 +9,7 @@ from nonebot.adapters import Event as BaseEvent
 from .message import Message
 from .api import Message as GuildMessage
 from .api import User, Guild, Member, Channel
-from .api import MessageAudited, MessageReaction
+from .api import MessageGet, MessageAudited, MessageReaction
 
 
 class EventType(str, Enum):
@@ -185,6 +185,13 @@ class GuildMemberRemoveEvent(GuildMemberEvent):
 # Message Event
 class MessageEvent(Event, GuildMessage):
     to_me: bool = False
+
+    reply: Optional[MessageGet] = None
+    """
+    :说明: 消息中提取的回复消息，内容为 ``get_message_of_id`` API 返回结果
+
+    :类型: ``Optional[MessageGet]``
+    """
 
     @overrides(BaseEvent)
     def get_type(self) -> str:
