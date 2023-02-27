@@ -54,6 +54,10 @@ model-output = "nonebot/adapters/qqguild/api/model.py"
 client-output = "nonebot/adapters/qqguild/api/client.py"
 handle-output = "nonebot/adapters/qqguild/api/handle.py"
 
+[tool.pyright]
+pythonVersion = "3.8"
+pythonPlatform = "All"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
