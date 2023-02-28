@@ -57,31 +57,31 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @overload
     @staticmethod
-    def reference(reference: MessageReference) -> "Reference":
+    def reference(
+        reference: MessageReference, ignore_error: None = None
+    ) -> "Reference":
         ...
 
     @overload
     @staticmethod
-    def reference(
-        message_id: str, ignore_get_message_error: Optional[bool] = None
-    ) -> "Reference":
+    def reference(reference: str, ignore_error: Optional[bool] = None) -> "Reference":
         ...
 
     @staticmethod
-    def reference(*args, **kwargs) -> "Reference":
-        if (
-            len(args) > 0 and isinstance(reference := args[0], MessageReference)
-        ) or isinstance(reference := kwargs.get("reference"), MessageReference):
+    def reference(
+        reference: Union[str, MessageReference], ignore_error: Optional[bool] = None
+    ) -> "Reference":
+        if isinstance(reference, MessageReference):
             return Reference("reference", data={"reference": reference})
 
-        msg_id = (args[0] if len(args) > 0 else None) or (kwargs.get("message_id"))
-        ignore_get_message_error = (args[1] if len(args) > 1 else None) or (
-            kwargs.get("ignore_get_message_error")
+        return Reference(
+            "reference",
+            data={
+                "reference": MessageReference(
+                    message_id=reference, ignore_get_message_error=ignore_error
+                )
+            },
         )
-        reference = MessageReference(
-            message_id=msg_id, ignore_get_message_error=ignore_get_message_error
-        )
-        return Reference("reference", data={"reference": reference})
 
     @staticmethod
     def text(content: str) -> "Text":
