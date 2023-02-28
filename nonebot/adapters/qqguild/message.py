@@ -1,7 +1,7 @@
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Type, Union, Iterable
+from typing import Type, Union, Iterable, Optional, overload
 
 from nonebot.typing import overrides
 
@@ -55,9 +55,31 @@ class MessageSegment(BaseMessageSegment["Message"]):
     def mention_everyone() -> "MentionEveryone":
         return MentionEveryone("mention_everyone", {})
 
+    @overload
     @staticmethod
     def reference(reference: MessageReference) -> "Reference":
-        return Reference("reference", data={"reference": reference})
+        ...
+
+    @overload
+    @staticmethod
+    def reference(reference: str, ignore_error: Optional[bool] = None) -> "Reference":
+        ...
+
+    @staticmethod
+    def reference(
+        reference: Union[str, MessageReference], ignore_error: Optional[bool] = None
+    ) -> "Reference":
+        if isinstance(reference, MessageReference):
+            return Reference("reference", data={"reference": reference})
+
+        return Reference(
+            "reference",
+            data={
+                "reference": MessageReference(
+                    message_id=reference, ignore_get_message_error=ignore_error
+                )
+            },
+        )
 
     @staticmethod
     def text(content: str) -> "Text":
