@@ -57,9 +57,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @overload
     @staticmethod
-    def reference(
-        reference: MessageReference, ignore_error: None = None
-    ) -> "Reference":
+    def reference(reference: MessageReference) -> "Reference":
         ...
 
     @overload
