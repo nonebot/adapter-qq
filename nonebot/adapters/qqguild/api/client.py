@@ -174,7 +174,7 @@ if TYPE_CHECKING:
 
         async def post_dms(
             self, *, recipient_id: str = ..., source_guild_id: str = ...
-        ) -> List[DMS]:
+        ) -> DMS:
             ...
 
         async def post_dms_messages(
@@ -187,7 +187,7 @@ if TYPE_CHECKING:
             message_reference: Optional[MessageReference] = ...,
             image: Optional[str] = ...,
             msg_id: Optional[str] = ...,
-        ) -> List[Message]:
+        ) -> Message:
             ...
 
         async def patch_guild_mute(
