@@ -6,6 +6,7 @@ from nonebot.drivers import Request
 from nonebot.adapters.qqguild.exception import (
     ActionFailed,
     NetworkError,
+    AuditException,
     ApiNotAvailable,
     RateLimitException,
     UnauthorizedException,
@@ -22,7 +23,16 @@ if TYPE_CHECKING:
 async def _request(adapter: "Adapter", bot: "Bot", request: Request) -> Any:
     try:
         data = await adapter.request(request)
-        if 200 <= data.status_code < 300:
+        if (data.status_code == 201 or data.status_code == 202) and data.content:
+            content = json.loads(data.content)
+            audit_id = (
+                content.get("data", {}).get("message_audit", {}).get("audit_id", None)
+            )
+            if audit_id:
+                raise AuditException(audit_id)
+            else:
+                raise ActionFailed(data)
+        elif 200 <= data.status_code < 300:
             return data.content and json.loads(data.content)
         elif data.status_code == 401:
             raise UnauthorizedException(data)
