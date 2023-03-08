@@ -8,6 +8,8 @@ from nonebot.exception import NetworkError as BaseNetworkError
 from nonebot.exception import NoLogException as BaseNoLogException
 from nonebot.exception import ApiNotAvailable as BaseApiNotAvailable
 
+from .store import audit_result
+
 
 class QQGuildAdapterException(AdapterException):
     def __init__(self):
@@ -66,3 +68,15 @@ class NetworkError(BaseNetworkError, QQGuildAdapterException):
 
 class ApiNotAvailable(BaseApiNotAvailable, QQGuildAdapterException):
     pass
+
+
+class AuditException(QQGuildAdapterException):
+    """消息审核"""
+
+    def __init__(self, audit_id: str):
+        super().__init__()
+        self.audit_id = audit_id
+
+    async def get_audit_result(self, timeout: Optional[float] = None):
+        """获取审核结果"""
+        return await audit_result.fetch(self.audit_id, timeout)

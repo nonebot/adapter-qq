@@ -15,8 +15,9 @@ from nonebot.adapters.qqguild.exception import ApiNotAvailable
 from .bot import Bot
 from .utils import log
 from .api import API_HANDLERS
+from .store import audit_result
 from .config import Config, BotInfo
-from .event import Event, event_classes
+from .event import Event, MessageAuditEvent, event_classes
 from .payload import (
     Hello,
     Resume,
@@ -221,6 +222,8 @@ class Adapter(BaseAdapter):
                                         e,
                                     )
                                 else:
+                                    if isinstance(event, MessageAuditEvent):
+                                        audit_result.add_result(event)
                                     asyncio.create_task(bot.handle_event(event))
                             elif isinstance(payload, HeartbeatAck):
                                 log("TRACE", "Heartbeat ACK")
