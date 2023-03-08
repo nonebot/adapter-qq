@@ -1,14 +1,15 @@
 import asyncio
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
-from .event import MessageAuditEvent
+if TYPE_CHECKING:
+    from .event import MessageAuditEvent
 
 
 class AuditResultStore:
     def __init__(self) -> None:
         self._futures: Dict[str, asyncio.Future] = {}
 
-    def add_result(self, result: MessageAuditEvent):
+    def add_result(self, result: "MessageAuditEvent"):
         audit_id = result.audit_id
         if not audit_id:
             raise ValueError("audit_id cannot be empty")
@@ -17,7 +18,7 @@ class AuditResultStore:
 
     async def fetch(
         self, audit_id: str, timeout: Optional[float] = None
-    ) -> MessageAuditEvent:
+    ) -> "MessageAuditEvent":
         future = asyncio.get_event_loop().create_future()
         self._futures[audit_id] = future
         try:
