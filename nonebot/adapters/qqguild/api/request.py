@@ -23,15 +23,16 @@ if TYPE_CHECKING:
 async def _request(adapter: "Adapter", bot: "Bot", request: Request) -> Any:
     try:
         data = await adapter.request(request)
-        if (data.status_code == 201 or data.status_code == 202) and data.content:
-            content = json.loads(data.content)
-            audit_id = (
-                content.get("data", {}).get("message_audit", {}).get("audit_id", None)
-            )
-            if audit_id:
-                raise AuditException(audit_id)
-            else:
-                raise ActionFailed(data)
+        if data.status_code == 201 or data.status_code == 202:
+            if data.content and (content := json.loads(data.content)):
+                audit_id = (
+                    content.get("data", {})
+                    .get("message_audit", {})
+                    .get("audit_id", None)
+                )
+                if audit_id:
+                    raise AuditException(audit_id)
+            raise ActionFailed(data)
         elif 200 <= data.status_code < 300:
             return data.content and json.loads(data.content)
         elif data.status_code == 401:
