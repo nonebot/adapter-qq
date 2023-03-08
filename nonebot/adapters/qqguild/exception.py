@@ -77,6 +77,6 @@ class AuditException(QQGuildAdapterException):
         super().__init__()
         self.audit_id = audit_id
 
-    async def get_audit_result(self, timeout: Optional[float]):
+    async def get_audit_result(self, timeout: Optional[float] = None):
         """获取审核结果"""
         return await audit_result.fetch(self.audit_id, timeout)
