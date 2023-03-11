@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .model import *
 
@@ -15,7 +15,7 @@ def extra_params(data: Dict) -> Dict:
                 # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#content-type
                 data_[k] = (None, json.dumps({k: v}), "application/json")
             else:
-                data_[k] = (None, v.encode('utf-8'), "text/plain")
+                data_[k] = (None, v.encode("utf-8"), "text/plain")
         params = {"files": data_}
     else:
         params = {"json": model_data}

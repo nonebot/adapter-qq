@@ -5,8 +5,8 @@ from pydantic import parse_obj_as
 from nonebot.drivers import Request
 
 from .model import *
-from .request import _request, _exclude_none
 from .utils import extra_params
+from .request import _request, _exclude_none
 
 if TYPE_CHECKING:
     from nonebot.adapters.qqguild.bot import Bot
