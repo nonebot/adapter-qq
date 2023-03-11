@@ -186,6 +186,8 @@ if TYPE_CHECKING:
             ark: Optional[MessageArk] = ...,
             message_reference: Optional[MessageReference] = ...,
             image: Optional[str] = ...,
+            file_image: Optional[bytes] = ...,
+            markdown: Optional[MessageMarkdown] = ...,
             msg_id: Optional[str] = ...,
         ) -> Message:
             ...
