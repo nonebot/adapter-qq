@@ -5,6 +5,7 @@ from pydantic import parse_obj_as
 from nonebot.drivers import Request
 
 from .model import *
+from .utils import parse_send_message
 from .request import _request, _exclude_none
 
 if TYPE_CHECKING:
@@ -282,20 +283,7 @@ async def _delete_message(
 async def _post_messages(
     adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
-    model_data = MessageSend(**data).dict(exclude_none=True)
-    if file_image := model_data.pop("file_image", None):
-        # 使用 multipart/form-data
-        data_: Dict[str, Any] = {"file_image": ("file_image", file_image)}
-        for k, v in model_data.items():
-            if isinstance(v, (dict, list)):
-                # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
-                # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#content-type
-                data_[k] = (None, json.dumps({k: v}), "application/json")
-            else:
-                data_[k] = (None, v, "text/plain")
-        params = {"files": data_}
-    else:
-        params = {"json": model_data}
+    params = parse_send_message(data)
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/messages",
@@ -318,11 +306,12 @@ async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> DMS:
 async def _post_dms_messages(
     adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> Message:
+    params = parse_send_message(data)
     request = Request(
         "POST",
         adapter.get_api_base() / f"dms/{guild_id}/messages",
-        json=MessageSend(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+        **params,
     )
     return parse_obj_as(Message, await _request(adapter, bot, request))
 
