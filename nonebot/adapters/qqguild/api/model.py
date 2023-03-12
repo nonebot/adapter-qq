@@ -1,5 +1,5 @@
+from datetime import datetime
 from typing import List, Optional
-from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -253,6 +253,7 @@ class Message(BaseModel):
     seq: Optional[int] = None
     seq_in_channel: Optional[str] = None
     message_reference: Optional[MessageReference] = None
+    src_guild_id: Optional[str] = None
 
 
 class MessageGet(BaseModel):
