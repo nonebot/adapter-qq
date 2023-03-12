@@ -5,7 +5,7 @@ from pydantic import parse_obj_as
 from nonebot.drivers import Request
 
 from .model import *
-from .utils import extra_params
+from .utils import parse_send_message
 from .request import _request, _exclude_none
 
 if TYPE_CHECKING:
@@ -283,7 +283,7 @@ async def _delete_message(
 async def _post_messages(
     adapter: "Adapter", bot: "Bot", channel_id: int, **data
 ) -> Message:
-    params = extra_params(data)
+    params = parse_send_message(data)
     request = Request(
         "POST",
         adapter.get_api_base() / f"channels/{channel_id}/messages",
@@ -306,7 +306,7 @@ async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> DMS:
 async def _post_dms_messages(
     adapter: "Adapter", bot: "Bot", guild_id: int, **data
 ) -> Message:
-    params = extra_params(data)
+    params = parse_send_message(data)
     request = Request(
         "POST",
         adapter.get_api_base() / f"dms/{guild_id}/messages",
