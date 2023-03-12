@@ -13,7 +13,11 @@ def parse_send_message(data: Dict[str, Any]) -> Dict[str, Any]:
             if isinstance(v, (dict, list)):
                 # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
                 # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#content-type
-                data_[k] = (None, json.dumps({k: v}).encode("utf-8"), "application/json")
+                data_[k] = (
+                    None,
+                    json.dumps({k: v}).encode("utf-8"),
+                    "application/json",
+                )
             else:
                 data_[k] = (None, v.encode("utf-8"), "text/plain")
         params = {"files": data_}
