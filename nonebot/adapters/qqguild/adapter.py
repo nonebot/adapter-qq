@@ -17,7 +17,7 @@ from .utils import log
 from .api import API_HANDLERS
 from .store import audit_result
 from .config import Config, BotInfo
-from .event import Event, MessageAuditEvent, event_classes
+from .event import Event, MessageAuditEvent, ReadyEvent, event_classes
 from .payload import (
     Hello,
     Resume,
@@ -193,6 +193,20 @@ class Adapter(BaseAdapter):
                             )
                             await asyncio.sleep(RECONNECT_INTERVAL)
                             continue
+
+                        if not bot.ready:
+                            # https://bot.q.qq.com/wiki/develop/api/gateway/reference.html#_2-%E9%89%B4%E6%9D%83%E8%BF%9E%E6%8E%A5
+                            # 鉴权成功之后，后台会下发一个 Ready Event
+                            payload = await self.receive_payload(ws)
+                            assert isinstance(
+                                payload, Dispatch
+                            ), f"Received unexpected payload: {payload!r}"
+                            ready_event = self.payload_to_event(payload)
+                            assert isinstance(
+                                ready_event, ReadyEvent
+                            ), f"Received unexpected event: {ready_event!r}"
+                            bot.session_id = ready_event.session_id
+                            bot.self_info = ready_event.user
 
                         # only connect for single shard
                         if bot.self_id not in self.bots:
