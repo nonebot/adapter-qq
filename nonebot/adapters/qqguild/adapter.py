@@ -17,7 +17,7 @@ from .utils import log
 from .api import API_HANDLERS
 from .store import audit_result
 from .config import Config, BotInfo
-from .event import Event, MessageAuditEvent, ReadyEvent, event_classes
+from .event import Event, ReadyEvent, MessageAuditEvent, event_classes
 from .payload import (
     Hello,
     Resume,
