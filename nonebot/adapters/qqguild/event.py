@@ -9,7 +9,7 @@ from nonebot.adapters import Event as BaseEvent
 from .message import Message
 from .api import Message as GuildMessage
 from .api import User, Guild, Member, Channel
-from .api import MessageGet, MessageAudited, MessageReaction
+from .api import MessageGet, MessageDelete, MessageAudited, MessageReaction
 
 
 class EventType(str, Enum):
@@ -32,6 +32,7 @@ class EventType(str, Enum):
 
     # GUILD_MESSAGES
     MESSAGE_CREATE = "MESSAGE_CREATE"
+    MESSAGE_DELETE = "MESSAGE_DELETE"
 
     # GUILD_MESSAGE_REACTIONS
     MESSAGE_REACTION_ADD = "MESSAGE_REACTION_ADD"
@@ -39,6 +40,7 @@ class EventType(str, Enum):
 
     # DIRECT_MESSAGE
     DIRECT_MESSAGE_CREATE = "DIRECT_MESSAGE_CREATE"
+    DIRECT_MESSAGE_DELETE = "DIRECT_MESSAGE_DELETE"
 
     # MESSAGE_AUDIT
     MESSAGE_AUDIT_PASS = "MESSAGE_AUDIT_PASS"
@@ -61,6 +63,7 @@ class EventType(str, Enum):
 
     # AT_MESSAGES
     AT_MESSAGE_CREATE = "AT_MESSAGE_CREATE"
+    PUBLIC_MESSAGE_DELETE = "PUBLIC_MESSAGE_DELETE"
 
 
 class Event(BaseEvent):
@@ -220,14 +223,30 @@ class MessageCreateEvent(MessageEvent):
     __type__ = EventType.MESSAGE_CREATE
 
 
+class MessageDeleteEvent(Event, MessageDelete):
+    __type__ = EventType.MESSAGE_DELETE
+
+    @overrides(BaseEvent)
+    def get_type(self) -> str:
+        return "notice"
+
+
 class AtMessageCreateEvent(MessageEvent):
     __type__ = EventType.AT_MESSAGE_CREATE
     to_me: bool = True
 
 
+class PublicMessageDeleteEvent(MessageDeleteEvent):
+    __type__ = EventType.PUBLIC_MESSAGE_DELETE
+
+
 class DirectMessageCreateEvent(MessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
     to_me: bool = True
+
+
+class DirectMessageDeleteEvent(MessageDeleteEvent):
+    __type__ = EventType.DIRECT_MESSAGE_DELETE
 
 
 # Message Audit Event
@@ -283,8 +302,11 @@ event_classes: Dict[str, Type[Event]] = {
     EventType.GUILD_MEMBER_UPDATE.value: GuildMemberUpdateEvent,
     EventType.GUILD_MEMBER_REMOVE.value: GuildMemberRemoveEvent,
     EventType.MESSAGE_CREATE.value: MessageCreateEvent,
+    EventType.MESSAGE_DELETE.value: MessageDeleteEvent,
     EventType.AT_MESSAGE_CREATE.value: AtMessageCreateEvent,
+    EventType.PUBLIC_MESSAGE_DELETE.value: PublicMessageDeleteEvent,
     EventType.DIRECT_MESSAGE_CREATE.value: DirectMessageCreateEvent,
+    EventType.DIRECT_MESSAGE_DELETE.value: DirectMessageDeleteEvent,
     EventType.MESSAGE_AUDIT_PASS.value: MessageAuditPassEvent,
     EventType.MESSAGE_AUDIT_REJECT.value: MessageAuditRejectEvent,
     EventType.MESSAGE_REACTION_ADD.value: MessageReactionAddEvent,
@@ -308,8 +330,11 @@ __all__ = [
     "GuildMemberRemoveEvent",
     "MessageEvent",
     "MessageCreateEvent",
+    "MessageDeleteEvent",
     "AtMessageCreateEvent",
+    "PublicMessageDeleteEvent",
     "DirectMessageCreateEvent",
+    "DirectMessageDeleteEvent",
     "MessageAuditEvent",
     "MessageAuditPassEvent",
     "MessageAuditRejectEvent",
