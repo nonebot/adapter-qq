@@ -251,6 +251,7 @@ class Adapter(BaseAdapter):
             assert isinstance(
                 payload, Dispatch
             ), f"Received unexpected payload: {payload!r}"
+            bot.sequence = payload.sequence
             ready_event = self.payload_to_event(payload)
             assert isinstance(
                 ready_event, ReadyEvent
