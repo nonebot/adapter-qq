@@ -9,7 +9,7 @@ from .utils import log
 from .config import BotInfo
 from .api import User, ApiClient
 from .message import Message, MessageSegment
-from .event import Event, ReadyEvent, MessageEvent, DirectMessageCreateEvent
+from .event import Event, MessageEvent, DirectMessageCreateEvent
 
 if TYPE_CHECKING:
     from .adapter import Adapter
@@ -132,10 +132,7 @@ class Bot(BaseBot, ApiClient):
         self._sequence = None
 
     async def handle_event(self, event: Event) -> None:
-        if isinstance(event, ReadyEvent):
-            self.session_id = event.session_id
-            self.self_info = event.user
-        elif isinstance(event, MessageEvent):
+        if isinstance(event, MessageEvent):
             await _check_reply(self, event)
             _check_at_me(self, event)
         await handle_event(self, event)
@@ -170,7 +167,7 @@ class Bot(BaseBot, ApiClient):
         # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
         if isinstance(event, DirectMessageCreateEvent):
             return await self.post_dms_messages(
-                guild_id=event.guild_id,
+                guild_id=event.guild_id,  # type: ignore
                 msg_id=event.id,
                 content=content,
                 embed=embed,  # type: ignore

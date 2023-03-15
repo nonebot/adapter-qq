@@ -17,7 +17,7 @@ from .utils import log
 from .api import API_HANDLERS
 from .store import audit_result
 from .config import Config, BotInfo
-from .event import Event, MessageAuditEvent, event_classes
+from .event import Event, ReadyEvent, MessageAuditEvent, event_classes
 from .payload import (
     Hello,
     Resume,
@@ -141,111 +141,25 @@ class Adapter(BaseAdapter):
                     )
 
                     try:
-                        try:
-                            payload = await self.receive_payload(ws)
-                            assert isinstance(
-                                payload, Hello
-                            ), f"Received unexpected payload: {payload!r}"
-                            heartbeat_interval = payload.data.heartbeat_interval
-                        except Exception as e:
-                            log(
-                                "ERROR",
-                                "<r><bg #f8bbd0>Error while receiving server hello event</bg #f8bbd0></r>",
-                                e,
-                            )
+                        # hello
+                        heartbeat_interval = await self._hello(ws)
+                        if not heartbeat_interval:
                             await asyncio.sleep(RECONNECT_INTERVAL)
                             continue
 
-                        if not bot.ready:
-                            payload = Identify.parse_obj(
-                                {
-                                    "data": {
-                                        "token": self.get_authorization(bot.bot_info),
-                                        "intents": bot.bot_info.intent.to_int(),
-                                        "shard": list(shard),
-                                        "properties": {
-                                            "$os": sys.platform,
-                                            "$sdk": "NoneBot2",
-                                        },
-                                    },
-                                }
-                            )
-                        else:
-                            payload = Resume.parse_obj(
-                                {
-                                    "data": {
-                                        "token": self.get_authorization(bot.bot_info),
-                                        "session_id": bot.session_id,
-                                        "seq": bot.sequence,
-                                    }
-                                }
-                            )
-
-                        try:
-                            await ws.send(json.dumps(payload.dict()))
-                        except Exception as e:
-                            log(
-                                "ERROR",
-                                "<r><bg #f8bbd0>Error while sending " + "Identify"
-                                if isinstance(payload, Identify)
-                                else "Resume" + " event</bg #f8bbd0></r>",
-                                e,
-                            )
+                        # identify/resume
+                        result = await self._authenticate(bot, ws, shard)
+                        if not result:
                             await asyncio.sleep(RECONNECT_INTERVAL)
                             continue
 
-                        # only connect for single shard
-                        if bot.self_id not in self.bots:
-                            self.bot_connect(bot)
-                            log(
-                                "INFO",
-                                f"<y>Bot {escape_tag(bot.self_id)}</y> connected",
-                            )
                         # start heartbeat
                         heartbeat_task = asyncio.create_task(
                             self._heartbeat(ws, bot, heartbeat_interval)
                         )
-                        while True:
-                            payload = await self.receive_payload(ws)
-                            log(
-                                "TRACE",
-                                f"Received payload: {escape_tag(repr(payload))}",
-                            )
-                            if isinstance(payload, Dispatch):
-                                bot.sequence = payload.sequence
-                                try:
-                                    event = self.payload_to_event(payload)
-                                except Exception as e:
-                                    log(
-                                        "WARNING",
-                                        f"Failed to parse event {escape_tag(repr(payload))}",
-                                        e,
-                                    )
-                                else:
-                                    if isinstance(event, MessageAuditEvent):
-                                        audit_result.add_result(event)
-                                    asyncio.create_task(bot.handle_event(event))
-                            elif isinstance(payload, HeartbeatAck):
-                                log("TRACE", "Heartbeat ACK")
-                                continue
-                            elif isinstance(payload, Reconnect):
-                                log(
-                                    "WARNING",
-                                    "Received reconnect event from server. Try to reconnect...",
-                                )
-                                break
-                            elif isinstance(payload, InvalidSession):
-                                bot.clear()
-                                log(
-                                    "ERROR",
-                                    "Received invalid session event from server. Try to reconnect...",
-                                )
-                                break
-                            else:
-                                log(
-                                    "WARNING",
-                                    f"Unknown payload from server: {escape_tag(repr(payload))}",
-                                )
+
+                        # process events
+                        await self._loop(bot, ws)
                     except WebSocketClosed as e:
                         log(
                             "ERROR",
@@ -275,7 +189,90 @@ class Adapter(BaseAdapter):
 
             await asyncio.sleep(RECONNECT_INTERVAL)
 
+    async def _hello(self, ws: WebSocket):
+        """接收并处理服务器的 Hello 事件"""
+        try:
+            payload = await self.receive_payload(ws)
+            assert isinstance(
+                payload, Hello
+            ), f"Received unexpected payload: {payload!r}"
+            return payload.data.heartbeat_interval
+        except Exception as e:
+            log(
+                "ERROR",
+                "<r><bg #f8bbd0>Error while receiving server hello event</bg #f8bbd0></r>",
+                e,
+            )
+
+    async def _authenticate(self, bot: Bot, ws: WebSocket, shard: Tuple[int, int]):
+        """鉴权连接"""
+        if not bot.ready:
+            payload = Identify.parse_obj(
+                {
+                    "data": {
+                        "token": self.get_authorization(bot.bot_info),
+                        "intents": bot.bot_info.intent.to_int(),
+                        "shard": list(shard),
+                        "properties": {
+                            "$os": sys.platform,
+                            "$sdk": "NoneBot2",
+                        },
+                    },
+                }
+            )
+        else:
+            payload = Resume.parse_obj(
+                {
+                    "data": {
+                        "token": self.get_authorization(bot.bot_info),
+                        "session_id": bot.session_id,
+                        "seq": bot.sequence,
+                    }
+                }
+            )
+
+        try:
+            await ws.send(json.dumps(payload.dict()))
+        except Exception as e:
+            log(
+                "ERROR",
+                "<r><bg #f8bbd0>Error while sending " + "Identify"
+                if isinstance(payload, Identify)
+                else "Resume" + " event</bg #f8bbd0></r>",
+                e,
+            )
+            return
+
+        ready_event = None
+        if not bot.ready:
+            # https://bot.q.qq.com/wiki/develop/api/gateway/reference.html#_2-%E9%89%B4%E6%9D%83%E8%BF%9E%E6%8E%A5
+            # 鉴权成功之后，后台会下发一个 Ready Event
+            payload = await self.receive_payload(ws)
+            assert isinstance(
+                payload, Dispatch
+            ), f"Received unexpected payload: {payload!r}"
+            ready_event = self.payload_to_event(payload)
+            assert isinstance(
+                ready_event, ReadyEvent
+            ), f"Received unexpected event: {ready_event!r}"
+            bot.session_id = ready_event.session_id
+            bot.self_info = ready_event.user
+
+        # only connect for single shard
+        if bot.self_id not in self.bots:
+            self.bot_connect(bot)
+            log(
+                "INFO",
+                f"<y>Bot {escape_tag(bot.self_id)}</y> connected",
+            )
+
+        if ready_event:
+            asyncio.create_task(bot.handle_event(ready_event))
+
+        return True
+
     async def _heartbeat(self, ws: WebSocket, bot: Bot, heartbeat_interval: int):
+        """心跳"""
         while True:
             if bot.has_sequence:
                 log("TRACE", f"Heartbeat {bot.sequence}")
@@ -285,6 +282,50 @@ class Adapter(BaseAdapter):
                 except Exception:
                     pass
             await asyncio.sleep(heartbeat_interval / 1000)
+
+    async def _loop(self, bot: Bot, ws: WebSocket):
+        """接收并处理事件"""
+        while True:
+            payload = await self.receive_payload(ws)
+            log(
+                "TRACE",
+                f"Received payload: {escape_tag(repr(payload))}",
+            )
+            if isinstance(payload, Dispatch):
+                bot.sequence = payload.sequence
+                try:
+                    event = self.payload_to_event(payload)
+                except Exception as e:
+                    log(
+                        "WARNING",
+                        f"Failed to parse event {escape_tag(repr(payload))}",
+                        e,
+                    )
+                else:
+                    if isinstance(event, MessageAuditEvent):
+                        audit_result.add_result(event)
+                    asyncio.create_task(bot.handle_event(event))
+            elif isinstance(payload, HeartbeatAck):
+                log("TRACE", "Heartbeat ACK")
+                continue
+            elif isinstance(payload, Reconnect):
+                log(
+                    "WARNING",
+                    "Received reconnect event from server. Try to reconnect...",
+                )
+                break
+            elif isinstance(payload, InvalidSession):
+                bot.clear()
+                log(
+                    "ERROR",
+                    "Received invalid session event from server. Try to reconnect...",
+                )
+                break
+            else:
+                log(
+                    "WARNING",
+                    f"Unknown payload from server: {escape_tag(repr(payload))}",
+                )
 
     def get_api_base(self) -> URL:
         if self.qqguild_config.qqguild_is_sandbox:
