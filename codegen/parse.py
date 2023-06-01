@@ -1,7 +1,7 @@
 import warnings
+from typing import List, Tuple
 from urllib.parse import urlparse
 from contextvars import ContextVar
-from typing import Any, Dict, List, Tuple, Optional
 
 from yarl import URL
 from pydantic import parse_obj_as

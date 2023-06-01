@@ -1,5 +1,4 @@
-import json
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import parse_obj_as
 from nonebot.drivers import Request
