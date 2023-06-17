@@ -1,7 +1,8 @@
 from typing import Union
 
 from nonebot.permission import Permission
-from .event import AtMessageCreateEvent, MessageCreateEvent
+
+from .event import MessageCreateEvent, AtMessageCreateEvent
 
 
 async def _guild_admin(event: Union[AtMessageCreateEvent, MessageCreateEvent]) -> bool:

@@ -211,8 +211,9 @@ class MessageEvent(Event, GuildMessage):
     @overrides(BaseEvent)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"from @{self.author.username}/{self.author.id} Roles:{self.member.roles} [Guild:{self.guild_id}/{self.channel_id}]: {self.get_message()}")
-    
+            f"from @{self.author.username}/{self.author.id} Roles:{self.member.roles} [Guild:{self.guild_id}/{self.channel_id}]: {self.get_message()}"
+        )
+
     @overrides(Event)
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
@@ -248,11 +249,12 @@ class PublicMessageDeleteEvent(MessageDeleteEvent):
 class DirectMessageCreateEvent(MessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
     to_me: bool = True
-    
+
     @overrides(MessageEvent)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"from @{self.author.username}/{self.author.id} [Guild:{self.guild_id}/{self.channel_id}] [Src_Guild:{self.src_guild_id}]: {self.get_message()}")
+            f"from @{self.author.username}/{self.author.id} [Guild:{self.guild_id}/{self.channel_id}] [Src_Guild:{self.src_guild_id}]: {self.get_message()}"
+        )
 
 
 class DirectMessageDeleteEvent(MessageDeleteEvent):
