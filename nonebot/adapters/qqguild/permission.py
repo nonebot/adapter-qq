@@ -1,10 +1,13 @@
 from typing import Union
 
 from nonebot.permission import Permission
+
 from .event import MessageCreateEvent, AtMessageCreateEvent
 
 
-async def _guild_channel_admin(event: Union[AtMessageCreateEvent, MessageCreateEvent]) -> bool:
+async def _guild_channel_admin(
+    event: Union[AtMessageCreateEvent, MessageCreateEvent]
+) -> bool:
     return 5 in event.member.roles
 
 
