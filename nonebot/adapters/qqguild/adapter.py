@@ -10,13 +10,13 @@ from nonebot.exception import WebSocketClosed
 from nonebot.drivers import URL, Driver, Request, WebSocket, ForwardDriver
 
 from nonebot.adapters import Adapter as BaseAdapter
-from nonebot.adapters.qqguild.exception import ApiNotAvailable
 
 from .bot import Bot
 from .utils import log
 from .api import API_HANDLERS
 from .store import audit_result
 from .config import Config, BotInfo
+from .exception import ApiNotAvailable
 from .event import Event, ReadyEvent, MessageAuditEvent, event_classes
 from .payload import (
     Hello,
