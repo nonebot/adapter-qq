@@ -217,7 +217,7 @@ class MessageEvent(Event, GuildMessage):
     @overrides(BaseEvent)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"from @{self.author.username}/{self.author.id} Roles:{self.member.roles} [Guild:{self.guild_id}/{self.channel_id}]: {self.get_message()}"
+            f"Message {self.id} from {self.author.username}@[Guild:{self.guild_id}/{self.channel_id}] Roles:{self.member.roles}: {self.get_message()}"
         )
 
     @overrides(Event)
@@ -259,7 +259,7 @@ class DirectMessageCreateEvent(MessageEvent):
     @overrides(MessageEvent)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"from @{self.author.username}/{self.author.id} [Guild:{self.guild_id}/{self.channel_id}] [Src_Guild:{self.src_guild_id}]: {self.get_message()}"
+            f"Message {self.id} from {self.author.username}: {self.get_message()}"
         )
 
 
