@@ -173,7 +173,7 @@ class GuildMemberEvent(Event, Member):
         return escape_tag(
             f"Notice {self.user.username}@[Guild:{self.guild_id}] Roles:{self.roles}"
         )
-    
+
     @overrides(Event)
     def get_session_id(self) -> str:
         return str(self.user.id)  # type: ignore
