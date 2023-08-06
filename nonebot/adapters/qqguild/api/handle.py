@@ -33,9 +33,9 @@ async def _me(adapter: "Adapter", bot: "Bot") -> User:
 async def _guilds(
     adapter: "Adapter",
     bot: "Bot",
-    before: Optional[str] = ...,
-    after: Optional[str] = ...,
-    limit: Optional[float] = ...,
+    before: Optional[str] = None,
+    after: Optional[str] = None,
+    limit: Optional[float] = None,
 ) -> List[Guild]:
     request = Request(
         "GET",
@@ -101,8 +101,8 @@ async def _get_members(
     adapter: "Adapter",
     bot: "Bot",
     guild_id: int,
-    after: Optional[str] = ...,
-    limit: Optional[float] = ...,
+    after: Optional[str] = None,
+    limit: Optional[float] = None,
 ) -> List[Member]:
     request = Request(
         "GET",
