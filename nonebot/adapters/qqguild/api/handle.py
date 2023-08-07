@@ -24,7 +24,7 @@ async def _get_guild(adapter: "Adapter", bot: "Bot", guild_id: int) -> Guild:
 async def _me(adapter: "Adapter", bot: "Bot") -> User:
     request = Request(
         "GET",
-        adapter.get_api_base() / f"users/@me",
+        adapter.get_api_base() / "users/@me",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(User, await _request(adapter, bot, request))
@@ -39,7 +39,7 @@ async def _guilds(
 ) -> List[Guild]:
     request = Request(
         "GET",
-        adapter.get_api_base() / f"users/@me/guilds",
+        adapter.get_api_base() / "users/@me/guilds",
         params=_exclude_none({"before": before, "after": after, "limit": limit}),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
@@ -295,7 +295,7 @@ async def _post_messages(
 async def _post_dms(adapter: "Adapter", bot: "Bot", **data) -> DMS:
     request = Request(
         "POST",
-        adapter.get_api_base() / f"users/@me/dms",
+        adapter.get_api_base() / "users/@me/dms",
         json=PostDmsBody(**data).dict(exclude_none=True),
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
@@ -483,7 +483,7 @@ async def _post_api_permission_demand(
 async def _url_get(adapter: "Adapter", bot: "Bot") -> UrlGetReturn:
     request = Request(
         "GET",
-        adapter.get_api_base() / f"gateway",
+        adapter.get_api_base() / "gateway",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(UrlGetReturn, await _request(adapter, bot, request))
@@ -492,7 +492,7 @@ async def _url_get(adapter: "Adapter", bot: "Bot") -> UrlGetReturn:
 async def _shard_url_get(adapter: "Adapter", bot: "Bot") -> ShardUrlGetReturn:
     request = Request(
         "GET",
-        adapter.get_api_base() / f"gateway/bot",
+        adapter.get_api_base() / "gateway/bot",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
     return parse_obj_as(ShardUrlGetReturn, await _request(adapter, bot, request))

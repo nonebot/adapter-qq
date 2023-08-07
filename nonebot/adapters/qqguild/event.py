@@ -171,7 +171,8 @@ class GuildMemberEvent(Event, Member):
     @overrides(Event)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"Notice {getattr(self.user, 'username', None)}@[Guild:{self.guild_id}] Roles:{self.roles}"
+            f"Notice {getattr(self.user, 'username', None)}"
+            f"@[Guild:{self.guild_id}] Roles:{self.roles}"
         )
 
     @overrides(Event)
@@ -217,7 +218,10 @@ class MessageEvent(Event, GuildMessage):
     @overrides(BaseEvent)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"Message {self.id} from {getattr(self.author, 'username', None)}@[Guild:{self.guild_id}/{self.channel_id}] Roles:{getattr(self.member, 'roles', None)}: {self.get_message()}"
+            f"Message {self.id} from "
+            f"{getattr(self.author, 'username', None)}"
+            f"@[Guild:{self.guild_id}/{self.channel_id}] "
+            f"Roles:{getattr(self.member, 'roles', None)}: {self.get_message()}"
         )
 
     @overrides(Event)
@@ -259,7 +263,8 @@ class DirectMessageCreateEvent(MessageEvent):
     @overrides(MessageEvent)
     def get_event_description(self) -> str:
         return escape_tag(
-            f"Message {self.id} from {getattr(self.author, 'username', None)}: {self.get_message()}"
+            f"Message {self.id} from "
+            f"{getattr(self.author, 'username', None)}: {self.get_message()}"
         )
 
 

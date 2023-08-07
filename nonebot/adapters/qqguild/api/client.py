@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, List, Optional
 
-from pydantic import Extra, BaseModel
-
 from .model import *
 
 if TYPE_CHECKING:

@@ -26,7 +26,8 @@ async def _check_reply(bot: "Bot", event: MessageEvent) -> None:
         return
     try:
         event.reply = await bot.get_message_of_id(
-            channel_id=event.channel_id, message_id=event.message_reference.message_id  # type: ignore
+            channel_id=event.channel_id,  # type: ignore
+            message_id=event.message_reference.message_id,  # type: ignore
         )
         if event.reply.message.author.id == bot.self_info.id:  # type: ignore
             event.to_me = True

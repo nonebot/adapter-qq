@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Any, Dict, List, Union, Literal, Optional, Annotated
+from typing import Any, Dict, List, Union, Literal, Optional, Annotated, TypeAlias
 
 from pydantic import Field, BaseModel
 
@@ -84,7 +84,7 @@ class String(BaseModel):
         return "str"
 
 
-Type = Annotated[
+Type: TypeAlias = Annotated[
     Union[Array, Boolean, Integer, Number, Object, String], Field(discriminator="type")
 ]
 

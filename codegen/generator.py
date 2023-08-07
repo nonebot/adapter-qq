@@ -34,7 +34,9 @@ def generate(config: Config, apis: List[API]):
     handle_template = env.get_template("handle.py.jinja")
     handle_output = handle_template.render(apis=apis)
     model_template = env.get_template("model.py.jinja")
-    model_output = model_template.render(models=sort_models(obj_schemas).values())  # type: ignore
+    model_output = model_template.render(
+        models=sort_models(obj_schemas).values()  # type: ignore
+    )
     config.model_output.write_text(model_output)
     config.client_output.write_text(client_output)
     config.handle_output.write_text(handle_output)

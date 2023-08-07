@@ -160,7 +160,7 @@ class Message(BaseMessage[MessageSegment]):
     def __add__(
         self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
     ) -> "Message":
-        return super(Message, self).__add__(
+        return super().__add__(
             MessageSegment.text(other) if isinstance(other, str) else other
         )
 
@@ -168,7 +168,7 @@ class Message(BaseMessage[MessageSegment]):
     def __radd__(
         self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
     ) -> "Message":
-        return super(Message, self).__radd__(
+        return super().__radd__(
             MessageSegment.text(other) if isinstance(other, str) else other
         )
 

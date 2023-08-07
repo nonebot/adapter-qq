@@ -6,7 +6,6 @@ from contextvars import ContextVar
 from yarl import URL
 from pydantic import parse_obj_as
 
-from .config import Config
 from .source import Source
 from .model import API, Type, Object, DataType, PathParam, QueryParam, obj_schemas
 

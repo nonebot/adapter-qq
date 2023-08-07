@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any, Dict
 
 import tomli
-from yarl import URL
 from pydantic import BaseModel
 
 

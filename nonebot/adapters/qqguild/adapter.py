@@ -51,8 +51,8 @@ class Adapter(BaseAdapter):
     def setup(self) -> None:
         if not isinstance(self.driver, ForwardDriver):
             raise RuntimeError(
-                f"Current driver {self.config.driver} doesn't support forward connections!"
-                "QQ Guild Adapter need a ForwardDriver to work."
+                f"Current driver {self.config.driver} does not support "
+                "forward connections! QQ Guild Adapter need a ForwardDriver to work."
             )
         self.driver.on_startup(self.startup)
         self.driver.on_shutdown(self.shutdown)
@@ -60,13 +60,16 @@ class Adapter(BaseAdapter):
     async def startup(self) -> None:
         log(
             "DEBUG",
-            f"QQ Guild run in sandbox mode: <y>{self.qqguild_config.qqguild_is_sandbox}</y>",
+            (
+                "QQ Guild run in sandbox mode: "
+                f"<y>{self.qqguild_config.qqguild_is_sandbox}</y>"
+            ),
         )
 
         try:
             self.api_base = self.get_api_base()
         except Exception as e:
-            log("ERROR", f"Failed to parse QQ Guild api base url", e)
+            log("ERROR", "Failed to parse QQ Guild api base url", e)
             raise
 
         log("DEBUG", f"QQ Guild api base url: <y>{escape_tag(str(self.api_base))}</y>")
@@ -137,7 +140,10 @@ class Adapter(BaseAdapter):
                 async with self.websocket(request) as ws:
                     log(
                         "DEBUG",
-                        f"WebSocket Connection to {escape_tag(str(ws_url))} established",
+                        (
+                            "WebSocket Connection to "
+                            f"{escape_tag(str(ws_url))} established"
+                        ),
                     )
 
                     try:
@@ -163,14 +169,18 @@ class Adapter(BaseAdapter):
                     except WebSocketClosed as e:
                         log(
                             "ERROR",
-                            f"<r><bg #f8bbd0>WebSocket Closed</bg #f8bbd0></r>",
+                            "<r><bg #f8bbd0>WebSocket Closed</bg #f8bbd0></r>",
                             e,
                         )
                     except Exception as e:
                         log(
                             "ERROR",
-                            "<r><bg #f8bbd0>Error while process data from websocket "
-                            f"{escape_tag(str(ws_url))}. Trying to reconnect...</bg #f8bbd0></r>",
+                            (
+                                "<r><bg #f8bbd0>"
+                                "Error while process data from websocket "
+                                f"{escape_tag(str(ws_url))}. Trying to reconnect..."
+                                "</bg #f8bbd0></r>"
+                            ),
                             e,
                         )
                     finally:
@@ -182,8 +192,12 @@ class Adapter(BaseAdapter):
             except Exception as e:
                 log(
                     "ERROR",
-                    "<r><bg #f8bbd0>Error while setup websocket to "
-                    f"{escape_tag(str(ws_url))}. Trying to reconnect...</bg #f8bbd0></r>",
+                    (
+                        "<r><bg #f8bbd0>"
+                        "Error while setup websocket to "
+                        f"{escape_tag(str(ws_url))}. Trying to reconnect..."
+                        "</bg #f8bbd0></r>"
+                    ),
                     e,
                 )
 
@@ -200,7 +214,11 @@ class Adapter(BaseAdapter):
         except Exception as e:
             log(
                 "ERROR",
-                "<r><bg #f8bbd0>Error while receiving server hello event</bg #f8bbd0></r>",
+                (
+                    "<r><bg #f8bbd0>"
+                    "Error while receiving server hello event"
+                    "</bg #f8bbd0></r>"
+                ),
                 e,
             )
 
