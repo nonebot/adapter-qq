@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Union, Optional
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional
 
 from nonebot.typing import overrides
 from nonebot.message import handle_event
@@ -138,6 +138,35 @@ class Bot(BaseBot, ApiClient):
             _check_at_me(self, event)
         await handle_event(self, event)
 
+    @staticmethod
+    def _extract_send_message(message: Union[str, Message, MessageSegment]) -> Dict[str, Any]:
+        message = MessageSegment.text(message) if isinstance(message, str) else message
+        message = message if isinstance(message, Message) else Message(message)
+
+        kwargs = {}
+        content = message.extract_content() or None
+        kwargs["content"] = content
+        if embed := (message["embed"] or None):
+            embed = embed[-1].data["embed"]
+            kwargs["embed"] = embed
+        if ark := (message["ark"] or None):
+            ark = ark[-1].data["ark"]
+            kwargs["ark"] = ark
+        if image := (message["attachment"] or None):
+            image = image[-1].data["url"]
+            kwargs["image"] = image
+        if file_image := (message["file_image"] or None):
+            file_image = file_image[-1].data["content"]
+            kwargs["file_image"] = file_image
+        if markdown := (message["markdown"] or None):
+            markdown = markdown[-1].data["markdown"]
+            kwargs["markdown"] = markdown
+        if reference := (message["reference"] or None):
+            reference = reference[-1].data["reference"]
+            kwargs["reference"] = reference
+
+        return kwargs
+
     async def send_to_dms(
         self,
         message: Union[str, Message, MessageSegment],
@@ -145,33 +174,10 @@ class Bot(BaseBot, ApiClient):
         *,
         msg_id: Optional[int] = None
     ) -> Any:
-        message = MessageSegment.text(message) if isinstance(message, str) else message
-        message = message if isinstance(message, Message) else Message(message)
-
-        content = message.extract_content() or None
-        if embed := (message["embed"] or None):
-            embed = embed[-1].data["embed"]
-        if ark := (message["ark"] or None):
-            ark = ark[-1].data["ark"]
-        if image := (message["attachment"] or None):
-            image = image[-1].data["url"]
-        if file_image := (message["file_image"] or None):
-            file_image = file_image[-1].data["content"]
-        if markdown := (message["markdown"] or None):
-            markdown = markdown[-1].data["markdown"]
-        if reference := (message["reference"] or None):
-            reference = reference[-1].data["reference"]
-
         return await self.post_dms_messages(
             guild_id=guild_id,  # type: ignore
             msg_id=msg_id,
-            content=content,
-            embed=embed,  # type: ignore
-            ark=ark,  # type: ignore
-            image=image,  # type: ignore
-            file_image=file_image,  # type: ignore
-            markdown=markdown,  # type: ignore
-            message_reference=reference,  # type: ignore
+            **self._extract_send_message(message=message)
         )
 
     async def send_to(
@@ -181,33 +187,10 @@ class Bot(BaseBot, ApiClient):
         *,
         msg_id: Optional[int] = None
     ) -> Any:
-        message = MessageSegment.text(message) if isinstance(message, str) else message
-        message = message if isinstance(message, Message) else Message(message)
-
-        content = message.extract_content() or None
-        if embed := (message["embed"] or None):
-            embed = embed[-1].data["embed"]
-        if ark := (message["ark"] or None):
-            ark = ark[-1].data["ark"]
-        if image := (message["attachment"] or None):
-            image = image[-1].data["url"]
-        if file_image := (message["file_image"] or None):
-            file_image = file_image[-1].data["content"]
-        if markdown := (message["markdown"] or None):
-            markdown = markdown[-1].data["markdown"]
-        if reference := (message["reference"] or None):
-            reference = reference[-1].data["reference"]
-
         return await self.post_messages(
             channel_id=channel_id,
             msg_id=msg_id,
-            content=content,
-            embed=embed,  # type: ignore
-            ark=ark,  # type: ignore
-            image=image,  # type: ignore
-            file_image=file_image,  # type: ignore
-            markdown=markdown,  # type: ignore
-            message_reference=reference,  # type: ignore
+            **self._extract_send_message(message=message)
         )
 
     @overrides(BaseBot)
