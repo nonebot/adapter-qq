@@ -139,7 +139,9 @@ class Bot(BaseBot, ApiClient):
         await handle_event(self, event)
 
     @staticmethod
-    def _extract_send_message(message: Union[str, Message, MessageSegment]) -> Dict[str, Any]:
+    def _extract_send_message(
+        message: Union[str, Message, MessageSegment]
+    ) -> Dict[str, Any]:
         message = MessageSegment.text(message) if isinstance(message, str) else message
         message = message if isinstance(message, Message) else Message(message)
 
@@ -172,12 +174,12 @@ class Bot(BaseBot, ApiClient):
         message: Union[str, Message, MessageSegment],
         guild_id: int,
         *,
-        msg_id: Optional[int] = None
+        msg_id: Optional[int] = None,
     ) -> Any:
         return await self.post_dms_messages(
             guild_id=guild_id,  # type: ignore
             msg_id=msg_id,
-            **self._extract_send_message(message=message)
+            **self._extract_send_message(message=message),
         )
 
     async def send_to(
@@ -185,12 +187,12 @@ class Bot(BaseBot, ApiClient):
         message: Union[str, Message, MessageSegment],
         channel_id: int,
         *,
-        msg_id: Optional[int] = None
+        msg_id: Optional[int] = None,
     ) -> Any:
         return await self.post_messages(
             channel_id=channel_id,
             msg_id=msg_id,
-            **self._extract_send_message(message=message)
+            **self._extract_send_message(message=message),
         )
 
     @overrides(BaseBot)
@@ -206,6 +208,10 @@ class Bot(BaseBot, ApiClient):
         if isinstance(event, DirectMessageCreateEvent):
             # 私信需要使用 post_dms_messages
             # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
-            return await self.send_to_dms(message=message, guild_id=event.guild_id, msg_id=event.id)
+            return await self.send_to_dms(
+                message=message, guild_id=event.guild_id, msg_id=event.id
+            )
         else:
-            return await self.send_to(message=message, channel_id=event.channel_id, msg_id=event.id)
+            return await self.send_to(
+                message=message, channel_id=event.channel_id, msg_id=event.id
+            )
