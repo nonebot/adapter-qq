@@ -138,15 +138,13 @@ class Bot(BaseBot, ApiClient):
             _check_at_me(self, event)
         await handle_event(self, event)
 
-    @overrides(BaseBot)
-    async def send(
+    async def send_to_dms(
         self,
-        event: Event,
         message: Union[str, Message, MessageSegment],
-        **kwargs,
+        guild_id: int,
+        *,
+        msg_id: Optional[int] = None
     ) -> Any:
-        if not isinstance(event, MessageEvent) or not event.channel_id or not event.id:
-            raise RuntimeError("Event cannot be replied to!")
         message = MessageSegment.text(message) if isinstance(message, str) else message
         message = message if isinstance(message, Message) else Message(message)
 
@@ -164,24 +162,9 @@ class Bot(BaseBot, ApiClient):
         if reference := (message["reference"] or None):
             reference = reference[-1].data["reference"]
 
-        # 私信需要使用 post_dms_messages
-        # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
-        if isinstance(event, DirectMessageCreateEvent):
-            return await self.post_dms_messages(
-                guild_id=event.guild_id,  # type: ignore
-                msg_id=event.id,
-                content=content,
-                embed=embed,  # type: ignore
-                ark=ark,  # type: ignore
-                image=image,  # type: ignore
-                file_image=file_image,  # type: ignore
-                markdown=markdown,  # type: ignore
-                message_reference=reference,  # type: ignore
-            )
-
-        return await self.post_messages(
-            channel_id=event.channel_id,
-            msg_id=event.id,
+        return await self.post_dms_messages(
+            guild_id=guild_id,  # type: ignore
+            msg_id=msg_id,
             content=content,
             embed=embed,  # type: ignore
             ark=ark,  # type: ignore
@@ -190,3 +173,56 @@ class Bot(BaseBot, ApiClient):
             markdown=markdown,  # type: ignore
             message_reference=reference,  # type: ignore
         )
+
+    async def send_to(
+        self,
+        message: Union[str, Message, MessageSegment],
+        channel_id: int,
+        *,
+        msg_id: Optional[int] = None
+    ) -> Any:
+        message = MessageSegment.text(message) if isinstance(message, str) else message
+        message = message if isinstance(message, Message) else Message(message)
+
+        content = message.extract_content() or None
+        if embed := (message["embed"] or None):
+            embed = embed[-1].data["embed"]
+        if ark := (message["ark"] or None):
+            ark = ark[-1].data["ark"]
+        if image := (message["attachment"] or None):
+            image = image[-1].data["url"]
+        if file_image := (message["file_image"] or None):
+            file_image = file_image[-1].data["content"]
+        if markdown := (message["markdown"] or None):
+            markdown = markdown[-1].data["markdown"]
+        if reference := (message["reference"] or None):
+            reference = reference[-1].data["reference"]
+
+        return await self.post_messages(
+            channel_id=channel_id,
+            msg_id=msg_id,
+            content=content,
+            embed=embed,  # type: ignore
+            ark=ark,  # type: ignore
+            image=image,  # type: ignore
+            file_image=file_image,  # type: ignore
+            markdown=markdown,  # type: ignore
+            message_reference=reference,  # type: ignore
+        )
+
+    @overrides(BaseBot)
+    async def send(
+        self,
+        event: Event,
+        message: Union[str, Message, MessageSegment],
+        **kwargs,
+    ) -> Any:
+        if not isinstance(event, MessageEvent) or not event.channel_id or not event.id:
+            raise RuntimeError("Event cannot be replied to!")
+
+        if isinstance(event, DirectMessageCreateEvent):
+            # 私信需要使用 post_dms_messages
+            # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
+            return await self.send_to_dms(message=message, guild_id=event.guild_id, msg_id=event.id)
+        else:
+            return await self.send_to(message=message, channel_id=event.channel_id, msg_id=event.id)
