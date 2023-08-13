@@ -175,11 +175,13 @@ class Bot(BaseBot, ApiClient):
         guild_id: int,
         *,
         msg_id: Optional[int] = None,
+        **kwargs,
     ) -> Any:
         return await self.post_dms_messages(
             guild_id=guild_id,  # type: ignore
             msg_id=msg_id,
             **self._extract_send_message(message=message),
+            **kwargs,
         )
 
     async def send_to(
@@ -188,11 +190,13 @@ class Bot(BaseBot, ApiClient):
         channel_id: int,
         *,
         msg_id: Optional[int] = None,
+        **kwargs,
     ) -> Any:
         return await self.post_messages(
             channel_id=channel_id,
             msg_id=msg_id,
             **self._extract_send_message(message=message),
+            **kwargs,
         )
 
     @overrides(BaseBot)
@@ -209,9 +213,9 @@ class Bot(BaseBot, ApiClient):
             # 私信需要使用 post_dms_messages
             # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
             return await self.send_to_dms(
-                message=message, guild_id=event.guild_id, msg_id=event.id
+                message=message, guild_id=event.guild_id, msg_id=event.id, **kwargs
             )
         else:
             return await self.send_to(
-                message=message, channel_id=event.channel_id, msg_id=event.id
+                message=message, channel_id=event.channel_id, msg_id=event.id, **kwargs
             )
