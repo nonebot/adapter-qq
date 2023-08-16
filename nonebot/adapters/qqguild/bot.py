@@ -181,7 +181,6 @@ class Bot(BaseBot, ApiClient):
             guild_id=guild_id,  # type: ignore
             msg_id=msg_id,
             **self._extract_send_message(message=message),
-            **kwargs,
         )
 
     async def send_to(
@@ -196,7 +195,6 @@ class Bot(BaseBot, ApiClient):
             channel_id=channel_id,
             msg_id=msg_id,
             **self._extract_send_message(message=message),
-            **kwargs,
         )
 
     @overrides(BaseBot)
