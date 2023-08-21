@@ -171,9 +171,8 @@ class Bot(BaseBot, ApiClient):
 
     async def send_to_dms(
         self,
-        message: Union[str, Message, MessageSegment],
         guild_id: int,
-        *,
+        message: Union[str, Message, MessageSegment],
         msg_id: Optional[int] = None,
     ) -> Any:
         return await self.post_dms_messages(
@@ -184,9 +183,8 @@ class Bot(BaseBot, ApiClient):
 
     async def send_to(
         self,
-        message: Union[str, Message, MessageSegment],
         channel_id: int,
-        *,
+        message: Union[str, Message, MessageSegment],
         msg_id: Optional[int] = None,
     ) -> Any:
         return await self.post_messages(
