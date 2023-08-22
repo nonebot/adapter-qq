@@ -207,9 +207,9 @@ class Bot(BaseBot, ApiClient):
             # 私信需要使用 post_dms_messages
             # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
             return await self.send_to_dms(
-                message=message, guild_id=event.guild_id, msg_id=event.id
+                guild_id=event.guild_id, message=message, msg_id=event.id
             )
         else:
             return await self.send_to(
-                message=message, channel_id=event.channel_id, msg_id=event.id
+                channel_id=event.channel_id, message=message, msg_id=event.id
             )
