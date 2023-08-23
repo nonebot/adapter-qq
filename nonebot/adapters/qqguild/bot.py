@@ -209,11 +209,11 @@ class Bot(BaseBot, ApiClient):
             return await self.send_to_dms(
                 guild_id=event.guild_id,  # type: ignore
                 message=message,
-                msg_id=event.id  # type: ignore
+                msg_id=event.id,  # type: ignore
             )
         else:
             return await self.send_to(
                 channel_id=event.channel_id,
                 message=message,
-                msg_id=event.id  # type: ignore
+                msg_id=event.id,  # type: ignore
             )
