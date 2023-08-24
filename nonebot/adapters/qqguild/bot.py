@@ -149,23 +149,17 @@ class Bot(BaseBot, ApiClient):
         content = message.extract_content() or None
         kwargs["content"] = content
         if embed := (message["embed"] or None):
-            embed = embed[-1].data["embed"]
-            kwargs["embed"] = embed
+            kwargs["embed"] = embed[-1].data["embed"]
         if ark := (message["ark"] or None):
-            ark = ark[-1].data["ark"]
-            kwargs["ark"] = ark
+            kwargs["ark"] = ark[-1].data["ark"]
         if image := (message["attachment"] or None):
-            image = image[-1].data["url"]
-            kwargs["image"] = image
+            kwargs["image"] = image[-1].data["url"]
         if file_image := (message["file_image"] or None):
-            file_image = file_image[-1].data["content"]
-            kwargs["file_image"] = file_image
+            kwargs["file_image"] = file_image[-1].data["content"]
         if markdown := (message["markdown"] or None):
-            markdown = markdown[-1].data["markdown"]
-            kwargs["markdown"] = markdown
+            kwargs["markdown"] = markdown[-1].data["markdown"]
         if reference := (message["reference"] or None):
-            reference = reference[-1].data["reference"]
-            kwargs["message_reference"] = reference
+            kwargs["message_reference"] = reference[-1].data["reference"]
 
         return kwargs
 
