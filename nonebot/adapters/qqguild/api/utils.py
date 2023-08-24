@@ -20,6 +20,7 @@ def parse_send_message(data: Dict[str, Any]) -> Dict[str, Any]:
                 )
             else:
                 data_[k] = (None, v.encode("utf-8"), "text/plain")
+        data_.update(model_data)
         params = {"files": data_}
     else:
         params = {"json": model_data}
