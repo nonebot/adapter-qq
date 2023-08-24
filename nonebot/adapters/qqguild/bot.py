@@ -165,7 +165,7 @@ class Bot(BaseBot, ApiClient):
             kwargs["markdown"] = markdown
         if reference := (message["reference"] or None):
             reference = reference[-1].data["reference"]
-            kwargs["reference"] = reference
+            kwargs["message_reference"] = reference
 
         return kwargs
 
