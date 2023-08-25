@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Union, Optional
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional
 
 from nonebot.typing import overrides
 from nonebot.message import handle_event
@@ -138,6 +138,55 @@ class Bot(BaseBot, ApiClient):
             _check_at_me(self, event)
         await handle_event(self, event)
 
+    @staticmethod
+    def _extract_send_message(
+        message: Union[str, Message, MessageSegment]
+    ) -> Dict[str, Any]:
+        message = MessageSegment.text(message) if isinstance(message, str) else message
+        message = message if isinstance(message, Message) else Message(message)
+
+        kwargs = {}
+        content = message.extract_content() or None
+        kwargs["content"] = content
+        if embed := (message["embed"] or None):
+            kwargs["embed"] = embed[-1].data["embed"]
+        if ark := (message["ark"] or None):
+            kwargs["ark"] = ark[-1].data["ark"]
+        if image := (message["attachment"] or None):
+            kwargs["image"] = image[-1].data["url"]
+        if file_image := (message["file_image"] or None):
+            kwargs["file_image"] = file_image[-1].data["content"]
+        if markdown := (message["markdown"] or None):
+            kwargs["markdown"] = markdown[-1].data["markdown"]
+        if reference := (message["reference"] or None):
+            kwargs["message_reference"] = reference[-1].data["reference"]
+
+        return kwargs
+
+    async def send_to_dms(
+        self,
+        guild_id: int,
+        message: Union[str, Message, MessageSegment],
+        msg_id: Optional[int] = None,
+    ) -> Any:
+        return await self.post_dms_messages(
+            guild_id=guild_id,
+            msg_id=msg_id,  # type: ignore
+            **self._extract_send_message(message=message),
+        )
+
+    async def send_to(
+        self,
+        channel_id: int,
+        message: Union[str, Message, MessageSegment],
+        msg_id: Optional[int] = None,
+    ) -> Any:
+        return await self.post_messages(
+            channel_id=channel_id,
+            msg_id=msg_id,  # type: ignore
+            **self._extract_send_message(message=message),
+        )
+
     @overrides(BaseBot)
     async def send(
         self,
@@ -147,46 +196,18 @@ class Bot(BaseBot, ApiClient):
     ) -> Any:
         if not isinstance(event, MessageEvent) or not event.channel_id or not event.id:
             raise RuntimeError("Event cannot be replied to!")
-        message = MessageSegment.text(message) if isinstance(message, str) else message
-        message = message if isinstance(message, Message) else Message(message)
 
-        content = message.extract_content() or None
-        if embed := (message["embed"] or None):
-            embed = embed[-1].data["embed"]
-        if ark := (message["ark"] or None):
-            ark = ark[-1].data["ark"]
-        if image := (message["attachment"] or None):
-            image = image[-1].data["url"]
-        if file_image := (message["file_image"] or None):
-            file_image = file_image[-1].data["content"]
-        if markdown := (message["markdown"] or None):
-            markdown = markdown[-1].data["markdown"]
-        if reference := (message["reference"] or None):
-            reference = reference[-1].data["reference"]
-
-        # 私信需要使用 post_dms_messages
-        # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
         if isinstance(event, DirectMessageCreateEvent):
-            return await self.post_dms_messages(
+            # 私信需要使用 post_dms_messages
+            # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
+            return await self.send_to_dms(
                 guild_id=event.guild_id,  # type: ignore
-                msg_id=event.id,
-                content=content,
-                embed=embed,  # type: ignore
-                ark=ark,  # type: ignore
-                image=image,  # type: ignore
-                file_image=file_image,  # type: ignore
-                markdown=markdown,  # type: ignore
-                message_reference=reference,  # type: ignore
+                message=message,
+                msg_id=event.id,  # type: ignore
             )
-
-        return await self.post_messages(
-            channel_id=event.channel_id,
-            msg_id=event.id,
-            content=content,
-            embed=embed,  # type: ignore
-            ark=ark,  # type: ignore
-            image=image,  # type: ignore
-            file_image=file_image,  # type: ignore
-            markdown=markdown,  # type: ignore
-            message_reference=reference,  # type: ignore
-        )
+        else:
+            return await self.send_to(
+                channel_id=event.channel_id,
+                message=message,
+                msg_id=event.id,  # type: ignore
+            )
