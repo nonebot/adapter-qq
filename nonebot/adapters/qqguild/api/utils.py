@@ -16,7 +16,7 @@ def parse_send_message(data: Dict[str, Any]) -> Dict[str, Any]:
                 # https://bot.q.qq.com/wiki/develop/api/openapi/message/post_messages.html#content-type
                 multipart_files[k] = (
                     k,
-                    json.dumps({k: v}).encode(),
+                    json.dumps({k: v}).encode("utf-8"),
                     "application/json",
                 )
             else:
