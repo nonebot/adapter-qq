@@ -67,6 +67,7 @@ class Member(BaseModel):
 
 class DeleteMemberBody(BaseModel):
     add_blacklist: Optional[bool] = None
+    delete_history_msg_days: Optional[int] = None
 
 
 class Role(BaseModel):
