@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -67,6 +67,7 @@ class Member(BaseModel):
 
 class DeleteMemberBody(BaseModel):
     add_blacklist: Optional[bool] = None
+    delete_history_msg_days: Optional[Literal[-1, 0, 3, 7, 15, 30]] = None
 
 
 class Role(BaseModel):

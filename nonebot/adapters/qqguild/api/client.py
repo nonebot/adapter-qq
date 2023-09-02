@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Literal, Optional
 
 from .model import *
 
@@ -69,7 +69,12 @@ if TYPE_CHECKING:
             ...
 
         async def delete_member(
-            self, *, guild_id: int, user_id: int, add_blacklist: Optional[bool] = ...
+            self,
+            *,
+            guild_id: int,
+            user_id: int,
+            add_blacklist: Optional[bool] = ...,
+            delete_history_msg_days: Optional[Literal[-1, 0, 3, 7, 15, 30]] = ...,
         ) -> None:
             ...
 
