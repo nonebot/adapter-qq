@@ -1,15 +1,15 @@
 from enum import Enum
 from typing import Dict, Type, Tuple, Optional
 
+from nonebot.adapters import Event as BaseEvent
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
 
-from nonebot.adapters import Event as BaseEvent
-
-from .message import Message
 from .api import Message as GuildMessage
-from .api import User, Guild, Member, Channel
 from .api import MessageGet, MessageDelete, MessageAudited, MessageReaction
+from .api import User, Guild, Member, Channel
+from .api.model import ForumObject, ForumThread, ForumPost, ForumReply, ForumAuditResult, RichText
+from .message import Message
 
 
 class EventType(str, Enum):
@@ -47,13 +47,14 @@ class EventType(str, Enum):
     MESSAGE_AUDIT_REJECT = "MESSAGE_AUDIT_REJECT"
 
     # FORUM_EVENT
-    THREAD_CREATE = "THREAD_CREATE"
-    THREAD_UPDATE = "THREAD_UPDATE"
-    THREAD_DELETE = "THREAD_DELETE"
-    POST_CREATE = "POST_CREATE"
-    POST_DELETE = "POST_DELETE"
-    REPLY_CREATE = "REPLY_CREATE"
-    REPLY_DELETE = "REPLY_DELETE"
+    FORUM_THREAD_CREATE = "FORUM_THREAD_CREATE"
+    FORUM_THREAD_UPDATE = "FORUM_THREAD_UPDATE"
+    FORUM_THREAD_DELETE = "FORUM_THREAD_DELETE"
+    FORUM_POST_CREATE = "FORUM_POST_CREATE"
+    FORUM_POST_DELETE = "FORUM_POST_DELETE"
+    FORUM_REPLY_CREATE = "FORUM_REPLY_CREATE"
+    FORUM_REPLY_DELETE = "FORUM_REPLY_DELETE"
+    FORUM_PUBLISH_AUDIT_RESULT = "FORUM_PUBLISH_AUDIT_RESULT"
 
     # AUDIO_ACTION
     AUDIO_START = "AUDIO_START"
@@ -310,6 +311,64 @@ class MessageReactionRemoveEvent(MessageReactionEvent):
     __type__ = EventType.MESSAGE_REACTION_REMOVE
 
 
+class ForumEvent(Event, ForumObject):
+    @overrides(BaseEvent)
+    def get_type(self) -> str:
+        return "notice"
+
+    @overrides(Event)
+    def get_user_id(self) -> str:
+        return str(self.author_id)
+
+    @overrides(Event)
+    def get_session_id(self) -> str:
+        return str(self.author_id)
+
+
+class ForumThreadEvent(ForumEvent, ForumThread[RichText]):
+    ...
+
+
+class ForumThreadCreateEvent(ForumThreadEvent):
+    __type__ = EventType.FORUM_THREAD_CREATE
+
+
+class ForumThreadUpdateEvent(ForumThreadEvent):
+    __type__ = EventType.FORUM_THREAD_UPDATE
+
+
+class ForumThreadDeleteEvent(ForumThreadEvent):
+    __type__ = EventType.FORUM_THREAD_DELETE
+
+
+class ForumPostEvent(ForumEvent, ForumPost):
+    ...
+
+
+class ForumPostCreateEvent(ForumPostEvent):
+    __type__ = EventType.FORUM_POST_CREATE
+
+
+class ForumPostDeleteEvent(ForumPostEvent):
+    __type__ = EventType.FORUM_POST_DELETE
+
+
+class ForumReplyEvent(ForumEvent, ForumReply):
+    ...
+
+
+class ForumReplyCreateEvent(ForumReplyEvent):
+    __type__ = EventType.FORUM_REPLY_CREATE
+
+
+class ForumReplyDeleteEvent(ForumReplyEvent):
+    __type__ = EventType.FORUM_REPLY_DELETE
+
+
+class ForumPublishAuditResult(ForumEvent, ForumAuditResult):
+    __type__ = EventType.FORUM_PUBLISH_AUDIT_RESULT
+
+
 # TODO: Audio Event
 
 event_classes: Dict[str, Type[Event]] = {
@@ -334,6 +393,14 @@ event_classes: Dict[str, Type[Event]] = {
     EventType.MESSAGE_AUDIT_REJECT.value: MessageAuditRejectEvent,
     EventType.MESSAGE_REACTION_ADD.value: MessageReactionAddEvent,
     EventType.MESSAGE_REACTION_REMOVE.value: MessageReactionRemoveEvent,
+    EventType.FORUM_THREAD_CREATE.value: ForumThreadCreateEvent,
+    EventType.FORUM_THREAD_UPDATE.value: ForumThreadUpdateEvent,
+    EventType.FORUM_THREAD_DELETE.value: ForumThreadDeleteEvent,
+    EventType.FORUM_POST_CREATE.value: ForumPostCreateEvent,
+    EventType.FORUM_POST_DELETE.value: ForumPostDeleteEvent,
+    EventType.FORUM_REPLY_CREATE.value: ForumReplyCreateEvent,
+    EventType.FORUM_REPLY_DELETE.value: ForumReplyDeleteEvent,
+    EventType.FORUM_PUBLISH_AUDIT_RESULT.value: ForumPublishAuditResult,
 }
 
 __all__ = [

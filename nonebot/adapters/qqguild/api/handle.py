@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING, List, Optional
 
-from pydantic import parse_obj_as
 from nonebot.drivers import Request
+from pydantic import parse_obj_as
 
 from .model import *
-from .utils import parse_send_message
+from .model import GetThreadsReturn, GetThreadReturn, PutThreadReturn, PutThreadBody
 from .request import _request, _exclude_none
+from .utils import parse_send_message
 
 if TYPE_CHECKING:
     from nonebot.adapters.qqguild.bot import Bot
@@ -555,6 +556,51 @@ async def _get_pins_message(
     return parse_obj_as(PinsMessage, await _request(adapter, bot, request))
 
 
+async def _get_threads(
+    adapter: "Adapter", bot: "Bot", channel_id: int
+) -> GetThreadsReturn:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/threads",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_obj_as(GetThreadsReturn, await _request(adapter, bot, request))
+
+
+async def _get_thread(
+    adapter: "Adapter", bot: "Bot", channel_id: int, thread_id: str
+) -> GetThreadReturn:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/threads/{thread_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_obj_as(GetThreadReturn, await _request(adapter, bot, request))
+
+
+async def _put_thread(
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
+) -> PutThreadReturn:
+    request = Request(
+        "PUT",
+        adapter.get_api_base() / f"channels/{channel_id}/threads",
+        json=PutThreadBody(**data).dict(exclude_none=True),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_obj_as(PutThreadReturn, await _request(adapter, bot, request))
+
+
+async def _delete_thread(
+    adapter: "Adapter", bot: "Bot", channel_id: int, thread_id: str
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"channels/{channel_id}/threads/{thread_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
 API_HANDLERS = {
     "get_guild": _get_guild,
     "me": _me,
@@ -603,4 +649,8 @@ API_HANDLERS = {
     "put_pins_message": _put_pins_message,
     "delete_pins_message": _delete_pins_message,
     "get_pins_message": _get_pins_message,
+    "get_threads": _get_threads,
+    "get_thread": _get_thread,
+    "put_thread": _put_thread,
+    "delete_thread": _delete_thread
 }

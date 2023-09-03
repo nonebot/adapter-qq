@@ -1,7 +1,10 @@
+import json
 from datetime import datetime
-from typing import List, Literal, Optional
+from enum import Enum
+from typing import List, Literal, Optional, Generic, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from pydantic.generics import GenericModel
 
 
 class Guild(BaseModel):
@@ -432,6 +435,254 @@ class APIPermissionDemand(BaseModel):
     desc: Optional[str] = None
 
 
+class RichType(int, Enum):
+    text = 1
+    at = 2
+    url = 3
+    emoji = 4
+    channel = 5
+    video = 10
+    image = 11
+
+
+class TextInfo(BaseModel):
+    text: Optional[str]
+
+
+class AtType(int, Enum):
+    at_explicit_user = 1
+    at_role_group = 2
+    at_guild = 3
+
+
+class AtUserInfo(BaseModel):
+    id: Optional[int] = None
+    nick: Optional[str] = None
+
+
+class AtRoleInfo(BaseModel):
+    role_id: Optional[int] = None
+    name: Optional[str] = None
+    color: Optional[int] = None
+
+
+class AtGuildInfo(BaseModel):
+    guild_id: Optional[int] = None
+    guild_name: Optional[str] = None
+
+
+class AtInfo(BaseModel):
+    type: Optional[AtType] = None
+    user_info: Optional[AtUserInfo] = None
+    role_info: Optional[AtRoleInfo] = None
+    guild_info: Optional[AtGuildInfo] = None
+
+
+class URLInfo(BaseModel):
+    url: Optional[str] = None
+    display_text: Optional[str] = None
+
+
+class EmojiInfo(BaseModel):
+    id: Optional[str] = None
+    type: Optional[str] = None
+    name: Optional[str] = None
+    url: Optional[str] = None
+
+
+class ChannelInfo(BaseModel):
+    channel_id: Optional[int] = None
+    channel_name: Optional[str] = None
+
+
+class ElemType(int, Enum):
+    text = 1
+    image = 2
+    video = 3
+    url = 4
+
+
+class TextProps(BaseModel):
+    font_bold: Optional[bool] = None
+    italic: Optional[bool] = None
+    underline: Optional[bool] = None
+
+
+class TextElem(BaseModel):
+    text: Optional[str] = None
+    props: Optional[TextProps] = None
+
+
+class ImageElem(BaseModel):
+    third_url: Optional[str] = None
+    width_percent: Optional[float] = None
+
+
+class VideoElem(BaseModel):
+    third_url: Optional[str] = None
+
+
+class PlatImage(BaseModel):
+    url: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    image_id: Optional[str] = None
+
+
+class PlatVideo(BaseModel):
+    url: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    video_id: Optional[str] = None
+    duration: Optional[int]
+    cover: Optional[PlatImage]
+
+
+class URLElem(BaseModel):
+    url: Optional[str] = None
+    desc: Optional[str] = None
+
+
+class Alignment(int, Enum):
+    left = 0
+    middle = 1
+    right = 2
+
+
+class ParagraphProps(BaseModel):
+    alignment: Optional[Alignment] = None
+
+
+class Elem(BaseModel):
+    text: Optional[TextElem] = None
+    image: Optional[ImageElem] = None
+    video: Optional[VideoElem] = None
+    url: Optional[URLElem] = None
+    type: Optional[ElemType] = None
+
+
+class Paragraph(BaseModel):
+    elems: Optional[List[Elem]] = None
+    props: Optional[ParagraphProps] = None
+
+
+class RichText(BaseModel):
+    paragraphs: Optional[List[Paragraph]] = None
+
+
+class RichObject(BaseModel):
+    type: Optional[RichType]
+    text_info: Optional[TextInfo]
+    at_info: Optional[AtInfo]
+    url_info: Optional[URLInfo]
+    emoji_info: Optional[EmojiInfo]
+    channel_info: Optional[ChannelInfo]
+
+
+class ForumObjectInfo(BaseModel):
+    thread_id: Optional[str] = None
+    content: Optional[RichText] = None
+    date_time: Optional[datetime] = None
+
+    @validator('content', pre=True, allow_reuse=True)
+    def parse_content(cls, v):
+        if isinstance(v, str):
+            return RichText.parse_raw(v, content_type='json')
+        return v
+
+
+class ForumObject(BaseModel):
+    guild_id: Optional[int] = None
+    channel_id: Optional[int] = None
+    author_id: Optional[int] = None
+
+
+_T_Title = TypeVar("_T_Title", str, RichText)
+
+
+class ForumThreadInfo(ForumObjectInfo, GenericModel, Generic[_T_Title]):
+    # 事件推送拿到的title实际上是RichText的JSON字符串，而API调用返回的title是普通文本
+    title: Optional[_T_Title] = None
+
+    @validator('title', pre=True, allow_reuse=True)
+    def parse_title(cls, v):
+        if isinstance(v, str) and cls.__fields__["title"].type_ == RichText:
+            return RichText.parse_raw(v, content_type='json')
+        return v
+
+
+class ForumThread(ForumObject, GenericModel, Generic[_T_Title]):
+    thread_info: Optional[ForumThreadInfo[_T_Title]] = None
+
+
+class ForumPostInfo(ForumObjectInfo):
+    post_id: Optional[str] = None
+
+
+class ForumPost(ForumObject):
+    post_info: Optional[ForumPostInfo] = None
+
+
+class ForumReplyInfo(ForumObjectInfo):
+    post_id: Optional[str] = None
+    reply_id: Optional[str] = None
+
+
+class ForumReply(ForumObject):
+    reply_info: Optional[ForumReplyInfo] = None
+
+
+class ForumAuditType(int, Enum):
+    publish_thread = 1
+    publish_post = 2
+    publish_reply = 3
+
+
+class ForumAuditResult(ForumObject):
+    thread_id: Optional[int] = None
+    post_id: Optional[int] = None
+    reply_id: Optional[int] = None
+    type: Optional[ForumAuditType] = None
+    result: Optional[int] = None
+    err_msg: Optional[str] = None
+
+
+class GetThreadsReturn(BaseModel):
+    threads: Optional[List[ForumThread[str]]] = None
+    is_finish: Optional[int] = None
+
+
+class GetThreadReturn(BaseModel):
+    thread: Optional[ForumThread[str]] = None
+
+
+class PutThreadFormat(int, Enum):
+    text = 1
+    html = 2
+    markdown = 3
+    json = 4
+
+
+class PutThreadBody(BaseModel):
+    title: str
+    content: str
+    format: PutThreadFormat
+
+    @validator("content", pre=True, allow_reuse=True)
+    def convert_content(cls, v):
+        if not isinstance(v, str):
+            if isinstance(v, BaseModel):
+                return v.json()
+            else:
+                return json.dumps(v)
+        return v
+
+
+class PutThreadReturn(BaseModel):
+    task_id: Optional[int] = None
+    create_time: Optional[datetime] = None
+
+
 __all__ = [
     "Guild",
     "User",
@@ -498,4 +749,41 @@ __all__ = [
     "MessageReaction",
     "APIPermission",
     "APIPermissionDemand",
+    "RichType",
+    "TextInfo",
+    "AtType",
+    "AtUserInfo",
+    "AtRoleInfo",
+    "AtGuildInfo",
+    "AtInfo",
+    "URLInfo",
+    "EmojiInfo",
+    "ChannelInfo",
+    "ElemType",
+    "TextProps",
+    "TextElem",
+    "ImageElem",
+    "VideoElem",
+    "PlatImage",
+    "PlatVideo",
+    "URLElem",
+    "Alignment",
+    "ParagraphProps",
+    "Elem",
+    "Paragraph",
+    "RichText",
+    "RichObject",
+    "ForumThreadInfo",
+    "ForumThread",
+    "ForumPostInfo",
+    "ForumPost",
+    "ForumReplyInfo",
+    "ForumReply",
+    "ForumAuditType",
+    "ForumAuditResult",
+    "GetThreadsReturn",
+    "GetThreadReturn",
+    "PutThreadFormat",
+    "PutThreadBody",
+    "PutThreadReturn"
 ]
