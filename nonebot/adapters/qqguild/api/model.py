@@ -773,6 +773,8 @@ __all__ = [
     "Paragraph",
     "RichText",
     "RichObject",
+    "ForumObject",
+    "ForumObjectInfo",
     "ForumThreadInfo",
     "ForumThread",
     "ForumPostInfo",

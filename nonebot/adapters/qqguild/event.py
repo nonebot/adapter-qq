@@ -8,7 +8,8 @@ from nonebot.utils import escape_tag
 from .api import Message as GuildMessage
 from .api import MessageGet, MessageDelete, MessageAudited, MessageReaction
 from .api import User, Guild, Member, Channel
-from .api.model import ForumObject, ForumThread, ForumPost, ForumReply, ForumAuditResult, RichText
+from .api import ForumObject, ForumThread, ForumPost, ForumReply, \
+    ForumAuditResult, RichText
 from .message import Message
 
 

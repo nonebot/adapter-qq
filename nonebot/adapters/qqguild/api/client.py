@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, List, Literal, Optional, Union
 
 from .model import *
-from .model import GetThreadsReturn, GetThreadReturn, PutThreadReturn, RichText, PutThreadFormat
 
 if TYPE_CHECKING:
 
@@ -329,11 +328,14 @@ if TYPE_CHECKING:
         async def get_threads(self, *, channel_id: int) -> GetThreadsReturn:
             ...
 
-        async def get_thread(self, *, channel_id: int, thread_id: str) -> GetThreadReturn:
+        async def get_thread(
+            self, *, channel_id: int, thread_id: str
+        ) -> GetThreadReturn:
             ...
 
         async def put_thread(
-            self, *, channel_id: int, title: str, content: Union[str, RichText], format: PutThreadFormat
+            self, *, channel_id: int, title: str,
+            content: Union[str, RichText], format: PutThreadFormat
         ) -> PutThreadReturn:
             ...
 
