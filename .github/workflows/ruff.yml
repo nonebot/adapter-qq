@@ -7,8 +7,6 @@ on:
   pull_request:
     paths:
       - "nonebot/**"
-      - "packages/**"
-      - "tests/**"
 
 jobs:
   ruff:
