@@ -555,7 +555,7 @@ async def _get_pins_message(
     return parse_obj_as(PinsMessage, await _request(adapter, bot, request))
 
 
-async def _get_threads(
+async def _get_threads_list(
     adapter: "Adapter", bot: "Bot", channel_id: int
 ) -> GetThreadsReturn:
     request = Request(
