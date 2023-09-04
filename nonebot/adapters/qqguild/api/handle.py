@@ -557,7 +557,7 @@ async def _get_pins_message(
 
 async def _get_threads_list(
     adapter: "Adapter", bot: "Bot", channel_id: int
-) -> GetThreadsReturn:
+) -> GetThreadsListReturn:
     request = Request(
         "GET",
         adapter.get_api_base() / f"channels/{channel_id}/threads",
