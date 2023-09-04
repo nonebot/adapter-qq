@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, List, Union, Literal, Optional
 
 from .model import *
 
@@ -334,8 +334,12 @@ if TYPE_CHECKING:
             ...
 
         async def put_thread(
-            self, *, channel_id: int, title: str,
-            content: Union[str, RichText], format: PutThreadFormat
+            self,
+            *,
+            channel_id: int,
+            title: str,
+            content: Union[str, RichText],
+            format: PutThreadFormat,
         ) -> PutThreadReturn:
             ...
 

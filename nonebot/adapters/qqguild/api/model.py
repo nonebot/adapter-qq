@@ -1,7 +1,7 @@
 import json
-from datetime import datetime
 from enum import IntEnum
-from typing import List, Literal, Optional, Generic, TypeVar
+from datetime import datetime
+from typing import List, Generic, Literal, TypeVar, Optional
 
 from pydantic import BaseModel, validator
 from pydantic.generics import GenericModel
@@ -584,10 +584,10 @@ class ForumObjectInfo(BaseModel):
     content: Optional[RichText] = None
     date_time: Optional[datetime] = None
 
-    @validator('content', pre=True, allow_reuse=True)
+    @validator("content", pre=True, allow_reuse=True)
     def parse_content(cls, v):
         if isinstance(v, str):
-            return RichText.parse_raw(v, content_type='json')
+            return RichText.parse_raw(v, content_type="json")
         return v
 
 
@@ -604,10 +604,10 @@ class ForumThreadInfo(ForumObjectInfo, GenericModel, Generic[_T_Title]):
     # 事件推送拿到的title实际上是RichText的JSON字符串，而API调用返回的title是普通文本
     title: Optional[_T_Title] = None
 
-    @validator('title', pre=True, allow_reuse=True)
+    @validator("title", pre=True, allow_reuse=True)
     def parse_title(cls, v):
         if isinstance(v, str) and cls.__fields__["title"].type_ is RichText:
-            return RichText.parse_raw(v, content_type='json')
+            return RichText.parse_raw(v, content_type="json")
         return v
 
 
@@ -787,5 +787,5 @@ __all__ = [
     "GetThreadReturn",
     "PutThreadFormat",
     "PutThreadBody",
-    "PutThreadReturn"
+    "PutThreadReturn",
 ]

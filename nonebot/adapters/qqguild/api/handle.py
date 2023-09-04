@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING, List, Optional
 
-from nonebot.drivers import Request
 from pydantic import parse_obj_as
+from nonebot.drivers import Request
 
 from .model import *
-from .request import _request, _exclude_none
 from .utils import parse_send_message
+from .request import _request, _exclude_none
 
 if TYPE_CHECKING:
     from nonebot.adapters.qqguild.bot import Bot
@@ -651,5 +651,5 @@ API_HANDLERS = {
     "get_threads_list": _get_threads_list,
     "get_thread": _get_thread,
     "put_thread": _put_thread,
-    "delete_thread": _delete_thread
+    "delete_thread": _delete_thread,
 }
