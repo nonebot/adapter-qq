@@ -1,16 +1,26 @@
 from enum import Enum
 from typing import Dict, Type, Tuple, Optional
 
-from nonebot.adapters import Event as BaseEvent
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
 
-from .api import Message as GuildMessage
-from .api import MessageGet, MessageDelete, MessageAudited, MessageReaction
-from .api import User, Guild, Member, Channel
-from .api import ForumObject, ForumThread, ForumPost, ForumReply, \
-    ForumAuditResult, RichText
+from nonebot.adapters import Event as BaseEvent
+
 from .message import Message
+from .api import Message as GuildMessage
+from .api import User, Guild, Member, Channel
+from .api import (
+    RichText,
+    ForumPost,
+    ForumReply,
+    MessageGet,
+    ForumObject,
+    ForumThread,
+    MessageDelete,
+    MessageAudited,
+    MessageReaction,
+    ForumAuditResult,
+)
 
 
 class EventType(str, Enum):
