@@ -648,7 +648,7 @@ API_HANDLERS = {
     "put_pins_message": _put_pins_message,
     "delete_pins_message": _delete_pins_message,
     "get_pins_message": _get_pins_message,
-    "get_threads": _get_threads,
+    "get_threads_list": _get_threads_list,
     "get_thread": _get_thread,
     "put_thread": _put_thread,
     "delete_thread": _delete_thread

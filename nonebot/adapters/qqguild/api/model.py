@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from enum import Enum
+from enum import IntEnum
 from typing import List, Literal, Optional, Generic, TypeVar
 
 from pydantic import BaseModel, validator
@@ -435,44 +435,44 @@ class APIPermissionDemand(BaseModel):
     desc: Optional[str] = None
 
 
-class RichType(int, Enum):
-    text = 1
-    at = 2
-    url = 3
-    emoji = 4
-    channel = 5
-    video = 10
-    image = 11
+class RichType(IntEnum):
+    TEXT = 1
+    AT = 2
+    URL = 3
+    EMOJI = 4
+    CHANNEL = 5
+    VIDEO = 10
+    IMAGE = 11
 
 
 class TextInfo(BaseModel):
-    text: Optional[str]
+    text: str
 
 
-class AtType(int, Enum):
-    at_explicit_user = 1
-    at_role_group = 2
-    at_guild = 3
+class AtType(IntEnum):
+    AT_EXPLICIT_USER = 1
+    AT_ROLE_GROUP = 2
+    AT_GUILD = 3
 
 
 class AtUserInfo(BaseModel):
-    id: Optional[int] = None
-    nick: Optional[str] = None
+    id: int
+    nick: str
 
 
 class AtRoleInfo(BaseModel):
-    role_id: Optional[int] = None
-    name: Optional[str] = None
-    color: Optional[int] = None
+    role_id: int
+    name: str
+    color: int
 
 
 class AtGuildInfo(BaseModel):
-    guild_id: Optional[int] = None
-    guild_name: Optional[str] = None
+    guild_id: int
+    guild_name: str
 
 
 class AtInfo(BaseModel):
-    type: Optional[AtType] = None
+    type: AtType
     user_info: Optional[AtUserInfo] = None
     role_info: Optional[AtRoleInfo] = None
     guild_info: Optional[AtGuildInfo] = None
@@ -491,15 +491,15 @@ class EmojiInfo(BaseModel):
 
 
 class ChannelInfo(BaseModel):
-    channel_id: Optional[int] = None
-    channel_name: Optional[str] = None
+    channel_id: int
+    channel_name: str
 
 
-class ElemType(int, Enum):
-    text = 1
-    image = 2
-    video = 3
-    url = 4
+class ElemType(IntEnum):
+    TEXT = 1
+    IMAGE = 2
+    VIDEO = 3
+    URL = 4
 
 
 class TextProps(BaseModel):
@@ -543,10 +543,10 @@ class URLElem(BaseModel):
     desc: Optional[str] = None
 
 
-class Alignment(int, Enum):
-    left = 0
-    middle = 1
-    right = 2
+class Alignment(IntEnum):
+    LEFT = 0
+    MIDDLE = 1
+    RIGHT = 2
 
 
 class ParagraphProps(BaseModel):
@@ -606,7 +606,7 @@ class ForumThreadInfo(ForumObjectInfo, GenericModel, Generic[_T_Title]):
 
     @validator('title', pre=True, allow_reuse=True)
     def parse_title(cls, v):
-        if isinstance(v, str) and cls.__fields__["title"].type_ == RichText:
+        if isinstance(v, str) and cls.__fields__["title"].type_ is RichText:
             return RichText.parse_raw(v, content_type='json')
         return v
 
@@ -632,10 +632,10 @@ class ForumReply(ForumObject):
     reply_info: Optional[ForumReplyInfo] = None
 
 
-class ForumAuditType(int, Enum):
-    publish_thread = 1
-    publish_post = 2
-    publish_reply = 3
+class ForumAuditType(IntEnum):
+    PUBLISH_THREAD = 1
+    PUBLISH_POST = 2
+    PUBLISH_REPLY = 3
 
 
 class ForumAuditResult(ForumObject):
@@ -648,19 +648,19 @@ class ForumAuditResult(ForumObject):
 
 
 class GetThreadsReturn(BaseModel):
-    threads: Optional[List[ForumThread[str]]] = None
-    is_finish: Optional[int] = None
+    threads: List[ForumThread[str]]
+    is_finish: bool
 
 
 class GetThreadReturn(BaseModel):
-    thread: Optional[ForumThread[str]] = None
+    thread: ForumThread[str]
 
 
-class PutThreadFormat(int, Enum):
-    text = 1
-    html = 2
-    markdown = 3
-    json = 4
+class PutThreadFormat(IntEnum):
+    TEXT = 1
+    HTML = 2
+    MARKDOWN = 3
+    JSON = 4
 
 
 class PutThreadBody(BaseModel):
@@ -679,8 +679,8 @@ class PutThreadBody(BaseModel):
 
 
 class PutThreadReturn(BaseModel):
-    task_id: Optional[int] = None
-    create_time: Optional[datetime] = None
+    task_id: int
+    create_time: datetime
 
 
 __all__ = [
