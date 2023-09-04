@@ -325,7 +325,7 @@ if TYPE_CHECKING:
         async def get_pins_message(self, *, channel_id: int) -> PinsMessage:
             ...
 
-        async def get_threads(self, *, channel_id: int) -> GetThreadsReturn:
+        async def get_threads_list(self, *, channel_id: int) -> GetThreadsListReturn:
             ...
 
         async def get_thread(
