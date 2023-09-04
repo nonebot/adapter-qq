@@ -4,7 +4,6 @@ from nonebot.drivers import Request
 from pydantic import parse_obj_as
 
 from .model import *
-from .model import GetThreadsReturn, GetThreadReturn, PutThreadReturn, PutThreadBody
 from .request import _request, _exclude_none
 from .utils import parse_send_message
 
