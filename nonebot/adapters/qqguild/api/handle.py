@@ -563,7 +563,7 @@ async def _get_threads_list(
         adapter.get_api_base() / f"channels/{channel_id}/threads",
         headers={"Authorization": adapter.get_authorization(bot.bot_info)},
     )
-    return parse_obj_as(GetThreadsReturn, await _request(adapter, bot, request))
+    return parse_obj_as(GetThreadsListReturn, await _request(adapter, bot, request))
 
 
 async def _get_thread(
