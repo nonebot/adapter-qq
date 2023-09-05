@@ -479,15 +479,15 @@ class AtInfo(BaseModel):
 
 
 class URLInfo(BaseModel):
-    url: Optional[str] = None
-    display_text: Optional[str] = None
+    url: str
+    display_text: str
 
 
 class EmojiInfo(BaseModel):
-    id: Optional[str] = None
-    type: Optional[str] = None
-    name: Optional[str] = None
-    url: Optional[str] = None
+    id: str
+    type: str
+    name: str
+    url: str
 
 
 class ChannelInfo(BaseModel):
@@ -509,37 +509,37 @@ class TextProps(BaseModel):
 
 
 class TextElem(BaseModel):
-    text: Optional[str] = None
+    text: str
     props: Optional[TextProps] = None
 
 
 class ImageElem(BaseModel):
-    third_url: Optional[str] = None
+    third_url: str
     width_percent: Optional[float] = None
 
 
 class VideoElem(BaseModel):
-    third_url: Optional[str] = None
+    third_url: str
 
 
 class PlatImage(BaseModel):
-    url: Optional[str] = None
+    url: str
+    image_id: str
     width: Optional[int] = None
     height: Optional[int] = None
-    image_id: Optional[str] = None
 
 
 class PlatVideo(BaseModel):
-    url: Optional[str] = None
+    url: str
+    video_id: str
     width: Optional[int] = None
     height: Optional[int] = None
-    video_id: Optional[str] = None
-    duration: Optional[int]
-    cover: Optional[PlatImage]
+    duration: Optional[int] = None
+    cover: Optional[PlatImage] = None
 
 
 class URLElem(BaseModel):
-    url: Optional[str] = None
+    url: str
     desc: Optional[str] = None
 
 
@@ -554,24 +554,24 @@ class ParagraphProps(BaseModel):
 
 
 class Elem(BaseModel):
+    type: ElemType
     text: Optional[TextElem] = None
     image: Optional[ImageElem] = None
     video: Optional[VideoElem] = None
     url: Optional[URLElem] = None
-    type: Optional[ElemType] = None
 
 
 class Paragraph(BaseModel):
-    elems: Optional[List[Elem]] = None
-    props: Optional[ParagraphProps] = None
+    elems: List[Elem]
+    props: Optional[ParagraphProps]
 
 
 class RichText(BaseModel):
-    paragraphs: Optional[List[Paragraph]] = None
+    paragraphs: List[Paragraph]
 
 
 class RichObject(BaseModel):
-    type: Optional[RichType]
+    type: RichType
     text_info: Optional[TextInfo]
     at_info: Optional[AtInfo]
     url_info: Optional[URLInfo]
@@ -580,9 +580,9 @@ class RichObject(BaseModel):
 
 
 class ForumObjectInfo(BaseModel):
-    thread_id: Optional[str] = None
-    content: Optional[RichText] = None
-    date_time: Optional[datetime] = None
+    thread_id: str
+    content: RichText
+    date_time: datetime
 
     @validator("content", pre=True, allow_reuse=True)
     def parse_content(cls, v):
@@ -592,9 +592,9 @@ class ForumObjectInfo(BaseModel):
 
 
 class ForumObject(BaseModel):
-    guild_id: Optional[int] = None
-    channel_id: Optional[int] = None
-    author_id: Optional[int] = None
+    guild_id: int
+    channel_id: int
+    author_id: int
 
 
 _T_Title = TypeVar("_T_Title", str, RichText)
@@ -602,7 +602,7 @@ _T_Title = TypeVar("_T_Title", str, RichText)
 
 class ForumThreadInfo(ForumObjectInfo, GenericModel, Generic[_T_Title]):
     # 事件推送拿到的title实际上是RichText的JSON字符串，而API调用返回的title是普通文本
-    title: Optional[_T_Title] = None
+    title: _T_Title
 
     @validator("title", pre=True, allow_reuse=True)
     def parse_title(cls, v):
@@ -612,24 +612,24 @@ class ForumThreadInfo(ForumObjectInfo, GenericModel, Generic[_T_Title]):
 
 
 class ForumThread(ForumObject, GenericModel, Generic[_T_Title]):
-    thread_info: Optional[ForumThreadInfo[_T_Title]] = None
+    thread_info: ForumThreadInfo[_T_Title]
 
 
 class ForumPostInfo(ForumObjectInfo):
-    post_id: Optional[str] = None
+    post_id: str
 
 
 class ForumPost(ForumObject):
-    post_info: Optional[ForumPostInfo] = None
+    post_info: ForumPostInfo
 
 
 class ForumReplyInfo(ForumObjectInfo):
-    post_id: Optional[str] = None
-    reply_id: Optional[str] = None
+    post_id: str
+    reply_id: str
 
 
 class ForumReply(ForumObject):
-    reply_info: Optional[ForumReplyInfo] = None
+    reply_info: ForumReplyInfo
 
 
 class ForumAuditType(IntEnum):
@@ -639,15 +639,15 @@ class ForumAuditType(IntEnum):
 
 
 class ForumAuditResult(ForumObject):
-    thread_id: Optional[int] = None
-    post_id: Optional[int] = None
-    reply_id: Optional[int] = None
-    type: Optional[ForumAuditType] = None
+    thread_id: int
+    post_id: int
+    reply_id: int
+    type: ForumAuditType
     result: Optional[int] = None
     err_msg: Optional[str] = None
 
 
-class GetThreadsReturn(BaseModel):
+class GetThreadsListReturn(BaseModel):
     threads: List[ForumThread[str]]
     is_finish: bool
 
@@ -783,7 +783,7 @@ __all__ = [
     "ForumReply",
     "ForumAuditType",
     "ForumAuditResult",
-    "GetThreadsReturn",
+    "GetThreadsListReturn",
     "GetThreadReturn",
     "PutThreadFormat",
     "PutThreadBody",
