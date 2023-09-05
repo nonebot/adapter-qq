@@ -333,7 +333,7 @@ class ForumEvent(Event, ForumObject):
 
     @overrides(Event)
     def get_session_id(self) -> str:
-        return str(self.author_id)
+        return f"forum_{self.author_id}"
 
 
 class ForumThreadEvent(ForumEvent, ForumThread[RichText]):
