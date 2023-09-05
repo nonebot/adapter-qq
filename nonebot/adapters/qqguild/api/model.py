@@ -435,66 +435,6 @@ class APIPermissionDemand(BaseModel):
     desc: Optional[str] = None
 
 
-class RichType(IntEnum):
-    TEXT = 1
-    AT = 2
-    URL = 3
-    EMOJI = 4
-    CHANNEL = 5
-    VIDEO = 10
-    IMAGE = 11
-
-
-class TextInfo(BaseModel):
-    text: str
-
-
-class AtType(IntEnum):
-    AT_EXPLICIT_USER = 1
-    AT_ROLE_GROUP = 2
-    AT_GUILD = 3
-
-
-class AtUserInfo(BaseModel):
-    id: int
-    nick: str
-
-
-class AtRoleInfo(BaseModel):
-    role_id: int
-    name: str
-    color: int
-
-
-class AtGuildInfo(BaseModel):
-    guild_id: int
-    guild_name: str
-
-
-class AtInfo(BaseModel):
-    type: AtType
-    user_info: Optional[AtUserInfo] = None
-    role_info: Optional[AtRoleInfo] = None
-    guild_info: Optional[AtGuildInfo] = None
-
-
-class URLInfo(BaseModel):
-    url: str
-    display_text: str
-
-
-class EmojiInfo(BaseModel):
-    id: str
-    type: str
-    name: str
-    url: str
-
-
-class ChannelInfo(BaseModel):
-    channel_id: int
-    channel_name: str
-
-
 class ElemType(IntEnum):
     TEXT = 1
     IMAGE = 2
@@ -522,22 +462,6 @@ class VideoElem(BaseModel):
     third_url: str
 
 
-class PlatImage(BaseModel):
-    url: str
-    image_id: str
-    width: Optional[int] = None
-    height: Optional[int] = None
-
-
-class PlatVideo(BaseModel):
-    url: str
-    video_id: str
-    width: Optional[int] = None
-    height: Optional[int] = None
-    duration: Optional[int] = None
-    cover: Optional[PlatImage] = None
-
-
 class URLElem(BaseModel):
     url: str
     desc: Optional[str] = None
@@ -554,7 +478,7 @@ class ParagraphProps(BaseModel):
 
 
 class Elem(BaseModel):
-    type: ElemType
+    type: Optional[ElemType] = None
     text: Optional[TextElem] = None
     image: Optional[ImageElem] = None
     video: Optional[VideoElem] = None
@@ -568,15 +492,6 @@ class Paragraph(BaseModel):
 
 class RichText(BaseModel):
     paragraphs: List[Paragraph]
-
-
-class RichObject(BaseModel):
-    type: RichType
-    text_info: Optional[TextInfo]
-    at_info: Optional[AtInfo]
-    url_info: Optional[URLInfo]
-    emoji_info: Optional[EmojiInfo]
-    channel_info: Optional[ChannelInfo]
 
 
 class ForumObjectInfo(BaseModel):
@@ -749,30 +664,17 @@ __all__ = [
     "MessageReaction",
     "APIPermission",
     "APIPermissionDemand",
-    "RichType",
-    "TextInfo",
-    "AtType",
-    "AtUserInfo",
-    "AtRoleInfo",
-    "AtGuildInfo",
-    "AtInfo",
-    "URLInfo",
-    "EmojiInfo",
-    "ChannelInfo",
     "ElemType",
     "TextProps",
     "TextElem",
     "ImageElem",
     "VideoElem",
-    "PlatImage",
-    "PlatVideo",
     "URLElem",
     "Alignment",
     "ParagraphProps",
     "Elem",
     "Paragraph",
     "RichText",
-    "RichObject",
     "ForumObject",
     "ForumObjectInfo",
     "ForumThreadInfo",
