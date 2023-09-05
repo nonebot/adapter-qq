@@ -3,8 +3,8 @@ from enum import IntEnum
 from datetime import datetime
 from typing import List, Generic, Literal, TypeVar, Optional
 
-from pydantic import BaseModel, validator
 from pydantic.generics import GenericModel
+from pydantic import BaseModel, validator, root_validator
 
 
 class Guild(BaseModel):
@@ -483,6 +483,22 @@ class Elem(BaseModel):
     image: Optional[ImageElem] = None
     video: Optional[VideoElem] = None
     url: Optional[URLElem] = None
+
+    @root_validator(pre=True, allow_reuse=True)
+    def infer_type(cls, values):
+        if values.get("type") is not None:
+            return values
+
+        if values.get("text") is not None:
+            values["type"] = ElemType.TEXT
+        elif values.get("image") is not None:
+            values["type"] = ElemType.IMAGE
+        elif values.get("video") is not None:
+            values["type"] = ElemType.VIDEO
+        elif values.get("url") is not None:
+            values["type"] = ElemType.URL
+
+        return values
 
 
 class Paragraph(BaseModel):
