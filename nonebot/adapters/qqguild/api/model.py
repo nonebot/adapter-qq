@@ -485,7 +485,7 @@ class Elem(BaseModel):
     url: Optional[URLElem] = None
 
     @root_validator(pre=True, allow_reuse=True)
-    def infer_type(cls, values):
+    def infer_type(cls, values: dict):
         if values.get("type") is not None:
             return values
 
