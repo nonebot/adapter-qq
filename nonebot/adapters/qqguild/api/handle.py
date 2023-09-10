@@ -555,6 +555,51 @@ async def _get_pins_message(
     return parse_obj_as(PinsMessage, await _request(adapter, bot, request))
 
 
+async def _get_threads_list(
+    adapter: "Adapter", bot: "Bot", channel_id: int
+) -> GetThreadsListReturn:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/threads",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_obj_as(GetThreadsListReturn, await _request(adapter, bot, request))
+
+
+async def _get_thread(
+    adapter: "Adapter", bot: "Bot", channel_id: int, thread_id: str
+) -> GetThreadReturn:
+    request = Request(
+        "GET",
+        adapter.get_api_base() / f"channels/{channel_id}/threads/{thread_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_obj_as(GetThreadReturn, await _request(adapter, bot, request))
+
+
+async def _put_thread(
+    adapter: "Adapter", bot: "Bot", channel_id: int, **data
+) -> PutThreadReturn:
+    request = Request(
+        "PUT",
+        adapter.get_api_base() / f"channels/{channel_id}/threads",
+        json=PutThreadBody(**data).dict(exclude_none=True),
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return parse_obj_as(PutThreadReturn, await _request(adapter, bot, request))
+
+
+async def _delete_thread(
+    adapter: "Adapter", bot: "Bot", channel_id: int, thread_id: str
+) -> None:
+    request = Request(
+        "DELETE",
+        adapter.get_api_base() / f"channels/{channel_id}/threads/{thread_id}",
+        headers={"Authorization": adapter.get_authorization(bot.bot_info)},
+    )
+    return await _request(adapter, bot, request)
+
+
 API_HANDLERS = {
     "get_guild": _get_guild,
     "me": _me,
@@ -603,4 +648,8 @@ API_HANDLERS = {
     "put_pins_message": _put_pins_message,
     "delete_pins_message": _delete_pins_message,
     "get_pins_message": _get_pins_message,
+    "get_threads_list": _get_threads_list,
+    "get_thread": _get_thread,
+    "put_thread": _put_thread,
+    "delete_thread": _delete_thread,
 }

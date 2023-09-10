@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Literal, Optional
+from typing import TYPE_CHECKING, List, Union, Literal, Optional
 
 from .model import *
 
@@ -323,6 +323,27 @@ if TYPE_CHECKING:
             ...
 
         async def get_pins_message(self, *, channel_id: int) -> PinsMessage:
+            ...
+
+        async def get_threads_list(self, *, channel_id: int) -> GetThreadsListReturn:
+            ...
+
+        async def get_thread(
+            self, *, channel_id: int, thread_id: str
+        ) -> GetThreadReturn:
+            ...
+
+        async def put_thread(
+            self,
+            *,
+            channel_id: int,
+            title: str,
+            content: Union[str, RichText],
+            format: PutThreadFormat,
+        ) -> PutThreadReturn:
+            ...
+
+        async def delete_thread(self, *, channel_id: int, thread_id: str) -> None:
             ...
 
 else:

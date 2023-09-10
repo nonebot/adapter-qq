@@ -1,7 +1,10 @@
+import json
+from enum import IntEnum
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Generic, Literal, TypeVar, Optional
 
-from pydantic import BaseModel
+from pydantic.generics import GenericModel
+from pydantic import BaseModel, validator, root_validator
 
 
 class Guild(BaseModel):
@@ -432,6 +435,188 @@ class APIPermissionDemand(BaseModel):
     desc: Optional[str] = None
 
 
+class ElemType(IntEnum):
+    UNSUPPORTED = 0
+    TEXT = 1
+    IMAGE = 2
+    VIDEO = 3
+    URL = 4
+
+
+class TextProps(BaseModel):
+    font_bold: Optional[bool] = None
+    italic: Optional[bool] = None
+    underline: Optional[bool] = None
+
+
+class TextElem(BaseModel):
+    text: str
+    props: Optional[TextProps] = None
+
+
+class ImageElem(BaseModel):
+    third_url: str
+    width_percent: Optional[float] = None
+
+
+class VideoElem(BaseModel):
+    third_url: str
+
+
+class URLElem(BaseModel):
+    url: str
+    desc: Optional[str] = None
+
+
+class Alignment(IntEnum):
+    LEFT = 0
+    MIDDLE = 1
+    RIGHT = 2
+
+
+class ParagraphProps(BaseModel):
+    alignment: Optional[Alignment] = None
+
+
+class Elem(BaseModel):
+    type: ElemType
+    text: Optional[TextElem] = None
+    image: Optional[ImageElem] = None
+    video: Optional[VideoElem] = None
+    url: Optional[URLElem] = None
+
+    @root_validator(pre=True, allow_reuse=True)
+    def infer_type(cls, values: dict):
+        if values.get("type") is not None:
+            return values
+
+        if values.get("text") is not None:
+            values["type"] = ElemType.TEXT
+        elif values.get("image") is not None:
+            values["type"] = ElemType.IMAGE
+        elif values.get("video") is not None:
+            values["type"] = ElemType.VIDEO
+        elif values.get("url") is not None:
+            values["type"] = ElemType.URL
+        else:
+            values["type"] = ElemType.UNSUPPORTED
+
+        return values
+
+
+class Paragraph(BaseModel):
+    elems: List[Elem]
+    props: Optional[ParagraphProps]
+
+
+class RichText(BaseModel):
+    paragraphs: List[Paragraph]
+
+
+class ForumObjectInfo(BaseModel):
+    thread_id: str
+    content: RichText
+    date_time: datetime
+
+    @validator("content", pre=True, allow_reuse=True)
+    def parse_content(cls, v):
+        if isinstance(v, str):
+            return RichText.parse_raw(v, content_type="json")
+        return v
+
+
+class ForumObject(BaseModel):
+    guild_id: int
+    channel_id: int
+    author_id: int
+
+
+_T_Title = TypeVar("_T_Title", str, RichText)
+
+
+class ForumThreadInfo(ForumObjectInfo, GenericModel, Generic[_T_Title]):
+    # 事件推送拿到的title实际上是RichText的JSON字符串，而API调用返回的title是普通文本
+    title: _T_Title
+
+    @validator("title", pre=True, allow_reuse=True)
+    def parse_title(cls, v):
+        if isinstance(v, str) and cls.__fields__["title"].type_ is RichText:
+            return RichText.parse_raw(v, content_type="json")
+        return v
+
+
+class ForumThread(ForumObject, GenericModel, Generic[_T_Title]):
+    thread_info: ForumThreadInfo[_T_Title]
+
+
+class ForumPostInfo(ForumObjectInfo):
+    post_id: str
+
+
+class ForumPost(ForumObject):
+    post_info: ForumPostInfo
+
+
+class ForumReplyInfo(ForumObjectInfo):
+    post_id: str
+    reply_id: str
+
+
+class ForumReply(ForumObject):
+    reply_info: ForumReplyInfo
+
+
+class ForumAuditType(IntEnum):
+    PUBLISH_THREAD = 1
+    PUBLISH_POST = 2
+    PUBLISH_REPLY = 3
+
+
+class ForumAuditResult(ForumObject):
+    thread_id: int
+    post_id: int
+    reply_id: int
+    type: ForumAuditType
+    result: Optional[int] = None
+    err_msg: Optional[str] = None
+
+
+class GetThreadsListReturn(BaseModel):
+    threads: List[ForumThread[str]]
+    is_finish: bool
+
+
+class GetThreadReturn(BaseModel):
+    thread: ForumThread[str]
+
+
+class PutThreadFormat(IntEnum):
+    TEXT = 1
+    HTML = 2
+    MARKDOWN = 3
+    JSON = 4
+
+
+class PutThreadBody(BaseModel):
+    title: str
+    content: str
+    format: PutThreadFormat
+
+    @validator("content", pre=True, allow_reuse=True)
+    def convert_content(cls, v):
+        if not isinstance(v, str):
+            if isinstance(v, BaseModel):
+                return v.json()
+            else:
+                return json.dumps(v)
+        return v
+
+
+class PutThreadReturn(BaseModel):
+    task_id: int
+    create_time: datetime
+
+
 __all__ = [
     "Guild",
     "User",
@@ -498,4 +683,30 @@ __all__ = [
     "MessageReaction",
     "APIPermission",
     "APIPermissionDemand",
+    "ElemType",
+    "TextProps",
+    "TextElem",
+    "ImageElem",
+    "VideoElem",
+    "URLElem",
+    "Alignment",
+    "ParagraphProps",
+    "Elem",
+    "Paragraph",
+    "RichText",
+    "ForumObject",
+    "ForumObjectInfo",
+    "ForumThreadInfo",
+    "ForumThread",
+    "ForumPostInfo",
+    "ForumPost",
+    "ForumReplyInfo",
+    "ForumReply",
+    "ForumAuditType",
+    "ForumAuditResult",
+    "GetThreadsListReturn",
+    "GetThreadReturn",
+    "PutThreadFormat",
+    "PutThreadBody",
+    "PutThreadReturn",
 ]
