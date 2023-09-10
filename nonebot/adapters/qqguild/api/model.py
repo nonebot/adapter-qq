@@ -436,6 +436,7 @@ class APIPermissionDemand(BaseModel):
 
 
 class ElemType(IntEnum):
+    UNSUPPORTED = 0
     TEXT = 1
     IMAGE = 2
     VIDEO = 3
@@ -478,7 +479,7 @@ class ParagraphProps(BaseModel):
 
 
 class Elem(BaseModel):
-    type: Optional[ElemType] = None
+    type: ElemType
     text: Optional[TextElem] = None
     image: Optional[ImageElem] = None
     video: Optional[VideoElem] = None
@@ -497,6 +498,8 @@ class Elem(BaseModel):
             values["type"] = ElemType.VIDEO
         elif values.get("url") is not None:
             values["type"] = ElemType.URL
+        else:
+            values["type"] = ElemType.UNSUPPORTED
 
         return values
 
