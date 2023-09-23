@@ -7,7 +7,14 @@ from pydantic import parse_raw_as
 from nonebot.typing import overrides
 from nonebot.utils import escape_tag
 from nonebot.exception import WebSocketClosed
-from nonebot.drivers import URL, Driver, Request, WebSocket, ForwardDriver
+from nonebot.drivers import (
+    URL,
+    Driver,
+    Request,
+    WebSocket,
+    HTTPClientMixin,
+    WebSocketClientMixin,
+)
 
 from nonebot.adapters import Adapter as BaseAdapter
 
@@ -49,10 +56,17 @@ class Adapter(BaseAdapter):
         return "QQ Guild"
 
     def setup(self) -> None:
-        if not isinstance(self.driver, ForwardDriver):
+        if not isinstance(self.driver, HTTPClientMixin):
             raise RuntimeError(
                 f"Current driver {self.config.driver} does not support "
-                "forward connections! QQ Guild Adapter need a ForwardDriver to work."
+                "http client requests! "
+                "QQ Guild Adapter need a HTTPClient Driver to work."
+            )
+        if not isinstance(self.driver, WebSocketClientMixin):
+            raise RuntimeError(
+                f"Current driver {self.config.driver} does not support "
+                "websocket client! "
+                "QQ Guild Adapter need a WebSocketClient Driver to work."
             )
         self.driver.on_startup(self.startup)
         self.driver.on_shutdown(self.shutdown)
