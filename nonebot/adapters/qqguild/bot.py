@@ -1,6 +1,6 @@
+from typing_extensions import override
 from typing import TYPE_CHECKING, Any, Dict, Union, Optional
 
-from nonebot.typing import overrides
 from nonebot.message import handle_event
 
 from nonebot.adapters import Bot as BaseBot
@@ -82,7 +82,7 @@ def _check_at_me(bot: "Bot", event: MessageEvent):
 
 
 class Bot(BaseBot, ApiClient):
-    @overrides(BaseBot)
+    @override
     def __init__(self, adapter: "Adapter", self_id: str, bot_info: BotInfo):
         super().__init__(adapter, self_id)
         self.bot_info: BotInfo = bot_info
@@ -187,7 +187,7 @@ class Bot(BaseBot, ApiClient):
             **self._extract_send_message(message=message),
         )
 
-    @overrides(BaseBot)
+    @override
     async def send(
         self,
         event: Event,

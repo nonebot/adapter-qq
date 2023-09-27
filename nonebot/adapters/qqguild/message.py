@@ -1,9 +1,8 @@
 import re
 from io import BytesIO
 from pathlib import Path
+from typing_extensions import override
 from typing import Type, Union, Iterable, Optional, overload
-
-from nonebot.typing import overrides
 
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
@@ -15,7 +14,7 @@ from .api import MessageArk, MessageEmbed, MessageReference
 
 class MessageSegment(BaseMessageSegment["Message"]):
     @classmethod
-    @overrides(BaseMessageSegment)
+    @override
     def get_message_class(cls) -> Type["Message"]:
         return Message
 
@@ -85,78 +84,78 @@ class MessageSegment(BaseMessageSegment["Message"]):
     def text(content: str) -> "Text":
         return Text("text", {"text": content})
 
-    @overrides(BaseMessageSegment)
+    @override
     def is_text(self) -> bool:
         return self.type == "text"
 
 
 class Text(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return escape(self.data["text"])
 
 
 class Emoji(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return f"<emoji:{self.data['id']}>"
 
 
 class MentionUser(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return f"<@{self.data['user_id']}>"
 
 
 class MentionEveryone(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return "@everyone"
 
 
 class MentionChannel(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return f"<#{self.data['channel_id']}>"
 
 
 class Attachment(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return f"<attachment:{self.data['url']}>"
 
 
 class Embed(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return f"<embed:{self.data['embed']}>"
 
 
 class Ark(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return f"<ark:{self.data['ark']}>"
 
 
 class LocalImage(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return "<local_image>"
 
 
 class Reference(MessageSegment):
-    @overrides(MessageSegment)
+    @override
     def __str__(self) -> str:
         return "<reference>"
 
 
 class Message(BaseMessage[MessageSegment]):
     @classmethod
-    @overrides(BaseMessage)
+    @override
     def get_segment_class(cls) -> Type[MessageSegment]:
         return MessageSegment
 
-    @overrides(BaseMessage)
+    @override
     def __add__(
         self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
     ) -> "Message":
@@ -164,7 +163,7 @@ class Message(BaseMessage[MessageSegment]):
             MessageSegment.text(other) if isinstance(other, str) else other
         )
 
-    @overrides(BaseMessage)
+    @override
     def __radd__(
         self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
     ) -> "Message":
@@ -173,7 +172,7 @@ class Message(BaseMessage[MessageSegment]):
         )
 
     @staticmethod
-    @overrides(BaseMessage)
+    @override
     def _construct(msg: str) -> Iterable[MessageSegment]:
         text_begin = 0
         for embed in re.finditer(

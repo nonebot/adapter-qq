@@ -1,10 +1,10 @@
 import sys
 import json
 import asyncio
+from typing_extensions import override
 from typing import Any, List, Tuple, Optional
 
 from pydantic import parse_raw_as
-from nonebot.typing import overrides
 from nonebot.utils import escape_tag
 from nonebot.exception import WebSocketClosed
 from nonebot.drivers import (
@@ -42,7 +42,7 @@ RECONNECT_INTERVAL = 3.0
 
 
 class Adapter(BaseAdapter):
-    @overrides(BaseAdapter)
+    @override
     def __init__(self, driver: Driver, **kwargs: Any):
         super().__init__(driver, **kwargs)
         self.qqguild_config: Config = Config(**self.config.dict())
@@ -51,7 +51,7 @@ class Adapter(BaseAdapter):
         self.setup()
 
     @classmethod
-    @overrides(BaseAdapter)
+    @override
     def get_name(cls) -> str:
         return "QQ Guild"
 
@@ -382,7 +382,7 @@ class Adapter(BaseAdapter):
             return event
         return EventClass.parse_obj(payload.data)
 
-    @overrides(BaseAdapter)
+    @override
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
         log("DEBUG", f"Calling API <y>{api}</y>")
         api_handler = API_HANDLERS.get(api, None)

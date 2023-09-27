@@ -1,7 +1,7 @@
 from enum import Enum
+from typing_extensions import override
 from typing import Dict, Type, Tuple, Optional
 
-from nonebot.typing import overrides
 from nonebot.utils import escape_tag
 
 from nonebot.adapters import Event as BaseEvent
@@ -81,34 +81,34 @@ class EventType(str, Enum):
 class Event(BaseEvent):
     __type__: EventType
 
-    @overrides(BaseEvent)
+    @override
     def get_event_name(self) -> str:
         return self.__type__
 
-    @overrides(BaseEvent)
+    @override
     def get_event_description(self) -> str:
         return escape_tag(str(self.dict()))
 
-    @overrides(BaseEvent)
+    @override
     def get_message(self) -> Message:
         raise ValueError("Event has no message!")
 
-    @overrides(BaseEvent)
+    @override
     def get_user_id(self) -> str:
         raise ValueError("Event has no context!")
 
-    @overrides(BaseEvent)
+    @override
     def get_session_id(self) -> str:
         raise ValueError("Event has no context!")
 
-    @overrides(BaseEvent)
+    @override
     def is_tome(self) -> bool:
         return False
 
 
 # Meta Event
 class MetaEvent(Event):
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "meta_event"
 
@@ -129,7 +129,7 @@ class ResumedEvent(MetaEvent):
 class GuildEvent(Event, Guild):
     op_user_id: str
 
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
@@ -150,7 +150,7 @@ class GuildDeleteEvent(GuildEvent):
 class ChannelEvent(Event, Channel):
     op_user_id: str
 
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
@@ -172,22 +172,22 @@ class GuildMemberEvent(Event, Member):
     guild_id: str
     op_user_id: str
 
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
-    @overrides(Event)
+    @override
     def get_user_id(self) -> str:
         return str(self.user.id)  # type: ignore
 
-    @overrides(Event)
+    @override
     def get_event_description(self) -> str:
         return escape_tag(
             f"Notice {getattr(self.user, 'username', None)}"
             f"@[Guild:{self.guild_id}] Roles:{self.roles}"
         )
 
-    @overrides(Event)
+    @override
     def get_session_id(self) -> str:
         return str(self.user.id)  # type: ignore
 
@@ -215,19 +215,19 @@ class MessageEvent(Event, GuildMessage):
     :类型: ``Optional[MessageGet]``
     """
 
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "message"
 
-    @overrides(Event)
+    @override
     def get_user_id(self) -> str:
         return str(self.author.id)  # type: ignore
 
-    @overrides(Event)
+    @override
     def get_session_id(self) -> str:
         return str(self.author.id)  # type: ignore
 
-    @overrides(BaseEvent)
+    @override
     def get_event_description(self) -> str:
         return escape_tag(
             f"Message {self.id} from "
@@ -236,13 +236,13 @@ class MessageEvent(Event, GuildMessage):
             f"Roles:{getattr(self.member, 'roles', None)}: {self.get_message()}"
         )
 
-    @overrides(Event)
+    @override
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
             setattr(self, "_message", Message.from_guild_message(self))
         return getattr(self, "_message")
 
-    @overrides(Event)
+    @override
     def is_tome(self) -> bool:
         return self.to_me
 
@@ -254,7 +254,7 @@ class MessageCreateEvent(MessageEvent):
 class MessageDeleteEvent(Event, MessageDelete):
     __type__ = EventType.MESSAGE_DELETE
 
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
@@ -272,7 +272,7 @@ class DirectMessageCreateEvent(MessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
     to_me: bool = True
 
-    @overrides(MessageEvent)
+    @override
     def get_event_description(self) -> str:
         return escape_tag(
             f"Message {self.id} from "
@@ -286,7 +286,7 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
 
 # Message Audit Event
 class MessageAuditEvent(Event, MessageAudited):
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
@@ -301,15 +301,15 @@ class MessageAuditRejectEvent(MessageAuditEvent):
 
 # Message Reaction Event
 class MessageReactionEvent(Event, MessageReaction):
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
-    @overrides(Event)
+    @override
     def get_user_id(self) -> str:
         return str(self.user_id)
 
-    @overrides(Event)
+    @override
     def get_session_id(self) -> str:
         return str(self.user_id)
 
@@ -323,15 +323,15 @@ class MessageReactionRemoveEvent(MessageReactionEvent):
 
 
 class ForumEvent(Event, ForumObject):
-    @overrides(BaseEvent)
+    @override
     def get_type(self) -> str:
         return "notice"
 
-    @overrides(Event)
+    @override
     def get_user_id(self) -> str:
         return str(self.author_id)
 
-    @overrides(Event)
+    @override
     def get_session_id(self) -> str:
         return f"forum_{self.author_id}"
 
