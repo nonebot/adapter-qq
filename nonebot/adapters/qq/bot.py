@@ -26,7 +26,6 @@ from .utils import API, log, exclude_none
 from .models import Message as GuildMessage
 from .message import Message, MessageSegment
 from .models import DMS, User, Guild, Member, Channel
-from .event import Event, ReadyEvent, MessageEvent, DirectMessageCreateEvent
 from .exception import (
     ActionFailed,
     NetworkError,
@@ -34,6 +33,14 @@ from .exception import (
     ApiNotAvailable,
     RateLimitException,
     UnauthorizedException,
+)
+from .event import (
+    Event,
+    ReadyEvent,
+    GuildMessageEvent,
+    C2CMessageCreateEvent,
+    DirectMessageCreateEvent,
+    GroupAtMessageCreateEvent,
 )
 from .models import (
     Dispatch,
@@ -60,13 +67,17 @@ from .models import (
     RecommendChannel,
     ShardUrlGetReturn,
     ChannelPermissions,
+    PostC2CFilesReturn,
     APIPermissionDemand,
     GetGuildRolesReturn,
     PostGuildRoleReturn,
     GetRoleMembersReturn,
     GetThreadsListReturn,
     PatchGuildRoleReturn,
+    PostGroupFilesReturn,
+    PostC2CMessagesReturn,
     GetReactionUsersReturn,
+    PostGroupMessagesReturn,
     APIPermissionDemandIdentify,
     GetGuildAPIPermissionReturn,
 )
@@ -75,14 +86,17 @@ if TYPE_CHECKING:
     from .adapter import Adapter
 
 
-async def _check_reply(bot: "Bot", event: MessageEvent) -> None:
+async def _check_reply(
+    bot: "Bot",
+    event: Union[GuildMessageEvent, C2CMessageCreateEvent, GroupAtMessageCreateEvent],
+) -> None:
     """检查消息中存在的回复，赋值 `event.reply`, `event.to_me`。
 
     参数:
         bot: Bot 对象
         event: MessageEvent 对象
     """
-    if event.message_reference is None:
+    if not isinstance(event, GuildMessageEvent) or event.message_reference is None:
         return
     try:
         event.reply = await bot.get_message_of_id(
@@ -95,10 +109,15 @@ async def _check_reply(bot: "Bot", event: MessageEvent) -> None:
         log("WARNING", f"Error when getting message reply info: {repr(e)}", e)
 
 
-def _check_at_me(bot: "Bot", event: MessageEvent):
-    if event.mentions is not None and bot.self_info.id in [
-        user.id for user in event.mentions
-    ]:
+def _check_at_me(
+    bot: "Bot",
+    event: Union[GuildMessageEvent, C2CMessageCreateEvent, GroupAtMessageCreateEvent],
+):
+    if (
+        isinstance(event, GuildMessageEvent)
+        and event.mentions is not None
+        and bot.self_info.id in [user.id for user in event.mentions]
+    ):
         event.to_me = True
 
     def _is_at_me_seg(segment: MessageSegment) -> bool:
@@ -246,7 +265,9 @@ class Bot(BaseBot):
         return headers
 
     async def handle_event(self, event: Event) -> None:
-        if isinstance(event, MessageEvent):
+        if isinstance(
+            event, (GuildMessageEvent, C2CMessageCreateEvent, GroupAtMessageCreateEvent)
+        ):
             await _check_reply(self, event)
             _check_at_me(self, event)
         await handle_event(self, event)
@@ -282,7 +303,7 @@ class Bot(BaseBot):
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
         event_id: Optional[str] = None,
-    ) -> Any:
+    ) -> GuildMessage:
         return await self.post_dms_messages(
             guild_id=guild_id,
             msg_id=msg_id,
@@ -290,18 +311,72 @@ class Bot(BaseBot):
             **self._extract_send_message(message=message),
         )
 
-    async def send_to(
+    async def send_to_channel(
         self,
         channel_id: str,
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
         event_id: Optional[str] = None,
-    ) -> Any:
+    ) -> GuildMessage:
         return await self.post_messages(
             channel_id=channel_id,
             msg_id=msg_id,
             event_id=event_id,
             **self._extract_send_message(message=message),
+        )
+
+    async def send_to_c2c(
+        self,
+        user_id: str,
+        message: Union[str, Message, MessageSegment],
+        msg_id: Optional[str] = None,
+        event_id: Optional[str] = None,
+    ) -> PostC2CMessagesReturn:
+        kwargs = self._extract_send_message(message=message)
+        if kwargs.get("embed"):
+            msg_type = 4
+        elif kwargs.get("ark"):
+            msg_type = 3
+        elif kwargs.get("markdown"):
+            msg_type = 2
+        elif kwargs.get("image"):
+            msg_type = 1
+        else:
+            msg_type = 0
+
+        return await self.post_c2c_messages(
+            user_id=user_id,
+            msg_type=msg_type,
+            msg_id=msg_id,
+            event_id=event_id,
+            **kwargs,
+        )
+
+    async def send_to_group(
+        self,
+        group_id: str,
+        message: Union[str, Message, MessageSegment],
+        msg_id: Optional[str] = None,
+        event_id: Optional[str] = None,
+    ) -> PostGroupMessagesReturn:
+        kwargs = self._extract_send_message(message=message)
+        if kwargs.get("embed"):
+            msg_type = 4
+        elif kwargs.get("ark"):
+            msg_type = 3
+        elif kwargs.get("markdown"):
+            msg_type = 2
+        elif kwargs.get("image"):
+            msg_type = 1
+        else:
+            msg_type = 0
+
+        return await self.post_group_messages(
+            group_id=group_id,
+            msg_type=msg_type,
+            msg_id=msg_id,
+            event_id=event_id,
+            **kwargs,
         )
 
     @override
@@ -311,9 +386,6 @@ class Bot(BaseBot):
         message: Union[str, Message, MessageSegment],
         **kwargs,
     ) -> Any:
-        if not isinstance(event, MessageEvent) or not event.channel_id or not event.id:
-            raise RuntimeError("Event cannot be replied to!")
-
         if isinstance(event, DirectMessageCreateEvent):
             # 私信需要使用 post_dms_messages
             # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
@@ -322,12 +394,26 @@ class Bot(BaseBot):
                 message=message,
                 msg_id=event.id,
             )
-        else:
-            return await self.send_to(
+        elif isinstance(event, GuildMessageEvent):
+            return await self.send_to_channel(
                 channel_id=event.channel_id,
                 message=message,
                 msg_id=event.id,
             )
+        elif isinstance(event, C2CMessageCreateEvent):
+            return await self.send_to_c2c(
+                user_id=event.author.id,
+                message=message,
+                msg_id=event.id,
+            )
+        elif isinstance(event, GroupAtMessageCreateEvent):
+            return await self.send_to_group(
+                group_id=event.group_id,
+                message=message,
+                msg_id=event.id,
+            )
+
+        raise RuntimeError("Event cannot be replied to!")
 
     # API request methods
     def _handle_response(self, response: Response) -> Any:
@@ -1403,3 +1489,160 @@ class Bot(BaseBot):
             self.adapter.get_api_base().joinpath("gateway", "bot"),
         )
         return parse_obj_as(ShardUrlGetReturn, await self._request(request))
+
+    # Interaction API
+    @API
+    async def put_interaction(
+        self, *, interaction_id: str, code: Literal[0, 1, 2, 3, 4, 5]
+    ) -> None:
+        request = Request(
+            "PUT",
+            self.adapter.get_api_base().joinpath("interactions", interaction_id),
+            json={"code": code},
+        )
+        return await self._request(request)
+
+    # C2C API
+    @API
+    async def post_c2c_messages(
+        self,
+        *,
+        user_id: str,
+        msg_type: Literal[0, 1, 2, 3, 4],
+        content: Optional[str] = None,
+        markdown: Optional[MessageMarkdown] = None,
+        keyboard: Optional[MessageKeyboard] = None,
+        ark: Optional[MessageArk] = None,
+        embed: Optional[MessageEmbed] = None,
+        image: None = None,
+        message_reference: None = None,
+        event_id: Optional[str] = None,
+        msg_id: Optional[str] = None,
+    ) -> PostC2CMessagesReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "users", user_id, "messages"),
+            json=exclude_none(
+                {
+                    "msg_type": msg_type,
+                    "content": content,
+                    "markdown": (
+                        markdown.dict(exclude_none=True)
+                        if markdown is not None
+                        else None
+                    ),
+                    "keyboard": (
+                        keyboard.dict(exclude_none=True)
+                        if keyboard is not None
+                        else None
+                    ),
+                    "ark": ark.dict(exclude_none=True) if ark is not None else None,
+                    "embed": (
+                        embed.dict(exclude_none=True) if embed is not None else None
+                    ),
+                    "image": image,
+                    "message_reference": message_reference,
+                    "event_id": event_id,
+                    "msg_id": msg_id,
+                }
+            ),
+        )
+        return parse_obj_as(PostC2CMessagesReturn, await self._request(request))
+
+    @API
+    async def post_c2c_files(
+        self,
+        *,
+        user_id: str,
+        file_type: Literal[1, 2, 3, 4],
+        url: str,
+        srv_send_msg: bool = True,
+    ) -> PostC2CFilesReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "users", user_id, "files"),
+            json=exclude_none(
+                {
+                    "file_type": file_type,
+                    "url": url,
+                    "srv_send_msg": srv_send_msg,
+                }
+            ),
+        )
+        return parse_obj_as(PostC2CFilesReturn, await self._request(request))
+
+    # Group API
+    @API
+    async def post_group_messages(
+        self,
+        *,
+        group_id: str,
+        msg_type: Literal[0, 1, 2, 3, 4, 5],
+        content: Optional[str] = None,
+        markdown: Optional[MessageMarkdown] = None,
+        keyboard: Optional[MessageKeyboard] = None,
+        ark: Optional[MessageArk] = None,
+        embed: Optional[MessageEmbed] = None,
+        image: None = None,
+        message_reference: None = None,
+        event_id: Optional[str] = None,
+        msg_id: Optional[str] = None,
+        timestamp: Optional[Union[int, datetime]] = None,
+    ) -> PostGroupMessagesReturn:
+        if isinstance(timestamp, datetime):
+            timestamp = int(timestamp.timestamp())
+        elif timestamp is None:
+            timestamp = int(datetime.now(timezone.utc).timestamp())
+
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "messages"),
+            json=exclude_none(
+                {
+                    "msg_type": msg_type,
+                    "content": content,
+                    "markdown": (
+                        markdown.dict(exclude_none=True)
+                        if markdown is not None
+                        else None
+                    ),
+                    "keyboard": (
+                        keyboard.dict(exclude_none=True)
+                        if keyboard is not None
+                        else None
+                    ),
+                    "ark": ark.dict(exclude_none=True) if ark is not None else None,
+                    "embed": (
+                        embed.dict(exclude_none=True) if embed is not None else None
+                    ),
+                    "image": image,
+                    "message_reference": message_reference,
+                    "event_id": event_id,
+                    "msg_id": msg_id,
+                    "timestamp": timestamp,
+                }
+            ),
+        )
+        return parse_obj_as(PostGroupMessagesReturn, await self._request(request))
+
+    @API
+    async def post_group_files(
+        self,
+        *,
+        group_id: str,
+        file_type: Literal[1, 2, 3, 4],
+        url: str,
+        srv_send_msg: bool = True,
+    ) -> PostGroupFilesReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "files"),
+            json=exclude_none(
+                {
+                    "file_type": file_type,
+                    "url": url,
+                    "srv_send_msg": srv_send_msg,
+                }
+            ),
+        )
+        return parse_obj_as(PostGroupFilesReturn, await self._request(request))

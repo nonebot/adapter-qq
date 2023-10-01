@@ -219,6 +219,7 @@ class Action(BaseModel):
     type: Optional[int] = None
     permission: Optional[Permission] = None
     click_limit: Optional[int] = None
+    unsupport_tips: Optional[str] = None
     data: Optional[str] = None
     at_bot_show_channel_list: Optional[bool] = None
 
@@ -240,7 +241,7 @@ class InlineKeyboardRow(BaseModel):
 
 
 class InlineKeyboard(BaseModel):
-    rows: Optional[InlineKeyboardRow] = None
+    rows: Optional[List[InlineKeyboardRow]] = None
 
 
 class MessageKeyboard(BaseModel):
@@ -486,13 +487,13 @@ class ThreadInfo(ThreadObjectInfo, GenericModel, Generic[_T_Title]):
         return v
 
 
-class ThreadSourceInfo(BaseModel):
+class ForumSourceInfo(BaseModel):
     guild_id: str
     channel_id: str
     author_id: str
 
 
-class Thread(ThreadSourceInfo, GenericModel, Generic[_T_Title]):
+class Thread(ForumSourceInfo, GenericModel, Generic[_T_Title]):
     thread_info: ThreadInfo[_T_Title]
 
 
@@ -500,7 +501,7 @@ class PostInfo(ThreadObjectInfo):
     post_id: str
 
 
-class Post(ThreadSourceInfo):
+class Post(ForumSourceInfo):
     post_info: PostInfo
 
 
@@ -509,7 +510,7 @@ class ReplyInfo(ThreadObjectInfo):
     reply_id: str
 
 
-class Reply(ThreadSourceInfo):
+class Reply(ForumSourceInfo):
     reply_info: ReplyInfo
 
 
@@ -519,7 +520,7 @@ class ForumAuditType(IntEnum):
     REPLY = 3
 
 
-class ForumAuditResult(ThreadSourceInfo):
+class ForumAuditResult(ForumSourceInfo):
     thread_id: str
     post_id: str
     reply_id: str
@@ -650,7 +651,7 @@ __all__ = [
     "RichText",
     "ThreadObjectInfo",
     "ThreadInfo",
-    "ThreadSourceInfo",
+    "ForumSourceInfo",
     "Thread",
     "PostInfo",
     "Post",

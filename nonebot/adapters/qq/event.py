@@ -8,14 +8,16 @@ from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
 from .models import Message as GuildMessage
-from .models import Post, User, Guild, Reply, Member, Thread, Channel
+from .models import Post, User, Guild, Reply, Author, Member, Thread, Channel
 from .models import (
     RichText,
+    AudioAction,
     MessageDelete,
     MessageAudited,
+    ForumSourceInfo,
     MessageReaction,
     ForumAuditResult,
-    ThreadSourceInfo,
+    ButtonInteraction,
 )
 
 E = TypeVar("E", bound="Event")
@@ -50,6 +52,26 @@ class EventType(str, Enum):
     # DIRECT_MESSAGE
     DIRECT_MESSAGE_CREATE = "DIRECT_MESSAGE_CREATE"
     DIRECT_MESSAGE_DELETE = "DIRECT_MESSAGE_DELETE"
+
+    # OPEN_FORUMS_EVENT
+    OPEN_FORUM_THREAD_CREATE = "OPEN_FORUM_THREAD_CREATE"
+    OPEN_FORUM_THREAD_UPDATE = "OPEN_FORUM_THREAD_UPDATE"
+    OPEN_FORUM_THREAD_DELETE = "OPEN_FORUM_THREAD_DELETE"
+    OPEN_FORUM_POST_CREATE = "OPEN_FORUM_POST_CREATE"
+    OPEN_FORUM_POST_DELETE = "OPEN_FORUM_POST_DELETE"
+    OPEN_FORUM_REPLY_CREATE = "OPEN_FORUM_REPLY_CREATE"
+    OPEN_FORUM_REPLY_DELETE = "OPEN_FORUM_REPLY_DELETE"
+
+    # AUDIO_OR_LIVE_CHANNEL_MEMBER
+    AUDIO_OR_LIVE_CHANNEL_MEMBER_ENTER = "AUDIO_OR_LIVE_CHANNEL_MEMBER_ENTER"
+    AUDIO_OR_LIVE_CHANNEL_MEMBER_EXIT = "AUDIO_OR_LIVE_CHANNEL_MEMBER_EXIT"
+
+    # C2C_GROUP_AT_MESSAGES
+    C2C_MESSAGE_CREATE = "C2C_MESSAGE_CREATE"
+    GROUP_AT_MESSAGE_CREATE = "GROUP_AT_MESSAGE_CREATE"
+
+    # INTERACTION
+    INTERACTION_CREATE = "INTERACTION_CREATE"
 
     # MESSAGE_AUDIT
     MESSAGE_AUDIT_PASS = "MESSAGE_AUDIT_PASS"
@@ -133,13 +155,16 @@ class ResumedEvent(MetaEvent):
     __type__ = EventType.RESUMED
 
 
-# Guild Event
-class GuildEvent(Event, Guild):
-    op_user_id: str
-
+# Notice Event
+class NoticeEvent(Event):
     @override
     def get_type(self) -> str:
         return "notice"
+
+
+# Guild Event
+class GuildEvent(NoticeEvent, Guild):
+    op_user_id: str
 
 
 @register_event_class
@@ -158,12 +183,8 @@ class GuildDeleteEvent(GuildEvent):
 
 
 # Channel Event
-class ChannelEvent(Event, Channel):
+class ChannelEvent(NoticeEvent, Channel):
     op_user_id: str
-
-    @override
-    def get_type(self) -> str:
-        return "notice"
 
 
 @register_event_class
@@ -182,17 +203,13 @@ class ChannelDeleteEvent(ChannelEvent):
 
 
 # Guild Member Event
-class GuildMemberEvent(Event, Member):
+class GuildMemberEvent(NoticeEvent, Member):
     guild_id: str
     op_user_id: str
 
     @override
-    def get_type(self) -> str:
-        return "notice"
-
-    @override
     def get_user_id(self) -> str:
-        return str(self.user.id)  # type: ignore
+        return self.user.id  # type: ignore
 
     @override
     def get_event_description(self) -> str:
@@ -203,7 +220,7 @@ class GuildMemberEvent(Event, Member):
 
     @override
     def get_session_id(self) -> str:
-        return str(self.user.id)  # type: ignore
+        return self.user.id  # type: ignore
 
 
 @register_event_class
@@ -222,7 +239,7 @@ class GuildMemberRemoveEvent(GuildMemberEvent):
 
 
 # Message Event
-class MessageEvent(Event, GuildMessage):
+class MessageEvent(Event):
     to_me: bool = False
 
     reply: Optional[GuildMessage] = None
@@ -237,12 +254,18 @@ class MessageEvent(Event, GuildMessage):
         return "message"
 
     @override
+    def is_tome(self) -> bool:
+        return self.to_me
+
+
+class GuildMessageEvent(MessageEvent, GuildMessage):
+    @override
     def get_user_id(self) -> str:
-        return str(self.author.id)  # type: ignore
+        return self.author.id
 
     @override
     def get_session_id(self) -> str:
-        return str(self.author.id)  # type: ignore
+        return self.author.id
 
     @override
     def get_event_description(self) -> str:
@@ -259,27 +282,19 @@ class MessageEvent(Event, GuildMessage):
             setattr(self, "_message", Message.from_guild_message(self))
         return getattr(self, "_message")
 
-    @override
-    def is_tome(self) -> bool:
-        return self.to_me
-
 
 @register_event_class
-class MessageCreateEvent(MessageEvent):
+class MessageCreateEvent(GuildMessageEvent):
     __type__ = EventType.MESSAGE_CREATE
 
 
 @register_event_class
-class MessageDeleteEvent(Event, MessageDelete):
+class MessageDeleteEvent(NoticeEvent, MessageDelete):
     __type__ = EventType.MESSAGE_DELETE
-
-    @override
-    def get_type(self) -> str:
-        return "notice"
 
 
 @register_event_class
-class AtMessageCreateEvent(MessageEvent):
+class AtMessageCreateEvent(GuildMessageEvent):
     __type__ = EventType.AT_MESSAGE_CREATE
     to_me: bool = True
 
@@ -290,7 +305,7 @@ class PublicMessageDeleteEvent(MessageDeleteEvent):
 
 
 @register_event_class
-class DirectMessageCreateEvent(MessageEvent):
+class DirectMessageCreateEvent(GuildMessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
     to_me: bool = True
 
@@ -307,11 +322,63 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
     __type__ = EventType.DIRECT_MESSAGE_DELETE
 
 
-# Message Audit Event
-class MessageAuditEvent(Event, MessageAudited):
+@register_event_class
+class C2CMessageCreateEvent(MessageEvent):
+    __type__ = EventType.C2C_MESSAGE_CREATE
+
+    id: str
+    author: Author
+    content: str
+    timestamp: str
+
     @override
-    def get_type(self) -> str:
-        return "notice"
+    def get_message(self) -> Message:
+        if not hasattr(self, "_message"):
+            setattr(self, "_message", Message(self.content))
+        return getattr(self, "_message")
+
+    @override
+    def is_tome(self) -> bool:
+        return True
+
+
+@register_event_class
+class GroupAtMessageCreateEvent(MessageEvent):
+    __type__ = EventType.GROUP_AT_MESSAGE_CREATE
+
+    id: str
+    author: Author
+    group_id: str
+    content: str
+    timestamp: str
+
+    @override
+    def get_message(self) -> Message:
+        if not hasattr(self, "_message"):
+            setattr(self, "_message", Message(self.content))
+        return getattr(self, "_message")
+
+    @override
+    def is_tome(self) -> bool:
+        return True
+
+
+@register_event_class
+class InteractionCreateEvent(NoticeEvent, ButtonInteraction):
+    __type__ = EventType.INTERACTION_CREATE
+
+    @override
+    def get_user_id(self) -> str:
+        return self.data.resolved.user_id
+
+    @override
+    def get_session_id(self) -> str:
+        return self.data.resolved.user_id
+
+
+# Message Audit Event
+class MessageAuditEvent(NoticeEvent, MessageAudited):
+    ...
 
 
 @register_event_class
@@ -325,18 +392,14 @@ class MessageAuditRejectEvent(MessageAuditEvent):
 
 
 # Message Reaction Event
-class MessageReactionEvent(Event, MessageReaction):
-    @override
-    def get_type(self) -> str:
-        return "notice"
-
+class MessageReactionEvent(NoticeEvent, MessageReaction):
     @override
     def get_user_id(self) -> str:
-        return str(self.user_id)
+        return self.user_id
 
     @override
     def get_session_id(self) -> str:
-        return str(self.user_id)
+        return self.user_id
 
 
 @register_event_class
@@ -349,14 +412,36 @@ class MessageReactionRemoveEvent(MessageReactionEvent):
     __type__ = EventType.MESSAGE_REACTION_REMOVE
 
 
-class ForumEvent(Event, ThreadSourceInfo):
-    @override
-    def get_type(self) -> str:
-        return "notice"
+# Audio Event
+class AudioEvent(NoticeEvent, AudioAction):
+    ...
 
+
+@register_event_class
+class AudioStartEvent(AudioEvent):
+    __type__ = EventType.AUDIO_START
+
+
+@register_event_class
+class AudioFinishEvent(AudioEvent):
+    __type__ = EventType.AUDIO_FINISH
+
+
+@register_event_class
+class AudioOnMicEvent(AudioEvent):
+    __type__ = EventType.AUDIO_ON_MIC
+
+
+@register_event_class
+class AudioOffMicEvent(AudioEvent):
+    __type__ = EventType.AUDIO_OFF_MIC
+
+
+# Forum Event
+class ForumEvent(NoticeEvent, ForumSourceInfo):
     @override
     def get_user_id(self) -> str:
-        return str(self.author_id)
+        return self.author_id
 
     @override
     def get_session_id(self) -> str:
@@ -415,9 +500,59 @@ class ForumPublishAuditResult(ForumEvent, ForumAuditResult):
     __type__ = EventType.FORUM_PUBLISH_AUDIT_RESULT
 
 
+class OpenForumEvent(NoticeEvent, ForumSourceInfo):
+    @override
+    def get_user_id(self) -> str:
+        return self.author_id
+
+    @override
+    def get_session_id(self) -> str:
+        return f"forum_{self.author_id}"
+
+
+@register_event_class
+class OpenForumThreadCreateEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_THREAD_CREATE
+
+
+@register_event_class
+class OpenForumThreadUpdateEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_THREAD_UPDATE
+
+
+@register_event_class
+class OpenForumThreadDeleteEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_THREAD_DELETE
+
+
+@register_event_class
+class OpenForumPostCreateEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_POST_CREATE
+
+
+@register_event_class
+class OpenForumPostDeleteEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_POST_DELETE
+
+
+@register_event_class
+class OpenForumReplyCreateEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_REPLY_CREATE
+
+
+@register_event_class
+class OpenForumReplyDeleteEvent(OpenForumEvent):
+    __type__ = EventType.OPEN_FORUM_REPLY_DELETE
+
+
 __all__ = [
+    "EVENT_CLASSES",
     "EventType",
     "Event",
+    "MetaEvent",
+    "ReadyEvent",
+    "ResumedEvent",
+    "NoticeEvent",
     "GuildEvent",
     "GuildCreateEvent",
     "GuildUpdateEvent",
@@ -443,4 +578,29 @@ __all__ = [
     "MessageReactionEvent",
     "MessageReactionAddEvent",
     "MessageReactionRemoveEvent",
+    "AudioEvent",
+    "AudioStartEvent",
+    "AudioFinishEvent",
+    "AudioOnMicEvent",
+    "AudioOffMicEvent",
+    "ForumEvent",
+    "ForumThreadEvent",
+    "ForumThreadCreateEvent",
+    "ForumThreadUpdateEvent",
+    "ForumThreadDeleteEvent",
+    "ForumPostEvent",
+    "ForumPostCreateEvent",
+    "ForumPostDeleteEvent",
+    "ForumReplyEvent",
+    "ForumReplyCreateEvent",
+    "ForumReplyDeleteEvent",
+    "ForumPublishAuditResult",
+    "OpenForumEvent",
+    "OpenForumThreadCreateEvent",
+    "OpenForumThreadUpdateEvent",
+    "OpenForumThreadDeleteEvent",
+    "OpenForumPostCreateEvent",
+    "OpenForumPostDeleteEvent",
+    "OpenForumReplyCreateEvent",
+    "OpenForumReplyDeleteEvent",
 ]

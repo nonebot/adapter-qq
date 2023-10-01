@@ -1,4 +1,5 @@
-from .api import *
+from .qq import *
+from .guild import *
 from .payload import Hello as Hello
 from .payload import Opcode as Opcode
 from .payload import Resume as Resume
