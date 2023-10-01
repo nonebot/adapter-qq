@@ -24,7 +24,7 @@ class Guild(BaseModel):
 # User
 class User(BaseModel):
     id: str
-    username: str
+    username: Optional[str] = None
     avatar: Optional[str] = None
     bot: Optional[bool] = None
     union_openid: Optional[str] = None
@@ -180,7 +180,7 @@ class Message(BaseModel):
     channel_id: str
     guild_id: str
     content: Optional[str] = None
-    timestamp: datetime
+    timestamp: Optional[datetime] = None
     edited_timestamp: Optional[datetime] = None
     mention_everyone: Optional[bool] = None
     author: User
@@ -343,7 +343,7 @@ class ReactionTargetType(IntEnum):
 
 class ReactionTarget(BaseModel):
     id: str
-    type: Union[ReactionTargetType, int]
+    type: Union[ReactionTargetType, str]
 
 
 class MessageReaction(BaseModel):
