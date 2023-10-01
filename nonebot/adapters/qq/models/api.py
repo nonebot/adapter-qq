@@ -25,7 +25,7 @@ class Guild(BaseModel):
 class User(BaseModel):
     id: str
     username: str
-    avatar: str
+    avatar: Optional[str] = None
     bot: Optional[bool] = None
     union_openid: Optional[str] = None
     union_user_account: Optional[str] = None
@@ -187,7 +187,7 @@ class Message(BaseModel):
     attachments: Optional[List[MessageAttachment]] = None
     embeds: Optional[List[MessageEmbed]] = None
     mentions: Optional[List[User]] = None
-    member: Member
+    member: Optional[Member] = None
     ark: Optional[MessageArk] = None
     seq: Optional[int] = None
     seq_in_channel: Optional[str] = None
