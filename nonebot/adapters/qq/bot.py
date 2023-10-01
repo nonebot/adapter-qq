@@ -278,25 +278,29 @@ class Bot(BaseBot):
 
     async def send_to_dms(
         self,
-        guild_id: int,
+        guild_id: str,
         message: Union[str, Message, MessageSegment],
-        msg_id: Optional[int] = None,
+        msg_id: Optional[str] = None,
+        event_id: Optional[str] = None,
     ) -> Any:
         return await self.post_dms_messages(
             guild_id=guild_id,
-            msg_id=msg_id,  # type: ignore
+            msg_id=msg_id,
+            event_id=event_id,
             **self._extract_send_message(message=message),
         )
 
     async def send_to(
         self,
-        channel_id: int,
+        channel_id: str,
         message: Union[str, Message, MessageSegment],
-        msg_id: Optional[int] = None,
+        msg_id: Optional[str] = None,
+        event_id: Optional[str] = None,
     ) -> Any:
         return await self.post_messages(
             channel_id=channel_id,
-            msg_id=msg_id,  # type: ignore
+            msg_id=msg_id,
+            event_id=event_id,
             **self._extract_send_message(message=message),
         )
 
@@ -314,15 +318,15 @@ class Bot(BaseBot):
             # 私信需要使用 post_dms_messages
             # https://bot.q.qq.com/wiki/develop/api/openapi/dms/post_dms_messages.html#%E5%8F%91%E9%80%81%E7%A7%81%E4%BF%A1
             return await self.send_to_dms(
-                guild_id=event.guild_id,  # type: ignore
+                guild_id=event.guild_id,
                 message=message,
-                msg_id=event.id,  # type: ignore
+                msg_id=event.id,
             )
         else:
             return await self.send_to(
                 channel_id=event.channel_id,
                 message=message,
-                msg_id=event.id,  # type: ignore
+                msg_id=event.id,
             )
 
     # API request methods
@@ -399,34 +403,34 @@ class Bot(BaseBot):
     ) -> List[Guild]:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("users/@me/guilds"),
+            self.adapter.get_api_base().joinpath("users", "@me", "guilds"),
             params=exclude_none({"before": before, "after": after, "limit": limit}),
         )
         return parse_obj_as(List[Guild], await self._request(request))
 
     # Guild API
     @API
-    async def get_guild(self, *, guild_id: int) -> Guild:
+    async def get_guild(self, *, guild_id: str) -> Guild:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id)),
+            self.adapter.get_api_base().joinpath("guilds", guild_id),
         )
         return parse_obj_as(Guild, await self._request(request))
 
     # Channel API
     @API
-    async def get_channels(self, *, guild_id: int) -> List[Channel]:
+    async def get_channels(self, *, guild_id: str) -> List[Channel]:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "channels"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
         )
         return parse_obj_as(List[Channel], await self._request(request))
 
     @API
-    async def get_channel(self, *, channel_id: int) -> Channel:
+    async def get_channel(self, *, channel_id: str) -> Channel:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id)),
+            self.adapter.get_api_base().joinpath("channels", channel_id),
         )
         return parse_obj_as(Channel, await self._request(request))
 
@@ -434,7 +438,7 @@ class Bot(BaseBot):
     async def post_channels(
         self,
         *,
-        guild_id: int,
+        guild_id: str,
         name: str,
         type: Union[ChannelType, int],
         sub_type: Union[ChannelSubType, int],
@@ -443,11 +447,11 @@ class Bot(BaseBot):
         private_type: Optional[Union[PrivateType, int]] = None,
         private_user_ids: Optional[List[str]] = None,
         speak_permission: Optional[Union[SpeakPermission, int]] = None,
-        application_id: Optional[int] = None,
+        application_id: Optional[str] = None,
     ) -> List[Channel]:
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "channels"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
             json=exclude_none(
                 {
                     "name": name,
@@ -458,9 +462,7 @@ class Bot(BaseBot):
                     "private_type": private_type,
                     "private_user_ids": private_user_ids,
                     "speaking_permission": speak_permission,
-                    "application_id": str(application_id)
-                    if application_id is not None
-                    else None,
+                    "application_id": application_id,
                 }
             ),
         )
@@ -470,7 +472,7 @@ class Bot(BaseBot):
     async def patch_channel(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         name: Optional[str] = None,
         type: Optional[Union[ChannelType, int]] = None,
         sub_type: Optional[Union[ChannelSubType, int]] = None,
@@ -478,11 +480,11 @@ class Bot(BaseBot):
         parent_id: Optional[int] = None,
         private_type: Optional[int] = None,
         speak_permission: Optional[Union[SpeakPermission, int]] = None,
-        application_id: Optional[int] = None,
+        application_id: Optional[str] = None,
     ) -> Channel:
         request = Request(
             "PATCH",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id)),
+            self.adapter.get_api_base().joinpath("channels", channel_id),
             json=exclude_none(
                 {
                     "name": name,
@@ -492,19 +494,17 @@ class Bot(BaseBot):
                     "parent_id": parent_id,
                     "private_type": private_type,
                     "speaking_permission": speak_permission,
-                    "application_id": str(application_id)
-                    if application_id is not None
-                    else None,
+                    "application_id": application_id,
                 }
             ),
         )
         return parse_obj_as(Channel, await self._request(request))
 
     @API
-    async def delete_channel(self, *, channel_id: int) -> None:
+    async def delete_channel(self, *, channel_id: str) -> None:
         request = Request(
             "DELETE",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id)),
+            self.adapter.get_api_base().joinpath("channels", channel_id),
         )
         return await self._request(request)
 
@@ -513,14 +513,14 @@ class Bot(BaseBot):
     async def get_members(
         self,
         *,
-        guild_id: int,
-        after: Optional[int] = None,
+        guild_id: str,
+        after: Optional[str] = None,
         limit: Optional[float] = None,
     ) -> List[Member]:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "members"),
-            params=exclude_none({"after": str(after), "limit": limit}),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "members"),
+            params=exclude_none({"after": after, "limit": limit}),
         )
         return parse_obj_as(List[Member], await self._request(request))
 
@@ -528,26 +528,26 @@ class Bot(BaseBot):
     async def get_role_members(
         self,
         *,
-        guild_id: int,
-        role_id: int,
+        guild_id: str,
+        role_id: str,
         start_index: Optional[str] = None,
         limit: Optional[int] = None,
     ) -> GetRoleMembersReturn:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "roles", str(role_id), "members"
+                "guilds", guild_id, "roles", role_id, "members"
             ),
             params=exclude_none({"start_index": start_index, "limit": limit}),
         )
         return parse_obj_as(GetRoleMembersReturn, await self._request(request))
 
     @API
-    async def get_member(self, *, guild_id: int, user_id: int) -> Member:
+    async def get_member(self, *, guild_id: str, user_id: str) -> Member:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "members", str(user_id)
+                "guilds", guild_id, "members", user_id
             ),
         )
         return parse_obj_as(Member, await self._request(request))
@@ -556,15 +556,15 @@ class Bot(BaseBot):
     async def delete_member(
         self,
         *,
-        guild_id: int,
-        user_id: int,
+        guild_id: str,
+        user_id: str,
         add_blacklist: Optional[bool] = None,
         delete_history_msg_days: Optional[Literal[-1, 0, 3, 7, 15, 30]] = None,
     ) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "members", str(user_id)
+                "guilds", guild_id, "members", user_id
             ),
             json=exclude_none(
                 {
@@ -577,10 +577,10 @@ class Bot(BaseBot):
 
     # Role API
     @API
-    async def get_guild_roles(self, *, guild_id: int) -> GetGuildRolesReturn:
+    async def get_guild_roles(self, *, guild_id: str) -> GetGuildRolesReturn:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "roles"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "roles"),
         )
         return parse_obj_as(GetGuildRolesReturn, await self._request(request))
 
@@ -588,14 +588,14 @@ class Bot(BaseBot):
     async def post_guild_role(
         self,
         *,
-        guild_id: int,
+        guild_id: str,
         name: Optional[str] = None,
         color: Optional[float] = None,
         hoist: Optional[bool] = None,
     ) -> PostGuildRoleReturn:
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "roles"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "roles"),
             json=exclude_none(
                 {
                     "name": name,
@@ -610,17 +610,15 @@ class Bot(BaseBot):
     async def patch_guild_role(
         self,
         *,
-        guild_id: int,
-        role_id: int,
+        guild_id: str,
+        role_id: str,
         name: Optional[str] = None,
         color: Optional[float] = None,
         hoist: Optional[bool] = None,
     ) -> PatchGuildRoleReturn:
         request = Request(
             "PATCH",
-            self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "roles", str(role_id)
-            ),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "roles", role_id),
             json=exclude_none(
                 {
                     "name": name,
@@ -632,12 +630,10 @@ class Bot(BaseBot):
         return parse_obj_as(PatchGuildRoleReturn, await self._request(request))
 
     @API
-    async def delete_guild_role(self, *, guild_id: int, role_id: int) -> None:
+    async def delete_guild_role(self, *, guild_id: str, role_id: str) -> None:
         request = Request(
             "DELETE",
-            self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "roles", str(role_id)
-            ),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "roles", role_id),
         )
         return await self._request(request)
 
@@ -645,15 +641,15 @@ class Bot(BaseBot):
     async def put_guild_member_role(
         self,
         *,
-        guild_id: int,
-        role_id: int,
-        user_id: int,
-        channel_id: Optional[int] = None,
+        guild_id: str,
+        role_id: str,
+        user_id: str,
+        channel_id: Optional[str] = None,
     ) -> None:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "members", str(user_id), "roles", str(role_id)
+                "guilds", guild_id, "members", user_id, "roles", role_id
             ),
             json={"channel": {"id": channel_id}} if channel_id is not None else None,
         )
@@ -663,15 +659,15 @@ class Bot(BaseBot):
     async def delete_guild_member_role(
         self,
         *,
-        guild_id: int,
-        role_id: int,
-        user_id: int,
-        channel_id: Optional[int] = None,
+        guild_id: str,
+        role_id: str,
+        user_id: str,
+        channel_id: Optional[str] = None,
     ) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "members", str(user_id), "roles", str(role_id)
+                "guilds", guild_id, "members", user_id, "roles", role_id
             ),
             json={"channel": {"id": channel_id}} if channel_id is not None else None,
         )
@@ -680,12 +676,12 @@ class Bot(BaseBot):
     # Permission API
     @API
     async def get_channel_permissions(
-        self, *, channel_id: int, user_id: int
+        self, *, channel_id: str, user_id: str
     ) -> ChannelPermissions:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "members", str(user_id), "permissions"
+                "channels", channel_id, "members", user_id, "permissions"
             ),
         )
         return parse_obj_as(ChannelPermissions, await self._request(request))
@@ -694,15 +690,15 @@ class Bot(BaseBot):
     async def put_channel_permissions(
         self,
         *,
-        channel_id: int,
-        user_id: int,
+        channel_id: str,
+        user_id: str,
         add: Optional[int] = None,
         remove: Optional[int] = None,
     ) -> None:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "members", str(user_id), "permissions"
+                "channels", channel_id, "members", user_id, "permissions"
             ),
             json=exclude_none({"add": str(add), "remove": str(remove)}),
         )
@@ -710,12 +706,12 @@ class Bot(BaseBot):
 
     @API
     async def get_channel_roles_permissions(
-        self, *, channel_id: int, role_id: int
+        self, *, channel_id: str, role_id: str
     ) -> ChannelPermissions:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "roles", str(role_id), "permissions"
+                "channels", channel_id, "roles", role_id, "permissions"
             ),
         )
         return parse_obj_as(ChannelPermissions, await self._request(request))
@@ -724,15 +720,15 @@ class Bot(BaseBot):
     async def put_channel_roles_permissions(
         self,
         *,
-        channel_id: int,
-        role_id: int,
+        channel_id: str,
+        role_id: str,
         add: Optional[int] = None,
         remove: Optional[int] = None,
     ) -> None:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "roles", str(role_id), "permissions"
+                "channels", channel_id, "roles", role_id, "permissions"
             ),
             json=exclude_none({"add": str(add), "remove": str(remove)}),
         )
@@ -741,12 +737,12 @@ class Bot(BaseBot):
     # Message API
     @API
     async def get_message_of_id(
-        self, *, channel_id: int, message_id: str
+        self, *, channel_id: str, message_id: str
     ) -> GuildMessage:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "messages", str(message_id)
+                "channels", channel_id, "messages", message_id
             ),
         )
         result = await self._request(request)
@@ -785,7 +781,7 @@ class Bot(BaseBot):
     async def post_messages(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         content: Optional[str] = None,
         embed: Optional[MessageEmbed] = None,
         ark: Optional[MessageArk] = None,
@@ -813,9 +809,7 @@ class Bot(BaseBot):
         )
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "messages"
-            ),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "messages"),
             **params,
         )
         return parse_obj_as(GuildMessage, await self._request(request))
@@ -824,14 +818,14 @@ class Bot(BaseBot):
     async def delete_message(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         message_id: str,
         hidetip: Optional[bool] = None,
     ) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "messages", str(message_id)
+                "channels", channel_id, "messages", message_id
             ),
             params={"hidetip": str(hidetip).lower()} if hidetip is not None else None,
         )
@@ -839,11 +833,11 @@ class Bot(BaseBot):
 
     # Message Setting API
     @API
-    async def get_message_setting(self, *, guild_id: int) -> MessageSetting:
+    async def get_message_setting(self, *, guild_id: str) -> MessageSetting:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "messages", "setting"
+                "guilds", guild_id, "messages", "setting"
             ),
         )
         return parse_obj_as(MessageSetting, await self._request(request))
@@ -855,7 +849,7 @@ class Bot(BaseBot):
             "POST",
             self.adapter.get_api_base().joinpath("users", "@me", "dms"),
             json=exclude_none(
-                {"recipient_id": recipient_id, "source_guild_id": str(source_guild_id)}
+                {"recipient_id": recipient_id, "source_guild_id": source_guild_id}
             ),
         )
         return parse_obj_as(DMS, await self._request(request))
@@ -864,7 +858,7 @@ class Bot(BaseBot):
     async def post_dms_messages(
         self,
         *,
-        guild_id: int,
+        guild_id: str,
         content: Optional[str] = None,
         embed: Optional[MessageEmbed] = None,
         ark: Optional[MessageArk] = None,
@@ -892,19 +886,19 @@ class Bot(BaseBot):
         )
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("dms", str(guild_id), "messages"),
+            self.adapter.get_api_base().joinpath("dms", guild_id, "messages"),
             **params,
         )
         return parse_obj_as(GuildMessage, await self._request(request))
 
     @API
     async def delete_dms_message(
-        self, *, guild_id: int, message_id: str, hidetip: Optional[bool] = None
+        self, *, guild_id: str, message_id: str, hidetip: Optional[bool] = None
     ) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "dms", str(guild_id), "messages", str(message_id)
+                "dms", guild_id, "messages", message_id
             ),
             params={"hidetip": str(hidetip).lower()} if hidetip is not None else None,
         )
@@ -915,7 +909,7 @@ class Bot(BaseBot):
     async def patch_guild_mute(
         self,
         *,
-        guild_id: int,
+        guild_id: str,
         mute_end_timestamp: Optional[Union[int, datetime]] = None,
         mute_seconds: Optional[Union[int, timedelta]] = None,
     ) -> None:
@@ -927,7 +921,7 @@ class Bot(BaseBot):
 
         request = Request(
             "PATCH",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "mute"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "mute"),
             json=exclude_none(
                 {
                     "mute_end_timestamp": str(mute_end_timestamp),
@@ -941,8 +935,8 @@ class Bot(BaseBot):
     async def patch_guild_member_mute(
         self,
         *,
-        guild_id: int,
-        user_id: int,
+        guild_id: str,
+        user_id: str,
         mute_end_timestamp: Optional[Union[int, datetime]] = None,
         mute_seconds: Optional[Union[int, timedelta]] = None,
     ) -> None:
@@ -955,7 +949,7 @@ class Bot(BaseBot):
         request = Request(
             "PATCH",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "members", str(user_id), "mute"
+                "guilds", guild_id, "members", user_id, "mute"
             ),
             json=exclude_none(
                 {
@@ -970,8 +964,8 @@ class Bot(BaseBot):
     async def patch_guild_mute_multi_member(
         self,
         *,
-        guild_id: int,
-        user_ids: List[int],
+        guild_id: str,
+        user_ids: List[str],
         mute_end_timestamp: Optional[Union[int, datetime]] = None,
         mute_seconds: Optional[Union[int, timedelta]] = None,
     ) -> List[int]:
@@ -983,10 +977,10 @@ class Bot(BaseBot):
 
         request = Request(
             "PATCH",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "mute"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "mute"),
             json=exclude_none(
                 {
-                    "user_ids": [str(u) for u in user_ids],
+                    "user_ids": user_ids,
                     "mute_end_timestamp": str(mute_end_timestamp),
                     "mute_seconds": str(mute_seconds),
                 }
@@ -999,7 +993,7 @@ class Bot(BaseBot):
     async def post_guild_announces(
         self,
         *,
-        guild_id: int,
+        guild_id: str,
         message_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         announces_type: Optional[int] = None,
@@ -1007,7 +1001,7 @@ class Bot(BaseBot):
     ) -> None:
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("guilds", str(guild_id), "announces"),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "announces"),
             json=exclude_none(
                 {
                     "message_id": message_id,
@@ -1024,11 +1018,11 @@ class Bot(BaseBot):
         return await self._request(request)
 
     @API
-    async def delete_guild_announces(self, *, guild_id: int, message_id: str) -> None:
+    async def delete_guild_announces(self, *, guild_id: str, message_id: str) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "announces", str(message_id)
+                "guilds", guild_id, "announces", message_id
             ),
         )
         return await self._request(request)
@@ -1036,38 +1030,38 @@ class Bot(BaseBot):
     # Pins API
     @API
     async def put_pins_message(
-        self, *, channel_id: int, message_id: str
+        self, *, channel_id: str, message_id: str
     ) -> PinsMessage:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "pins", str(message_id)
+                "channels", channel_id, "pins", message_id
             ),
         )
         return parse_obj_as(PinsMessage, await self._request(request))
 
     @API
-    async def delete_pins_message(self, *, channel_id: int, message_id: str) -> None:
+    async def delete_pins_message(self, *, channel_id: str, message_id: str) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "pins", str(message_id)
+                "channels", channel_id, "pins", message_id
             ),
         )
         return await self._request(request)
 
     @API
-    async def get_pins_message(self, *, channel_id: int) -> PinsMessage:
+    async def get_pins_message(self, *, channel_id: str) -> PinsMessage:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id), "pins"),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "pins"),
         )
         return parse_obj_as(PinsMessage, await self._request(request))
 
     # Schedule API
     @API
     async def get_schedules(
-        self, *, channel_id: int, since: Optional[Union[int, datetime]] = None
+        self, *, channel_id: str, since: Optional[Union[int, datetime]] = None
     ) -> List[Schedule]:
         if isinstance(since, datetime):
             since = int(since.timestamp() * 1000)
@@ -1080,11 +1074,11 @@ class Bot(BaseBot):
         return parse_obj_as(List[Schedule], await self._request(request))
 
     @API
-    async def get_schedule(self, *, channel_id: int, schedule_id: str) -> Schedule:
+    async def get_schedule(self, *, channel_id: str, schedule_id: str) -> Schedule:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "schedules", schedule_id
+                "channels", channel_id, "schedules", schedule_id
             ),
         )
         return parse_obj_as(Schedule, await self._request(request))
@@ -1093,12 +1087,12 @@ class Bot(BaseBot):
     async def post_schedule(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         name: str,
         description: Optional[str] = None,
         start_timestamp: Union[int, datetime],
         end_timestamp: Union[int, datetime],
-        jump_channel_id: Optional[int] = None,
+        jump_channel_id: Optional[str] = None,
         remind_type: Union[RemindType, int],
     ) -> Schedule:
         if isinstance(start_timestamp, datetime):
@@ -1109,18 +1103,20 @@ class Bot(BaseBot):
 
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "schedules"
-            ),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "schedules"),
             json={
                 "schedule": exclude_none(
                     {
                         "name": name,
                         "description": description,
-                        "start_timestamp": start_timestamp,
-                        "end_timestamp": end_timestamp,
+                        "start_timestamp": str(start_timestamp)
+                        if start_timestamp is not None
+                        else None,
+                        "end_timestamp": str(end_timestamp)
+                        if end_timestamp is not None
+                        else None,
                         "jump_channel_id": jump_channel_id,
-                        "remind_type": remind_type,
+                        "remind_type": str(remind_type),
                     }
                 )
             },
@@ -1131,14 +1127,14 @@ class Bot(BaseBot):
     async def patch_schedule(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         schedule_id: str,
         name: Optional[str] = None,
         description: Optional[str] = None,
         start_timestamp: Optional[Union[int, datetime]] = None,
         end_timestamp: Optional[Union[int, datetime]] = None,
         jump_channel_id: Optional[int] = None,
-        remind_type: Optional[str] = None,
+        remind_type: Optional[Union[RemindType, int]] = None,
     ) -> Schedule:
         if isinstance(start_timestamp, datetime):
             start_timestamp = int(start_timestamp.timestamp() * 1000)
@@ -1149,17 +1145,23 @@ class Bot(BaseBot):
         request = Request(
             "PATCH",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "schedules", schedule_id
+                "channels", channel_id, "schedules", schedule_id
             ),
             json={
                 "schedule": exclude_none(
                     {
                         "name": name,
                         "description": description,
-                        "start_timestamp": start_timestamp,
-                        "end_timestamp": end_timestamp,
+                        "start_timestamp": str(start_timestamp)
+                        if start_timestamp is not None
+                        else None,
+                        "end_timestamp": str(end_timestamp)
+                        if end_timestamp is not None
+                        else None,
                         "jump_channel_id": jump_channel_id,
-                        "remind_type": remind_type,
+                        "remind_type": str(remind_type)
+                        if remind_type is not None
+                        else None,
                     }
                 )
             },
@@ -1167,24 +1169,24 @@ class Bot(BaseBot):
         return parse_obj_as(Schedule, await self._request(request))
 
     @API
-    async def delete_schedule(self, *, channel_id: int, schedule_id: str) -> None:
+    async def delete_schedule(self, *, channel_id: str, schedule_id: str) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "schedules", schedule_id
+                "channels", channel_id, "schedules", schedule_id
             ),
         )
         return await self._request(request)
 
     @API
     async def put_message_reaction(
-        self, *, channel_id: int, message_id: str, type: Union[EmojiType, int], id: str
+        self, *, channel_id: str, message_id: str, type: Union[EmojiType, int], id: str
     ) -> None:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath(
                 "channels",
-                str(channel_id),
+                channel_id,
                 "messages",
                 message_id,
                 "reactions",
@@ -1196,13 +1198,13 @@ class Bot(BaseBot):
 
     @API
     async def delete_own_message_reaction(
-        self, *, channel_id: int, message_id: str, type: Union[EmojiType, int], id: str
+        self, *, channel_id: str, message_id: str, type: Union[EmojiType, int], id: str
     ) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
                 "channels",
-                str(channel_id),
+                channel_id,
                 "messages",
                 message_id,
                 "reactions",
@@ -1216,7 +1218,7 @@ class Bot(BaseBot):
     async def get_reaction_users(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         message_id: str,
         type: Union[EmojiType, int],
         id: str,
@@ -1227,7 +1229,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath(
                 "channels",
-                str(channel_id),
+                channel_id,
                 "messages",
                 message_id,
                 "reactions",
@@ -1243,14 +1245,14 @@ class Bot(BaseBot):
     async def audio_control(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         audio_url: Optional[str] = None,
         text: Optional[str] = None,
         status: Union[AudioStatus, int],
     ) -> Dict[Never, Never]:
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id), "audio"),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "audio"),
             json=AudioControl(audio_url=audio_url, text=text, status=status).dict(
                 exclude_none=True
             ),
@@ -1258,38 +1260,36 @@ class Bot(BaseBot):
         return await self._request(request)
 
     @API
-    async def put_mic(self, *, channel_id: int) -> Dict[Never, Never]:
+    async def put_mic(self, *, channel_id: str) -> Dict[Never, Never]:
         request = Request(
             "PUT",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id), "mic"),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "mic"),
         )
         return await self._request(request)
 
     @API
-    async def delete_mic(self, *, channel_id: int) -> Dict[Never, Never]:
+    async def delete_mic(self, *, channel_id: str) -> Dict[Never, Never]:
         request = Request(
             "DELETE",
-            self.adapter.get_api_base().joinpath("channels", str(channel_id), "mic"),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "mic"),
         )
         return await self._request(request)
 
     # Forum API
     @API
-    async def get_threads_list(self, *, channel_id: int) -> GetThreadsListReturn:
+    async def get_threads_list(self, *, channel_id: str) -> GetThreadsListReturn:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "threads"
-            ),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "threads"),
         )
         return parse_obj_as(GetThreadsListReturn, await self._request(request))
 
     @API
-    async def get_thread(self, *, channel_id: int, thread_id: str) -> GetThreadReturn:
+    async def get_thread(self, *, channel_id: str, thread_id: str) -> GetThreadReturn:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "threads", thread_id
+                "channels", channel_id, "threads", thread_id
             ),
         )
         return parse_obj_as(GetThreadReturn, await self._request(request))
@@ -1298,7 +1298,7 @@ class Bot(BaseBot):
     async def put_thread(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         title: str,
         content: str,
         format: Literal[1, 2, 3],
@@ -1309,7 +1309,7 @@ class Bot(BaseBot):
     async def put_thread(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         title: str,
         content: RichText,
         format: Literal[4],
@@ -1320,16 +1320,14 @@ class Bot(BaseBot):
     async def put_thread(
         self,
         *,
-        channel_id: int,
+        channel_id: str,
         title: str,
         content: Union[str, RichText],
         format: Literal[1, 2, 3, 4],
     ) -> PutThreadReturn:
         request = Request(
             "PUT",
-            self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "threads"
-            ),
+            self.adapter.get_api_base().joinpath("channels", channel_id, "threads"),
             json=exclude_none(
                 {
                     "title": title,
@@ -1345,11 +1343,11 @@ class Bot(BaseBot):
         return parse_obj_as(PutThreadReturn, await self._request(request))
 
     @API
-    async def delete_thread(self, *, channel_id: int, thread_id: str) -> None:
+    async def delete_thread(self, *, channel_id: str, thread_id: str) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
-                "channels", str(channel_id), "threads", thread_id
+                "channels", channel_id, "threads", thread_id
             ),
         )
         return await self._request(request)
@@ -1357,13 +1355,11 @@ class Bot(BaseBot):
     # API Permission API
     @API
     async def get_guild_api_permission(
-        self, *, guild_id: int
+        self, *, guild_id: str
     ) -> GetGuildAPIPermissionReturn:
         request = Request(
             "GET",
-            self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "api_permission"
-            ),
+            self.adapter.get_api_base().joinpath("guilds", guild_id, "api_permission"),
         )
         return parse_obj_as(GetGuildAPIPermissionReturn, await self._request(request))
 
@@ -1371,19 +1367,19 @@ class Bot(BaseBot):
     async def post_api_permission_demand(
         self,
         *,
-        guild_id: int,
-        channel_id: int,
+        guild_id: str,
+        channel_id: str,
         api_identify: APIPermissionDemandIdentify,
         desc: str,
     ) -> APIPermissionDemand:
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath(
-                "guilds", str(guild_id), "api_permission", "demand"
+                "guilds", guild_id, "api_permission", "demand"
             ),
             json=exclude_none(
                 {
-                    "channel_id": str(channel_id),
+                    "channel_id": channel_id,
                     "api_identify": api_identify.dict(exclude_none=True),
                     "desc": desc,
                 }

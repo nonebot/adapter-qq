@@ -10,10 +10,10 @@ T = TypeVar("T")
 
 # Guild
 class Guild(BaseModel):
-    id: int
+    id: str
     name: str
     icon: str
-    owner_id: int
+    owner_id: str
     owner: bool
     member_count: int
     max_members: int
@@ -23,7 +23,7 @@ class Guild(BaseModel):
 
 # User
 class User(BaseModel):
-    id: int
+    id: str
     username: str
     avatar: str
     bot: Optional[bool] = None
@@ -63,25 +63,25 @@ class SpeakPermission(IntEnum):
 
 
 class Channel(BaseModel):
-    id: int
-    guild_id: int
+    id: str
+    guild_id: str
     name: str
     type: Union[ChannelType, int]
     sub_type: Union[ChannelSubType, int]
     position: int
     parent_id: Optional[str] = None
-    owner_id: Optional[int] = None
+    owner_id: Optional[str] = None
     private_type: Union[PrivateType, int]
     speak_permission: Union[SpeakPermission, int]
-    application_id: Optional[int] = None
-    permissions: Optional[str] = None
+    application_id: Optional[str] = None
+    permissions: Optional[int] = None
 
 
 # Member
 class Member(BaseModel):
     user: Optional[User] = None
     nick: Optional[str] = None
-    roles: List[int]
+    roles: List[str]
     joined_at: datetime
 
 
@@ -92,7 +92,7 @@ class GetRoleMembersReturn(BaseModel):
 
 # Role
 class Role(BaseModel):
-    id: int
+    id: str
     name: str
     color: int
     hoist: bool
@@ -101,7 +101,7 @@ class Role(BaseModel):
 
 
 class GetGuildRolesReturn(BaseModel):
-    guild_id: int
+    guild_id: str
     roles: List[Role]
     role_num_limit: int
 
@@ -119,9 +119,9 @@ class PatchGuildRoleReturn(BaseModel):
 
 # Channel Permission
 class ChannelPermissions(BaseModel):
-    channel_id: int
-    user_id: Optional[int] = None
-    role_id: Optional[int] = None
+    channel_id: str
+    user_id: Optional[str] = None
+    role_id: Optional[str] = None
     permissions: int
 
 
@@ -177,8 +177,8 @@ class MessageReference(BaseModel):
 
 class Message(BaseModel):
     id: str
-    channel_id: int
-    guild_id: int
+    channel_id: str
+    guild_id: str
     content: Optional[str] = None
     timestamp: datetime
     edited_timestamp: Optional[datetime] = None
@@ -192,7 +192,7 @@ class Message(BaseModel):
     seq: Optional[int] = None
     seq_in_channel: Optional[str] = None
     message_reference: Optional[MessageReference] = None
-    src_guild_id: Optional[int] = None
+    src_guild_id: Optional[str] = None
 
 
 # Message Markdown
@@ -269,26 +269,26 @@ class MessageAudited(BaseModel):
 class MessageSetting(BaseModel):
     disable_create_dm: bool
     disable_push_msg: bool
-    channel_ids: List[int]
+    channel_ids: List[str]
     channel_push_max_num: int
 
 
 # DMS
 class DMS(BaseModel):
-    guild_id: Optional[int] = None
-    channel_id: Optional[int] = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
     create_time: Optional[datetime] = None
 
 
 # Announce
 class RecommendChannel(BaseModel):
-    channel_id: Optional[int] = None
+    channel_id: Optional[str] = None
     introduce: Optional[str] = None
 
 
 class Announces(BaseModel):
-    guild_id: Optional[int] = None
-    channel_id: Optional[int] = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
     message_id: Optional[str] = None
     announces_type: Optional[int] = None
     recommend_channels: Optional[List[RecommendChannel]] = None
@@ -296,8 +296,8 @@ class Announces(BaseModel):
 
 # Pins
 class PinsMessage(BaseModel):
-    guild_id: int
-    channel_id: int
+    guild_id: str
+    channel_id: str
     message_ids: List[str]
 
 
@@ -318,7 +318,7 @@ class Schedule(BaseModel):
     start_timestamp: datetime
     end_timestamp: datetime
     creator: Optional[Member] = None
-    jump_channel_id: Optional[int] = None
+    jump_channel_id: Optional[str] = None
     remind_type: Optional[Union[RemindType, int]] = None
 
 
@@ -346,9 +346,9 @@ class ReactionTarget(BaseModel):
 
 
 class MessageReaction(BaseModel):
-    user_id: int
-    guild_id: int
-    channel_id: int
+    user_id: str
+    guild_id: str
+    channel_id: str
     target: ReactionTarget
     emoji: Emoji
 
@@ -374,8 +374,8 @@ class AudioControl(BaseModel):
 
 
 class AudioAction(BaseModel):
-    guild_id: int
-    channel_id: int
+    guild_id: str
+    channel_id: str
     audio_url: Optional[str] = None
     text: Optional[str] = None
 
@@ -487,9 +487,9 @@ class ThreadInfo(ThreadObjectInfo, GenericModel, Generic[_T_Title]):
 
 
 class ThreadSourceInfo(BaseModel):
-    guild_id: int
-    channel_id: int
-    author_id: int
+    guild_id: str
+    channel_id: str
+    author_id: str
 
 
 class Thread(ThreadSourceInfo, GenericModel, Generic[_T_Title]):
@@ -538,7 +538,7 @@ class GetThreadReturn(BaseModel):
 
 
 class PutThreadReturn(BaseModel):
-    task_id: int
+    task_id: str
     create_time: datetime
 
 
@@ -556,8 +556,8 @@ class APIPermissionDemandIdentify(BaseModel):
 
 
 class APIPermissionDemand(BaseModel):
-    guild_id: int
-    channel_id: int
+    guild_id: str
+    channel_id: str
     api_identify: APIPermissionDemandIdentify
     title: str
     desc: str
