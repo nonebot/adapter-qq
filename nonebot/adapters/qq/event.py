@@ -334,7 +334,7 @@ class C2CMessageCreateEvent(MessageEvent):
     @override
     def get_user_id(self) -> str:
         return self.author.id
-    
+
     @override
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
@@ -359,7 +359,7 @@ class GroupAtMessageCreateEvent(MessageEvent):
     @override
     def get_user_id(self) -> str:
         return self.author.id
-    
+
     @override
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):

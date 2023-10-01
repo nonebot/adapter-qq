@@ -295,7 +295,7 @@ class Bot(BaseBot):
         if reference := (message["reference"] or None):
             kwargs["message_reference"] = reference[-1].data["reference"]
         if keyboard := (message["keyboard"] or None):
-            kwargs["keyboard"] = keyboard[-1].data['keyboard']
+            kwargs["keyboard"] = keyboard[-1].data["keyboard"]
         return kwargs
 
     async def send_to_dms(
@@ -347,7 +347,7 @@ class Bot(BaseBot):
 
         if msg_type == 1:
             return await self.post_c2c_files(
-                user_id=user_id, file_type=msg_type, url=kwargs['image']
+                user_id=user_id, file_type=msg_type, url=kwargs["image"]
             )
         else:
             return await self.post_c2c_messages(
@@ -379,7 +379,7 @@ class Bot(BaseBot):
 
         if msg_type == 1:
             return await self.post_group_files(
-                group_id=group_id, file_type=msg_type, url=kwargs['image']
+                group_id=group_id, file_type=msg_type, url=kwargs["image"]
             )
         else:
             return await self.post_group_messages(
