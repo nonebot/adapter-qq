@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import datetime
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -40,10 +40,9 @@ class ButtonInteractionData(BaseModel):
     resolved: ButtonInteractionContent
 
 
-# Interaction Event
 class ButtonInteraction(BaseModel):
     id: str
-    type: int
+    type: Literal[11]
     version: int
     timestamp: str
     chat_type: int
