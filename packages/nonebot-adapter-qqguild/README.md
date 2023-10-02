@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://nonebot.dev/"><img src="https://raw.githubusercontent.com/nonebot/adapter-qqguild/master/assets/logo-qqguild.png" width="200" height="200" alt="nonebot-adapter-qqguild"></a>
+  <a href="https://nonebot.dev/"><img src="https://raw.githubusercontent.com/nonebot/adapter-qq/master/assets/logo-qqguild.png" width="200" height="200" alt="nonebot-adapter-qqguild"></a>
 </p>
 
 <div align="center">
@@ -9,6 +9,9 @@
 _✨ QQ 频道协议适配 ✨_
 
 </div>
+
+> [!IMPORTANT]
+> 本适配器已停止支持，请使用 [NoneBot Adapter QQ](https://github.com/nonebot/adapter-qq) 适配器。
 
 ## 配置
 
