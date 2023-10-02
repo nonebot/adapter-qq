@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-adapter-qq"
-version = "0.3.0"
+version = "1.0.0"
 description = "QQ adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
@@ -27,12 +27,9 @@ typing-extensions = ">=4.4.0, <5.0.0"
 [tool.poetry.group.dev.dependencies]
 isort = "^5.10.1"
 black = "^23.1.0"
-Jinja2 = "^3.0.3"
 nonemoji = "^0.1.3"
 pre-commit = "^3.3.0"
 ruff = ">=0.0.282, <0.1.0"
-httpx = ">=0.22.0, <1.0.0"
-nonebot2 = { git = "https://github.com/nonebot/nonebot2.git" }
 
 [tool.black]
 line-length = 88
