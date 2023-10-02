@@ -1,12 +1,12 @@
 <p align="center">
-  <a href="https://nonebot.dev/"><img src="https://raw.githubusercontent.com/nonebot/adapter-qqguild/master/assets/logo.png" width="200" height="200" alt="nonebot-adapter-qqguild"></a>
+  <a href="https://nonebot.dev/"><img src="https://raw.githubusercontent.com/nonebot/adapter-qqguild/master/assets/logo.png" width="200" height="200" alt="nonebot-adapter-qq"></a>
 </p>
 
 <div align="center">
 
-# NoneBot-Adapter-QQGuild
+# NoneBot-Adapter-QQ
 
-_✨ QQ 频道协议适配 ✨_
+_✨ QQ 协议适配 ✨_
 
 </div>
 
@@ -16,7 +16,7 @@ _✨ QQ 频道协议适配 ✨_
 
 ### Driver
 
-参考 [driver](https://nonebot.dev/docs/appendices/config#driver) 配置项，添加 `ForwardDriver` 支持。
+参考 [driver](https://nonebot.dev/docs/appendices/config#driver) 配置项，添加 `HTTPClient` 和 `WebSocketClient` 支持。
 
 如：
 
@@ -25,20 +25,22 @@ DRIVER=~httpx+~websockets
 DRIVER=~aiohttp
 ```
 
-### QQGUILD_IS_SANDBOX
+### QQ_IS_SANDBOX
 
 是否为沙盒模式，默认为 `False`。
 
 ```dotenv
-QQGUILD_IS_SANDBOX=true
+QQ_IS_SANDBOX=true
 ```
 
-### QQGUILD_BOTS
+### QQ_BOTS
 
-配置机器人帐号，如：
+配置机器人帐号，intent 需要根据机器人类型以及需要的事件进行配置。如：
+
+私域频道机器人示例
 
 ```dotenv
-QQGUILD_BOTS='
+QQ_BOTS='
 [
   {
     "id": "xxx",
@@ -47,6 +49,23 @@ QQGUILD_BOTS='
     "intent": {
       "guild_messages": true,
       "at_messages": false
+    }
+  }
+]
+'
+```
+
+公域群机器人示例
+
+```dotenv
+QQ_BOTS='
+[
+  {
+    "id": "xxx",
+    "token": "xxx",
+    "secret": "xxx",
+    "intent": {
+      "c2c_group_at_messages": true
     }
   }
 ]

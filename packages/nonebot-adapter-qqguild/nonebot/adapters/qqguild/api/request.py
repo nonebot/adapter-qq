@@ -2,7 +2,6 @@ import json
 from typing import TYPE_CHECKING, Any, Dict
 
 from nonebot.drivers import Request
-
 from nonebot.adapters.qqguild.exception import (
     ActionFailed,
     NetworkError,

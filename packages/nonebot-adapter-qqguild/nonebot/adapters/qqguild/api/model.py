@@ -223,8 +223,8 @@ class RenderData(BaseModel):
 
 class Button(BaseModel):
     id: Optional[str] = None
-    render_data: Optional[bool] = None
-    action: Optional[bool] = None
+    render_data: Optional[RenderData] = None
+    action: Optional[Action] = None
 
 
 class InlineKeyboardRow(BaseModel):

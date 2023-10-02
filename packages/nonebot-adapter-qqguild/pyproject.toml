@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "nonebot-adapter-qq"
-version = "1.0.0"
-description = "QQ adapter for nonebot2"
+name = "nonebot-adapter-qqguild"
+version = "0.4.0"
+description = "QQ Guild adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
 readme = "README.md"
