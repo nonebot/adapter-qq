@@ -332,6 +332,10 @@ class C2CMessageCreateEvent(MessageEvent):
     timestamp: str
 
     @override
+    def get_user_id(self) -> str:
+        return self.author.id
+
+    @override
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
             setattr(self, "_message", Message(self.content))
@@ -351,6 +355,10 @@ class GroupAtMessageCreateEvent(MessageEvent):
     group_id: str
     content: str
     timestamp: str
+
+    @override
+    def get_user_id(self) -> str:
+        return self.author.id
 
     @override
     def get_message(self) -> Message:

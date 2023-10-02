@@ -9,23 +9,23 @@ class Author(BaseModel):
 
 
 class PostC2CMessagesReturn(BaseModel):
-    id: str
-    timestamp: datetime
+    id: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 
 class PostGroupMessagesReturn(BaseModel):
-    id: str
-    timestamp: datetime
+    id: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 
 class PostC2CFilesReturn(BaseModel):
-    id: str
-    timestamp: datetime
+    id: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 
 class PostGroupFilesReturn(BaseModel):
-    id: str
-    timestamp: datetime
+    id: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 
 # Interaction Event

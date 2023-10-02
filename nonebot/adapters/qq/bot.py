@@ -294,7 +294,8 @@ class Bot(BaseBot):
             kwargs["markdown"] = markdown[-1].data["markdown"]
         if reference := (message["reference"] or None):
             kwargs["message_reference"] = reference[-1].data["reference"]
-
+        if keyboard := (message["keyboard"] or None):
+            kwargs["keyboard"] = keyboard[-1].data["keyboard"]
         return kwargs
 
     async def send_to_dms(
@@ -331,7 +332,7 @@ class Bot(BaseBot):
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
         event_id: Optional[str] = None,
-    ) -> PostC2CMessagesReturn:
+    ) -> Union[PostC2CMessagesReturn, PostC2CFilesReturn]:
         kwargs = self._extract_send_message(message=message)
         if kwargs.get("embed"):
             msg_type = 4
@@ -344,13 +345,19 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
-        return await self.post_c2c_messages(
-            user_id=user_id,
-            msg_type=msg_type,
-            msg_id=msg_id,
-            event_id=event_id,
-            **kwargs,
-        )
+        # tmp fix due to image not implemented in message api
+        if msg_type == 1:
+            return await self.post_c2c_files(
+                user_id=user_id, file_type=msg_type, url=kwargs["image"]
+            )
+        else:
+            return await self.post_c2c_messages(
+                user_id=user_id,
+                msg_type=msg_type,
+                msg_id=msg_id,
+                event_id=event_id,
+                **kwargs,
+            )
 
     async def send_to_group(
         self,
@@ -358,7 +365,7 @@ class Bot(BaseBot):
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
         event_id: Optional[str] = None,
-    ) -> PostGroupMessagesReturn:
+    ) -> Union[PostGroupMessagesReturn, PostGroupFilesReturn]:
         kwargs = self._extract_send_message(message=message)
         if kwargs.get("embed"):
             msg_type = 4
@@ -371,13 +378,19 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
-        return await self.post_group_messages(
-            group_id=group_id,
-            msg_type=msg_type,
-            msg_id=msg_id,
-            event_id=event_id,
-            **kwargs,
-        )
+        # tmp fix due to image not implemented in message api
+        if msg_type == 1:
+            return await self.post_group_files(
+                group_id=group_id, file_type=msg_type, url=kwargs["image"]
+            )
+        else:
+            return await self.post_group_messages(
+                group_id=group_id,
+                msg_type=msg_type,
+                msg_id=msg_id,
+                event_id=event_id,
+                **kwargs,
+            )
 
     @override
     async def send(
@@ -1518,7 +1531,13 @@ class Bot(BaseBot):
         message_reference: None = None,
         event_id: Optional[str] = None,
         msg_id: Optional[str] = None,
+        timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostC2CMessagesReturn:
+        if isinstance(timestamp, datetime):
+            timestamp = int(timestamp.timestamp())
+        elif timestamp is None:
+            timestamp = int(datetime.now(timezone.utc).timestamp())
+
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("v2", "users", user_id, "messages"),
@@ -1544,6 +1563,7 @@ class Bot(BaseBot):
                     "message_reference": message_reference,
                     "event_id": event_id,
                     "msg_id": msg_id,
+                    "timestamp": timestamp,
                 }
             ),
         )
