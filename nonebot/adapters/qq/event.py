@@ -273,7 +273,7 @@ class GuildMessageEvent(MessageEvent, GuildMessage):
             f"Message {self.id} from "
             f"{getattr(self.author, 'username', None)}"
             f"@[Guild:{self.guild_id}/{self.channel_id}] "
-            f"Roles:{getattr(self.member, 'roles', None)}: {self.get_message()}"
+            f"Roles:{getattr(self.member, 'roles', None)}: {self.get_message()!r}"
         )
 
     @override
@@ -307,13 +307,14 @@ class PublicMessageDeleteEvent(MessageDeleteEvent):
 @register_event_class
 class DirectMessageCreateEvent(GuildMessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
+
     to_me: bool = True
 
     @override
     def get_event_description(self) -> str:
         return escape_tag(
             f"Message {self.id} from "
-            f"{getattr(self.author, 'username', None)}: {self.get_message()}"
+            f"{getattr(self.author, 'username', None)}: {self.get_message()!r}"
         )
 
 
@@ -334,6 +335,16 @@ class C2CMessageCreateEvent(MessageEvent):
     @override
     def get_user_id(self) -> str:
         return self.author.id
+
+    @override
+    def get_session_id(self) -> str:
+        return self.author.id
+
+    @override
+    def get_event_description(self) -> str:
+        return escape_tag(
+            f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
+        )
 
     @override
     def get_message(self) -> Message:
@@ -359,6 +370,16 @@ class GroupAtMessageCreateEvent(MessageEvent):
     @override
     def get_user_id(self) -> str:
         return self.author.id
+
+    @override
+    def get_session_id(self) -> str:
+        return self.author.id
+
+    @override
+    def get_event_description(self) -> str:
+        return escape_tag(
+            f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
+        )
 
     @override
     def get_message(self) -> Message:
