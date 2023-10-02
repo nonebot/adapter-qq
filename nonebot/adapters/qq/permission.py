@@ -8,15 +8,15 @@ from .event import MessageCreateEvent, AtMessageCreateEvent
 async def _guild_channel_admin(
     event: Union[AtMessageCreateEvent, MessageCreateEvent]
 ) -> bool:
-    return 5 in getattr(event.member, "roles", ())
+    return "5" in getattr(event.member, "roles", ())
 
 
 async def _guild_admin(event: Union[AtMessageCreateEvent, MessageCreateEvent]) -> bool:
-    return 2 in getattr(event.member, "roles", ())
+    return "2" in getattr(event.member, "roles", ())
 
 
 async def _guild_owner(event: Union[AtMessageCreateEvent, MessageCreateEvent]) -> bool:
-    return 4 in getattr(event.member, "roles", ())
+    return "4" in getattr(event.member, "roles", ())
 
 
 GUILD_CHANNEL_ADMIN: Permission = Permission(_guild_channel_admin)
