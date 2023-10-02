@@ -345,6 +345,7 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
+        # tmp fix due to image not implemented in message api
         if msg_type == 1:
             return await self.post_c2c_files(
                 user_id=user_id, file_type=msg_type, url=kwargs["image"]
@@ -377,6 +378,7 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
+        # tmp fix due to image not implemented in message api
         if msg_type == 1:
             return await self.post_group_files(
                 group_id=group_id, file_type=msg_type, url=kwargs["image"]
