@@ -73,8 +73,8 @@ class Channel(BaseModel):
     position: int
     parent_id: Optional[str] = None
     owner_id: Optional[str] = None
-    private_type: Union[PrivateType, int]
-    speak_permission: Union[SpeakPermission, int]
+    private_type: Union[PrivateType, int, None] = None
+    speak_permission: Union[SpeakPermission, int, None] = None
     application_id: Optional[str] = None
     permissions: Optional[int] = None
 
