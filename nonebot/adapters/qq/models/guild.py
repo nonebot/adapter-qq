@@ -300,8 +300,16 @@ class TextElem(BaseModel):
     props: Optional[TextProps] = None
 
 
+class PlatImage(BaseModel):
+    url: str
+    width: int
+    height: int
+    image_id: str
+
+
 class ImageElem(BaseModel):
-    third_url: str
+    plat_image: Optional[PlatImage] = None
+    third_url: Optional[str] = None
     width_percent: Optional[float] = None
 
 
