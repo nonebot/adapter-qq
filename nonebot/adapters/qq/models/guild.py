@@ -301,10 +301,10 @@ class TextElem(BaseModel):
 
 
 class PlatImage(BaseModel):
-    url: str
-    width: int
-    height: int
-    image_id: str
+    url: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    image_id: Optional[str] = None
 
 
 class ImageElem(BaseModel):
