@@ -107,6 +107,22 @@ class MessageSegment(BaseMessageSegment["Message"]):
         )
 
     @override
+    def __add__(
+        self, other: Union[str, "MessageSegment", Iterable["MessageSegment"]]
+    ) -> "Message":
+        return Message(self) + (
+            MessageSegment.text(other) if isinstance(other, str) else other
+        )
+
+    @override
+    def __radd__(
+        self, other: Union[str, "MessageSegment", Iterable["MessageSegment"]]
+    ) -> "Message":
+        return (
+            MessageSegment.text(other) if isinstance(other, str) else Message(other)
+        ) + self
+
+    @override
     def is_text(self) -> bool:
         return self.type == "text"
 
