@@ -34,11 +34,11 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Emoji("emoji", data={"id": id})
 
     @staticmethod
-    def mention_user(user_id: Union[int, str]) -> "MentionUser":
+    def mention_user(user_id: str) -> "MentionUser":
         return MentionUser("mention_user", {"user_id": str(user_id)})
 
     @staticmethod
-    def mention_channel(channel_id: Union[int, str]) -> "MentionChannel":
+    def mention_channel(channel_id: str) -> "MentionChannel":
         return MentionChannel("mention_channel", {"channel_id": str(channel_id)})
 
     @staticmethod
