@@ -83,7 +83,7 @@ class Channel(BaseModel):
 class Member(BaseModel):
     user: Optional[User] = None
     nick: Optional[str] = None
-    roles: List[str]
+    roles: Optional[List[str]] = None
     joined_at: datetime
 
 
