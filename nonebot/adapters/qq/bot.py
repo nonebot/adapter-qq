@@ -77,6 +77,7 @@ from .models import (
     PostGroupFilesReturn,
     PostC2CMessagesReturn,
     GetReactionUsersReturn,
+    PostGroupMembersReturn,
     PostGroupMessagesReturn,
     APIPermissionDemandIdentify,
     GetGuildAPIPermissionReturn,
@@ -1666,3 +1667,18 @@ class Bot(BaseBot):
             ),
         )
         return parse_obj_as(PostGroupFilesReturn, await self._request(request))
+
+    @API
+    async def post_group_members(
+        self,
+        *,
+        group_id: str,
+        limit: Optional[int] = None,
+        start_index: Optional[int] = None,
+    ) -> PostGroupMembersReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "members"),
+            json=exclude_none({"limit": limit, "start_index": start_index}),
+        )
+        return parse_obj_as(PostGroupMembersReturn, await self._request(request))

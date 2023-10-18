@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -26,6 +26,16 @@ class PostC2CFilesReturn(BaseModel):
 class PostGroupFilesReturn(BaseModel):
     id: Optional[str] = None
     timestamp: Optional[datetime] = None
+
+
+class GroupMember(BaseModel):
+    member_openid: str
+    join_timestamp: datetime
+
+
+class PostGroupMembersReturn(BaseModel):
+    members: List[GroupMember]
+    next_index: Optional[int] = None
 
 
 # Interaction Event
@@ -58,6 +68,8 @@ __all__ = [
     "PostC2CMessagesReturn",
     "PostGroupMessagesReturn",
     "PostC2CFilesReturn",
+    "GroupMember",
+    "PostGroupMembersReturn",
     "PostGroupFilesReturn",
     "ButtonInteractionContent",
     "ButtonInteractionData",
