@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import datetime
 from typing_extensions import override
 from typing import Dict, Type, Tuple, TypeVar, Optional
 
@@ -96,6 +97,18 @@ class EventType(str, Enum):
     # AT_MESSAGES
     AT_MESSAGE_CREATE = "AT_MESSAGE_CREATE"
     PUBLIC_MESSAGE_DELETE = "PUBLIC_MESSAGE_DELETE"
+
+    # FRIEND_ROBOT_EVENT
+    FRIEND_ADD = "FRIEND_ADD"
+    FRIEND_DEL = "FRIEND_DEL"
+    C2C_MSG_REJECT = "C2C_MSG_REJECT"
+    C2C_MSG_RECEIVE = "C2C_MSG_RECEIVE"
+
+    # GROUP_ROBOT_EVENT
+    GROUP_ADD_ROBOT = "GROUP_ADD_ROBOT"
+    GROUP_DEL_ROBOT = "GROUP_DEL_ROBOT"
+    GROUP_MSG_REJECT = "GROUP_MSG_REJECT"
+    GROUP_MSG_RECEIVE = "GROUP_MSG_RECEIVE"
 
 
 class Event(BaseEvent):
@@ -574,6 +587,75 @@ class OpenForumReplyDeleteEvent(OpenForumEvent):
     __type__ = EventType.OPEN_FORUM_REPLY_DELETE
 
 
+# Friend Robot Event
+class FriendRobotEvent(NoticeEvent):
+    timestamp: datetime
+    open_id: str
+
+    @override
+    def get_user_id(self) -> str:
+        return self.open_id
+
+    @override
+    def get_session_id(self) -> str:
+        return self.open_id
+
+
+@register_event_class
+class FriendAddEvent(FriendRobotEvent):
+    __type__ = EventType.FRIEND_ADD
+
+
+@register_event_class
+class FriendDelEvent(FriendRobotEvent):
+    __type__ = EventType.FRIEND_DEL
+
+
+@register_event_class
+class C2CMsgRejectEvent(FriendRobotEvent):
+    __type__ = EventType.C2C_MSG_REJECT
+
+
+@register_event_class
+class C2CMsgReceiveEvent(FriendRobotEvent):
+    __type__ = EventType.C2C_MSG_RECEIVE
+
+
+# Group Robot Event
+class GroupRobotEvent(NoticeEvent):
+    timestamp: datetime
+    group_openid: str
+    op_member_openid: str
+
+    @override
+    def get_user_id(self) -> str:
+        return self.op_member_openid
+
+    @override
+    def get_session_id(self) -> str:
+        return self.op_member_openid
+
+
+@register_event_class
+class GroupAddRobotEvent(GroupRobotEvent):
+    __type__ = EventType.GROUP_ADD_ROBOT
+
+
+@register_event_class
+class GroupDelRobotEvent(GroupRobotEvent):
+    __type__ = EventType.GROUP_DEL_ROBOT
+
+
+@register_event_class
+class GroupMsgRejectEvent(GroupRobotEvent):
+    __type__ = EventType.GROUP_MSG_REJECT
+
+
+@register_event_class
+class GroupMsgReceiveEvent(GroupRobotEvent):
+    __type__ = EventType.GROUP_MSG_RECEIVE
+
+
 __all__ = [
     "EVENT_CLASSES",
     "EventType",
@@ -636,4 +718,14 @@ __all__ = [
     "OpenForumPostDeleteEvent",
     "OpenForumReplyCreateEvent",
     "OpenForumReplyDeleteEvent",
+    "FriendRobotEvent",
+    "FriendAddEvent",
+    "FriendDelEvent",
+    "C2CMsgRejectEvent",
+    "C2CMsgReceiveEvent",
+    "GroupRobotEvent",
+    "GroupAddRobotEvent",
+    "GroupDelRobotEvent",
+    "GroupMsgRejectEvent",
+    "GroupMsgReceiveEvent",
 ]
