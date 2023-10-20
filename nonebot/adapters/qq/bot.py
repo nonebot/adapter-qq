@@ -101,10 +101,10 @@ async def _check_reply(
         return
     try:
         event.reply = await bot.get_message_of_id(
-            channel_id=event.channel_id,  # type: ignore
-            message_id=event.message_reference.message_id,  # type: ignore
+            channel_id=event.channel_id,
+            message_id=event.message_reference.message_id,
         )
-        if event.reply.message.author.id == bot.self_info.id:  # type: ignore
+        if event.reply.author.id == bot.self_info.id:
             event.to_me = True
     except Exception as e:
         log("WARNING", f"Error when getting message reply info: {repr(e)}", e)
@@ -122,8 +122,9 @@ def _check_at_me(
         event.to_me = True
 
     def _is_at_me_seg(segment: MessageSegment) -> bool:
-        return segment.type == "mention_user" and segment.data.get("user_id") == str(
-            bot.self_info.id
+        return (
+            segment.type == "mention_user"
+            and segment.data.get("user_id") == bot.self_info.id
         )
 
     message = event.get_message()
