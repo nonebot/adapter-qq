@@ -206,8 +206,6 @@ class GuildMemberRemoveEvent(GuildMemberEvent):
 
 # Message Event
 class MessageEvent(Event, GuildMessage):
-    to_me: bool = False
-
     reply: Optional[MessageGet] = None
     """
     :说明: 消息中提取的回复消息，内容为 ``get_message_of_id`` API 返回结果
@@ -244,7 +242,7 @@ class MessageEvent(Event, GuildMessage):
 
     @override
     def is_tome(self) -> bool:
-        return self.to_me
+        return False
 
 
 class MessageCreateEvent(MessageEvent):
@@ -261,7 +259,10 @@ class MessageDeleteEvent(Event, MessageDelete):
 
 class AtMessageCreateEvent(MessageEvent):
     __type__ = EventType.AT_MESSAGE_CREATE
-    to_me: bool = True
+
+    @override
+    def is_tome(self) -> bool:
+        return True
 
 
 class PublicMessageDeleteEvent(MessageDeleteEvent):
@@ -270,7 +271,10 @@ class PublicMessageDeleteEvent(MessageDeleteEvent):
 
 class DirectMessageCreateEvent(MessageEvent):
     __type__ = EventType.DIRECT_MESSAGE_CREATE
-    to_me: bool = True
+
+    @override
+    def is_tome(self) -> bool:
+        return True
 
     @override
     def get_event_description(self) -> str:
