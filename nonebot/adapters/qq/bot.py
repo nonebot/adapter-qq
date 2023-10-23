@@ -117,7 +117,7 @@ def _check_at_me(
     if (
         isinstance(event, GuildMessageEvent)
         and event.mentions is not None
-        and bot.self_info.id in [user.id for user in event.mentions]
+        and bot.self_info.id in {user.id for user in event.mentions}
     ):
         event.to_me = True
 
@@ -137,6 +137,7 @@ def _check_at_me(
     if _is_at_me_seg(message[0]):
         message.pop(0)
         deleted = True
+        event.to_me = True
         if message and message[0].type == "text":
             message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
             if not message[0].data["text"]:
@@ -156,6 +157,7 @@ def _check_at_me(
 
         if _is_at_me_seg(last_msg_seg):
             deleted = True
+            event.to_me = True
             del message[i:]
 
     if not message:
