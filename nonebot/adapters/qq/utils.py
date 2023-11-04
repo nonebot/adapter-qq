@@ -22,7 +22,7 @@ B = TypeVar("B", bound="Bot")
 R = TypeVar("R")
 P = ParamSpec("P")
 
-log = logger_wrapper("QQ Guild")
+log = logger_wrapper("QQ")
 
 
 def escape(s: str) -> str:
