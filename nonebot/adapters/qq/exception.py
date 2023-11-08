@@ -22,27 +22,45 @@ class NoLogException(BaseNoLogException, QQAdapterException):
 
 class ActionFailed(BaseActionFailed, QQAdapterException):
     def __init__(self, response: Response):
-        self.status_code: int = response.status_code
-        self.code: Optional[int] = None
-        self.message: Optional[str] = None
-        self.data: Optional[dict] = None
+        self.response = response
+
+        self.body: Optional[dict] = None
         if response.content:
-            body = json.loads(response.content)
-            self._prepare_body(body)
+            try:
+                self.body = json.loads(response.content)
+            except Exception:
+                pass
+
+    @property
+    def status_code(self) -> int:
+        return self.response.status_code
+
+    @property
+    def code(self) -> Optional[int]:
+        return None if self.body is None else self.body.get("code", None)
+
+    @property
+    def message(self) -> Optional[str]:
+        return None if self.body is None else self.body.get("message", None)
+
+    @property
+    def data(self) -> Optional[dict]:
+        return None if self.body is None else self.body.get("data", None)
+
+    @property
+    def trace_id(self) -> Optional[str]:
+        return self.response.headers.get("X-Tps-trace-ID", None)
 
     def __repr__(self) -> str:
+        args = ("code", "message", "data", "trace_id")
         return (
-            f"<ActionFailed: {self.status_code}, code={self.code}, "
-            f"message={self.message}, data={self.data}>"
+            f"<ActionFailed: {self.status_code}, "
+            + ", ".join(f"{k}={v}" for k in args if (v := getattr(self, k)) is not None)
+            + ">"
         )
 
     def __str__(self):
         return self.__repr__()
-
-    def _prepare_body(self, body: dict):
-        self.code = body.get("code", None)
-        self.message = body.get("message", None)
-        self.data = body.get("data", None)
 
 
 class UnauthorizedException(ActionFailed):
