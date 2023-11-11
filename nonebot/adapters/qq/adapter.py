@@ -199,7 +199,8 @@ class Adapter(BaseAdapter):
                         if heartbeat_task:
                             heartbeat_task.cancel()
                             heartbeat_task = None
-                        self.bot_disconnect(bot)
+                        if bot.self_id in self.bots:
+                            self.bot_disconnect(bot)
 
             except Exception as e:
                 log(
