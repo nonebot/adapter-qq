@@ -37,6 +37,7 @@ from .exception import (
 from .event import (
     Event,
     ReadyEvent,
+    QQMessageEvent,
     GuildMessageEvent,
     C2CMessageCreateEvent,
     DirectMessageCreateEvent,
@@ -89,7 +90,7 @@ if TYPE_CHECKING:
 
 async def _check_reply(
     bot: "Bot",
-    event: Union[GuildMessageEvent, C2CMessageCreateEvent, GroupAtMessageCreateEvent],
+    event: Union[GuildMessageEvent, QQMessageEvent],
 ) -> None:
     """检查消息中存在的回复，赋值 `event.reply`, `event.to_me`。
 
@@ -112,7 +113,7 @@ async def _check_reply(
 
 def _check_at_me(
     bot: "Bot",
-    event: Union[GuildMessageEvent, C2CMessageCreateEvent, GroupAtMessageCreateEvent],
+    event: Union[GuildMessageEvent, QQMessageEvent],
 ):
     if (
         isinstance(event, GuildMessageEvent)
@@ -269,9 +270,7 @@ class Bot(BaseBot):
         return headers
 
     async def handle_event(self, event: Event) -> None:
-        if isinstance(
-            event, (GuildMessageEvent, C2CMessageCreateEvent, GroupAtMessageCreateEvent)
-        ):
+        if isinstance(event, (GuildMessageEvent, QQMessageEvent)):
             await _check_reply(self, event)
             _check_at_me(self, event)
         await handle_event(self, event)

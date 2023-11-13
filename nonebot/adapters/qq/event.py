@@ -255,13 +255,6 @@ class GuildMemberRemoveEvent(GuildMemberEvent):
 class MessageEvent(Event):
     to_me: bool = False
 
-    reply: Optional[GuildMessage] = None
-    """
-    :说明: 消息中提取的回复消息，内容为 ``get_message_of_id`` API 返回结果
-
-    :类型: ``Optional[MessageGet]``
-    """
-
     @override
     def get_type(self) -> str:
         return "message"
@@ -272,6 +265,13 @@ class MessageEvent(Event):
 
 
 class GuildMessageEvent(MessageEvent, GuildMessage):
+    reply: Optional[GuildMessage] = None
+    """
+    :说明: 消息中提取的回复消息，内容为 ``get_message_of_id`` API 返回结果
+
+    :类型: ``Optional[GuildMessage]``
+    """
+
     @override
     def get_user_id(self) -> str:
         return self.author.id
@@ -309,6 +309,7 @@ class MessageDeleteEvent(NoticeEvent, MessageDelete):
 @register_event_class
 class AtMessageCreateEvent(GuildMessageEvent):
     __type__ = EventType.AT_MESSAGE_CREATE
+
     to_me: bool = True
 
 
@@ -336,73 +337,53 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
     __type__ = EventType.DIRECT_MESSAGE_DELETE
 
 
+class QQMessageEvent(MessageEvent):
+    id: str
+    author: Author
+    content: str
+    timestamp: str
+
+    @override
+    def get_user_id(self) -> str:
+        return self.author.id
+
+    @override
+    def get_session_id(self) -> str:
+        return self.author.id
+
+    @override
+    def get_message(self) -> Message:
+        if not hasattr(self, "_message"):
+            setattr(self, "_message", Message(self.content))
+        return getattr(self, "_message")
+
+
 @register_event_class
-class C2CMessageCreateEvent(MessageEvent):
+class C2CMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.C2C_MESSAGE_CREATE
 
-    id: str
-    author: Author
-    content: str
-    timestamp: str
-
-    @override
-    def get_user_id(self) -> str:
-        return self.author.id
-
-    @override
-    def get_session_id(self) -> str:
-        return self.author.id
+    to_me: bool = True
 
     @override
     def get_event_description(self) -> str:
         return escape_tag(
             f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
         )
-
-    @override
-    def get_message(self) -> Message:
-        if not hasattr(self, "_message"):
-            setattr(self, "_message", Message(self.content))
-        return getattr(self, "_message")
-
-    @override
-    def is_tome(self) -> bool:
-        return True
 
 
 @register_event_class
-class GroupAtMessageCreateEvent(MessageEvent):
+class GroupAtMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.GROUP_AT_MESSAGE_CREATE
 
-    id: str
-    author: Author
     group_id: str
-    content: str
-    timestamp: str
-
-    @override
-    def get_user_id(self) -> str:
-        return self.author.id
-
-    @override
-    def get_session_id(self) -> str:
-        return self.author.id
+    to_me: bool = True
 
     @override
     def get_event_description(self) -> str:
         return escape_tag(
-            f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
+            f"Message {self.id} from {self.author.id}@[Group:{self.group_id}]: "
+            f"{self.get_message()!r}"
         )
-
-    @override
-    def get_message(self) -> Message:
-        if not hasattr(self, "_message"):
-            setattr(self, "_message", Message(self.content))
-        return getattr(self, "_message")
-
-    @override
-    def is_tome(self) -> bool:
-        return True
 
 
 @register_event_class
