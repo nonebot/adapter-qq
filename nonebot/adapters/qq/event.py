@@ -665,6 +665,7 @@ __all__ = [
     "PublicMessageDeleteEvent",
     "DirectMessageCreateEvent",
     "DirectMessageDeleteEvent",
+    "QQMessageEvent",
     "C2CMessageCreateEvent",
     "GroupAtMessageCreateEvent",
     "InteractionCreateEvent",
