@@ -1,7 +1,7 @@
 from enum import Enum
 from datetime import datetime
 from typing_extensions import override
-from typing import Dict, Type, Tuple, TypeVar, Optional
+from typing import Dict, List, Type, Tuple, TypeVar, Optional
 
 from nonebot.utils import escape_tag
 
@@ -12,6 +12,7 @@ from .models import Message as GuildMessage
 from .models import Post, User, Guild, Reply, Author, Member, Thread, Channel
 from .models import (
     RichText,
+    Attachment,
     AudioAction,
     MessageDelete,
     MessageAudited,
@@ -342,6 +343,7 @@ class QQMessageEvent(MessageEvent):
     author: Author
     content: str
     timestamp: str
+    attachments: Optional[List[Attachment]] = None
 
     @override
     def get_user_id(self) -> str:

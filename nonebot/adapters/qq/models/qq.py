@@ -8,6 +8,15 @@ class Author(BaseModel):
     id: str
 
 
+class Attachment(BaseModel):
+    content_type: str
+    filename: Optional[str] = None
+    height: Optional[str] = None
+    width: Optional[str] = None
+    size: Optional[str] = None
+    url: Optional[str] = None
+
+
 class PostC2CMessagesReturn(BaseModel):
     id: Optional[str] = None
     timestamp: Optional[datetime] = None
@@ -65,6 +74,7 @@ class ButtonInteraction(BaseModel):
 
 __all__ = [
     "Author",
+    "Attachment",
     "PostC2CMessagesReturn",
     "PostGroupMessagesReturn",
     "PostC2CFilesReturn",
