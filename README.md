@@ -43,19 +43,19 @@ QQ_IS_SANDBOX=true
 
 ```json
 {
-  "guilds": "true",
-  "guild_members": "true",
-  "guild_messages": "false",
-  "guild_message_reactions": "true",
-  "direct_message": "false",
-  "open_forum_event": "false",
-  "audio_live_member": "false",
-  "c2c_group_at_messages": "false",
-  "interaction": "false",
-  "message_audit": "true",
-  "forum_event": "false",
-  "audio_action": "false",
-  "at_messages": "true"
+  "guilds": true,
+  "guild_members": true,
+  "guild_messages": false,
+  "guild_message_reactions": true,
+  "direct_message": false,
+  "open_forum_event": false,
+  "audio_live_member": false,
+  "c2c_group_at_messages": false,
+  "interaction": false,
+  "message_audit": true,
+  "forum_event": false,
+  "audio_action": false,
+  "at_messages": true
 }
 ```
 
