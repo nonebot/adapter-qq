@@ -433,6 +433,12 @@ class Bot(BaseBot):
 
     # API request methods
     def _handle_response(self, response: Response) -> Any:
+        if trace_id := response.headers.get("X-Tps-trace-ID", None):
+            log(
+                "TRACE",
+                f"Called API {response.request and response.request.url} "
+                f"response {response.status_code} with trace id {trace_id}",
+            )
         if response.status_code == 201 or response.status_code == 202:
             if response.content and (content := json.loads(response.content)):
                 audit_id = (
@@ -467,6 +473,8 @@ class Bot(BaseBot):
         except UnauthorizedException as e:
             if not self.bot_info.is_group_bot:
                 raise
+
+            log("DEBUG", "Access token expired, try to refresh it.")
 
             # try to refresh access token
             self._access_token = None
