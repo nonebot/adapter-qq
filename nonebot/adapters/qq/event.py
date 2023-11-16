@@ -308,7 +308,10 @@ class MessageDeleteEvent(NoticeEvent, MessageDelete):
 
     @override
     def get_session_id(self) -> str:
-        return f"guild_{self.message.guild_id}_channel_{self.message.channel_id}_{self.op_user.id}"
+        return (
+            f"guild_{self.message.guild_id}_"
+            f"channel_{self.message.channel_id}_{self.op_user.id}"
+        )
 
 
 @register_event_class
@@ -410,7 +413,10 @@ class InteractionCreateEvent(NoticeEvent, ButtonInteraction):
 
     @override
     def get_session_id(self) -> str:
-        return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.data.resolved.user_id}"
+        return (
+            f"guild_{self.guild_id}_channel_{self.channel_id}"
+            f"_{self.data.resolved.user_id}"
+        )
 
 
 # Message Audit Event
