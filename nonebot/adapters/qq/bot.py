@@ -442,7 +442,7 @@ class Bot(BaseBot):
         if response.status_code == 201 or response.status_code == 202:
             if response.content and (content := json.loads(response.content)):
                 audit_id = (
-                    content.get("response", {})
+                    content.get("data", {})
                     .get("message_audit", {})
                     .get("audit_id", None)
                 )
