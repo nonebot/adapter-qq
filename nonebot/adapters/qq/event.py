@@ -234,7 +234,7 @@ class GuildMemberEvent(NoticeEvent, Member):
 
     @override
     def get_session_id(self) -> str:
-        return f"member_{self.user.id}"  # type: ignore
+        return f"guild_{self.guild_id}_{self.user.id}"  # type: ignore
 
 
 @register_event_class
@@ -279,7 +279,7 @@ class GuildMessageEvent(MessageEvent, GuildMessage):
 
     @override
     def get_session_id(self) -> str:
-        return f"guild_{self.guild_id}_channel_{self.id}_{self.author.id}"
+        return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.author.id}"
 
     @override
     def get_event_description(self) -> str:
@@ -308,7 +308,7 @@ class MessageDeleteEvent(NoticeEvent, MessageDelete):
 
     @override
     def get_session_id(self) -> str:
-        return f"delete_{self.op_user.id}"
+        return f"guild_{self.message.guild_id}_channel_{self.message.channel_id}_{self.op_user.id}"
 
 
 @register_event_class
@@ -376,6 +376,10 @@ class C2CMessageCreateEvent(QQMessageEvent):
             f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
         )
 
+    @override
+    def get_session_id(self) -> str:
+        return f"friend_{self.author.id}"
+
 
 @register_event_class
 class GroupAtMessageCreateEvent(QQMessageEvent):
@@ -406,7 +410,7 @@ class InteractionCreateEvent(NoticeEvent, ButtonInteraction):
 
     @override
     def get_session_id(self) -> str:
-        return f"interaction_{self.data.resolved.user_id}"
+        return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.data.resolved.user_id}"
 
 
 # Message Audit Event
@@ -432,9 +436,7 @@ class MessageReactionEvent(NoticeEvent, MessageReaction):
 
     @override
     def get_session_id(self) -> str:
-        return (
-            f"reaction_guild_{self.guild_id}_channel_{self.channel_id}_{self.user_id}"
-        )
+        return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.user_id}"
 
 
 @register_event_class
@@ -480,7 +482,7 @@ class ForumEvent(NoticeEvent, ForumSourceInfo):
 
     @override
     def get_session_id(self) -> str:
-        return f"forum_guild_{self.guild_id}_channel_{self.channel_id}_{self.author_id}"
+        return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.author_id}"
 
 
 class ForumThreadEvent(ForumEvent, Thread[RichText]):
@@ -542,7 +544,7 @@ class OpenForumEvent(NoticeEvent, ForumSourceInfo):
 
     @override
     def get_session_id(self) -> str:
-        return f"forum_guild_{self.guild_id}_channel_{self.channel_id}_{self.author_id}"
+        return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.author_id}"
 
 
 @register_event_class
@@ -591,7 +593,7 @@ class FriendRobotEvent(NoticeEvent):
 
     @override
     def get_session_id(self) -> str:
-        return f"robot_{self.open_id}"
+        return f"friend_{self.open_id}"
 
 
 @register_event_class
@@ -626,7 +628,7 @@ class GroupRobotEvent(NoticeEvent):
 
     @override
     def get_session_id(self) -> str:
-        return f"robot_group_{self.group_openid}_{self.op_member_openid}"
+        return f"group_{self.group_openid}_{self.op_member_openid}"
 
 
 @register_event_class
