@@ -347,7 +347,7 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
 
 class QQMessageEvent(MessageEvent):
     id: str
-    _reply_seq: int = -1 
+    _reply_seq: int = -1
     author: Author
     content: str
     timestamp: str
