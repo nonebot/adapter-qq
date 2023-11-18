@@ -334,6 +334,7 @@ class Bot(BaseBot):
         user_id: str,
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
+        msg_seq: Optional[int] = None,
         event_id: Optional[str] = None,
     ) -> Union[PostC2CMessagesReturn, PostC2CFilesReturn]:
         kwargs = self._extract_send_message(message=message)
@@ -358,6 +359,7 @@ class Bot(BaseBot):
                 user_id=user_id,
                 msg_type=msg_type,
                 msg_id=msg_id,
+                msg_seq=msg_seq,
                 event_id=event_id,
                 **kwargs,
             )
@@ -367,6 +369,7 @@ class Bot(BaseBot):
         group_id: str,
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
+        msg_seq: Optional[int] = None,
         event_id: Optional[str] = None,
     ) -> Union[PostGroupMessagesReturn, PostGroupFilesReturn]:
         kwargs = self._extract_send_message(message=message)
@@ -391,6 +394,7 @@ class Bot(BaseBot):
                 group_id=group_id,
                 msg_type=msg_type,
                 msg_id=msg_id,
+                msg_seq=msg_seq,
                 event_id=event_id,
                 **kwargs,
             )
@@ -417,16 +421,20 @@ class Bot(BaseBot):
                 msg_id=event.id,
             )
         elif isinstance(event, C2CMessageCreateEvent):
+            event._reply_seq += 1
             return await self.send_to_c2c(
                 user_id=event.author.id,
                 message=message,
                 msg_id=event.id,
+                msg_seq=event._reply_seq,
             )
         elif isinstance(event, GroupAtMessageCreateEvent):
+            event._reply_seq += 1
             return await self.send_to_group(
                 group_id=event.group_id,
                 message=message,
                 msg_id=event.id,
+                msg_seq=event._reply_seq,
             )
 
         raise RuntimeError("Event cannot be replied to!")
@@ -1542,6 +1550,7 @@ class Bot(BaseBot):
         message_reference: None = None,
         event_id: Optional[str] = None,
         msg_id: Optional[str] = None,
+        msg_seq: Optional[int] = None,
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostC2CMessagesReturn:
         if isinstance(timestamp, datetime):
@@ -1574,6 +1583,7 @@ class Bot(BaseBot):
                     "message_reference": message_reference,
                     "event_id": event_id,
                     "msg_id": msg_id,
+                    "msg_seq": msg_seq,
                     "timestamp": timestamp,
                 }
             ),
@@ -1618,6 +1628,7 @@ class Bot(BaseBot):
         message_reference: None = None,
         event_id: Optional[str] = None,
         msg_id: Optional[str] = None,
+        msg_seq: Optional[int] = None,
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostGroupMessagesReturn:
         if isinstance(timestamp, datetime):
@@ -1650,6 +1661,7 @@ class Bot(BaseBot):
                     "message_reference": message_reference,
                     "event_id": event_id,
                     "msg_id": msg_id,
+                    "msg_seq": msg_seq,
                     "timestamp": timestamp,
                 }
             ),
