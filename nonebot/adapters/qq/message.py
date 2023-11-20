@@ -2,7 +2,7 @@ import re
 from io import BytesIO
 from pathlib import Path
 from dataclasses import dataclass
-from typing_extensions import override
+from typing_extensions import Self, override
 from typing import TYPE_CHECKING, Type, Union, Iterable, Optional, TypedDict, overload
 
 from nonebot.adapters import Message as BaseMessage
@@ -11,6 +11,7 @@ from nonebot.adapters import MessageSegment as BaseMessageSegment
 from .utils import escape, unescape
 from .models import Message as GuildMessage
 from .models import (
+    QQMessage,
     MessageArk,
     MessageEmbed,
     MessageKeyboard,
@@ -304,7 +305,7 @@ class Message(BaseMessage[MessageSegment]):
     @override
     def __add__(
         self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
-    ) -> "Message":
+    ) -> Self:
         return super().__add__(
             MessageSegment.text(other) if isinstance(other, str) else other
         )
@@ -312,7 +313,7 @@ class Message(BaseMessage[MessageSegment]):
     @override
     def __radd__(
         self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
-    ) -> "Message":
+    ) -> Self:
         return super().__radd__(
             MessageSegment.text(other) if isinstance(other, str) else other
         )
@@ -342,7 +343,7 @@ class Message(BaseMessage[MessageSegment]):
             yield Text("text", {"text": unescape(msg[text_begin:])})
 
     @classmethod
-    def from_guild_message(cls, message: GuildMessage) -> "Message":
+    def from_guild_message(cls, message: GuildMessage) -> Self:
         msg = Message()
         if message.mention_everyone:
             msg.append(MessageSegment.mention_everyone())
@@ -358,6 +359,19 @@ class Message(BaseMessage[MessageSegment]):
             msg.extend(Embed("embed", data={"embed": seg}) for seg in message.embeds)
         if message.ark:
             msg.append(Ark("ark", data={"ark": message.ark}))
+        return msg
+
+    @classmethod
+    def from_qq_message(cls, message: QQMessage) -> Self:
+        msg = Message()
+        if message.content:
+            msg.extend(Message(message.content))
+        if message.attachments:
+            msg.extend(
+                Attachment("attachment", data=seg.dict())  # type: ignore
+                for seg in message.attachments
+                if seg.content_type
+            )
         return msg
 
     def extract_content(self) -> str:

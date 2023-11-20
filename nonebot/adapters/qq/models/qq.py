@@ -17,6 +17,14 @@ class Attachment(BaseModel):
     url: Optional[str] = None
 
 
+class QQMessage(BaseModel):
+    id: str
+    author: Author
+    content: str
+    timestamp: str
+    attachments: Optional[List[Attachment]] = None
+
+
 class PostC2CMessagesReturn(BaseModel):
     id: Optional[str] = None
     timestamp: Optional[datetime] = None
@@ -75,6 +83,7 @@ class ButtonInteraction(BaseModel):
 __all__ = [
     "Author",
     "Attachment",
+    "QQMessage",
     "PostC2CMessagesReturn",
     "PostGroupMessagesReturn",
     "PostC2CFilesReturn",

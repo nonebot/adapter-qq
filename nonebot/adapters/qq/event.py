@@ -1,7 +1,7 @@
 from enum import Enum
 from datetime import datetime
 from typing_extensions import override
-from typing import Dict, List, Type, Tuple, TypeVar, Optional
+from typing import Dict, Type, Tuple, TypeVar, Optional
 
 from nonebot.utils import escape_tag
 
@@ -9,10 +9,10 @@ from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
 from .models import Message as GuildMessage
-from .models import Post, User, Guild, Reply, Author, Member, Thread, Channel
+from .models import Post, User, Guild, Reply, Member, Thread, Channel
 from .models import (
     RichText,
-    Attachment,
+    QQMessage,
     AudioAction,
     MessageDelete,
     MessageAudited,
@@ -345,13 +345,8 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
     __type__ = EventType.DIRECT_MESSAGE_DELETE
 
 
-class QQMessageEvent(MessageEvent):
-    id: str
+class QQMessageEvent(MessageEvent, QQMessage):
     _reply_seq: int = -1
-    author: Author
-    content: str
-    timestamp: str
-    attachments: Optional[List[Attachment]] = None
 
     @override
     def get_user_id(self) -> str:
@@ -364,7 +359,7 @@ class QQMessageEvent(MessageEvent):
     @override
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
-            setattr(self, "_message", Message(self.content))
+            setattr(self, "_message", Message.from_qq_message(self))
         return getattr(self, "_message")
 
 
