@@ -8,10 +8,11 @@ from typing import TYPE_CHECKING, Type, Union, Iterable, Optional, TypedDict, ov
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
+from .models import QQMessage
 from .utils import escape, unescape
 from .models import Message as GuildMessage
+from .models import Attachment as QQAttachment
 from .models import (
-    QQMessage,
     MessageArk,
     MessageEmbed,
     MessageKeyboard,
@@ -401,15 +402,16 @@ class Message(BaseMessage[MessageSegment]):
         if message.content:
             msg.extend(Message(message.content))
         if message.attachments:
-            attachment_types = {
-                "图片": "image",
-                "语音": "audio",
-                "视频": "video",
-                "文件": "file",
-            }
+
+            def content_type(seg: QQAttachment):
+                ct = seg.content_type.strip("/")[0]
+                if ct in {"image", "audio", "file", "video"}:
+                    return ct
+                return "file"
+
             msg.extend(
                 Attachment(
-                    attachment_types.get(seg.content_type, "file"),
+                    content_type(seg),
                     data={"url": seg.url},
                 )
                 for seg in message.attachments

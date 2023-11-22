@@ -1,7 +1,8 @@
 from datetime import datetime
+from urllib.parse import urlparse
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class Author(BaseModel):
@@ -15,6 +16,12 @@ class Attachment(BaseModel):
     width: Optional[str] = None
     size: Optional[str] = None
     url: Optional[str] = None
+
+    @validator("url", allow_reuse=True)
+    def check_url(cls, v: str):
+        if v and not urlparse(v).hostname:
+            return f"https://{v}"
+        return v
 
 
 class Media(BaseModel):
