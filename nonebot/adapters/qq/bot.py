@@ -25,7 +25,7 @@ from .config import BotInfo
 from .utils import API, log, exclude_none
 from .models import Message as GuildMessage
 from .message import Message, MessageSegment
-from .models import DMS, User, Guild, Member, Channel
+from .models import DMS, User, Guild, Media, Member, Channel
 from .exception import (
     ActionFailed,
     NetworkError,
@@ -349,20 +349,25 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
-        # tmp fix due to image not implemented in message api
+        media: Optional[Media] = None
         if msg_type == 1:
-            return await self.post_c2c_files(
-                user_id=user_id, file_type=msg_type, url=kwargs["image"]
+            image_url = kwargs.pop("image")
+            media_info = await self.post_c2c_files(
+                user_id=user_id, file_type=1, url=image_url, srv_send_msg=False
             )
-        else:
-            return await self.post_c2c_messages(
-                user_id=user_id,
-                msg_type=msg_type,
-                msg_id=msg_id,
-                msg_seq=msg_seq,
-                event_id=event_id,
-                **kwargs,
+            media = (
+                Media(file_info=media_info.file_info) if media_info.file_info else None
             )
+        kwargs["media"] = media
+
+        return await self.post_c2c_messages(
+            user_id=user_id,
+            msg_type=msg_type,
+            msg_id=msg_id,
+            msg_seq=msg_seq,
+            event_id=event_id,
+            **kwargs,
+        )
 
     async def send_to_group(
         self,
@@ -384,20 +389,25 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
-        # tmp fix due to image not implemented in message api
+        media: Optional[Media] = None
         if msg_type == 1:
-            return await self.post_group_files(
-                group_id=group_id, file_type=msg_type, url=kwargs["image"]
+            image_url = kwargs.pop("image")
+            media_info = await self.post_group_files(
+                group_id=group_id, file_type=1, url=image_url, srv_send_msg=False
             )
-        else:
-            return await self.post_group_messages(
-                group_id=group_id,
-                msg_type=msg_type,
-                msg_id=msg_id,
-                msg_seq=msg_seq,
-                event_id=event_id,
-                **kwargs,
+            media = (
+                Media(file_info=media_info.file_info) if media_info.file_info else None
             )
+        kwargs["media"] = media
+
+        return await self.post_group_messages(
+            group_id=group_id,
+            msg_type=msg_type,
+            msg_id=msg_id,
+            msg_seq=msg_seq,
+            event_id=event_id,
+            **kwargs,
+        )
 
     @override
     async def send(
@@ -1540,10 +1550,11 @@ class Bot(BaseBot):
         self,
         *,
         user_id: str,
-        msg_type: Literal[0, 1, 2, 3, 4],
+        msg_type: Literal[0, 1, 2, 3, 4, 7],
         content: Optional[str] = None,
         markdown: Optional[MessageMarkdown] = None,
         keyboard: Optional[MessageKeyboard] = None,
+        media: Optional[Media] = None,
         ark: Optional[MessageArk] = None,
         embed: Optional[MessageEmbed] = None,
         image: None = None,
@@ -1575,6 +1586,9 @@ class Bot(BaseBot):
                         if keyboard is not None
                         else None
                     ),
+                    "media": (
+                        media.dict(exclude_none=True) if media is not None else None
+                    ),
                     "ark": ark.dict(exclude_none=True) if ark is not None else None,
                     "embed": (
                         embed.dict(exclude_none=True) if embed is not None else None
@@ -1598,6 +1612,7 @@ class Bot(BaseBot):
         file_type: Literal[1, 2, 3, 4],
         url: str,
         srv_send_msg: bool = True,
+        file_data: None = None,
     ) -> PostC2CFilesReturn:
         request = Request(
             "POST",
@@ -1607,6 +1622,7 @@ class Bot(BaseBot):
                     "file_type": file_type,
                     "url": url,
                     "srv_send_msg": srv_send_msg,
+                    "file_data": file_data,
                 }
             ),
         )
@@ -1622,6 +1638,7 @@ class Bot(BaseBot):
         content: Optional[str] = None,
         markdown: Optional[MessageMarkdown] = None,
         keyboard: Optional[MessageKeyboard] = None,
+        media: Optional[Media] = None,
         ark: Optional[MessageArk] = None,
         embed: Optional[MessageEmbed] = None,
         image: None = None,
@@ -1653,6 +1670,9 @@ class Bot(BaseBot):
                         if keyboard is not None
                         else None
                     ),
+                    "media": (
+                        media.dict(exclude_none=True) if media is not None else None
+                    ),
                     "ark": ark.dict(exclude_none=True) if ark is not None else None,
                     "embed": (
                         embed.dict(exclude_none=True) if embed is not None else None
@@ -1676,6 +1696,7 @@ class Bot(BaseBot):
         file_type: Literal[1, 2, 3, 4],
         url: str,
         srv_send_msg: bool = True,
+        file_data: None = None,
     ) -> PostGroupFilesReturn:
         request = Request(
             "POST",
@@ -1685,6 +1706,7 @@ class Bot(BaseBot):
                     "file_type": file_type,
                     "url": url,
                     "srv_send_msg": srv_send_msg,
+                    "file_data": file_data,
                 }
             ),
         )
