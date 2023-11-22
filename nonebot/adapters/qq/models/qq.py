@@ -9,7 +9,7 @@ class Author(BaseModel):
 
 
 class Attachment(BaseModel):
-    content_type: Literal["图片", "语音", "视频", "文件"]
+    content_type: str
     filename: Optional[str] = None
     height: Optional[str] = None
     width: Optional[str] = None
