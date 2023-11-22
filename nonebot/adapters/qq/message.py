@@ -404,7 +404,7 @@ class Message(BaseMessage[MessageSegment]):
         if message.attachments:
 
             def content_type(seg: QQAttachment):
-                ct = seg.content_type.strip("/")[0]
+                ct = seg.content_type.split("/")[0]
                 if ct in {"image", "audio", "file", "video"}:
                     return ct
                 return "file"
