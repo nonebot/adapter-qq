@@ -363,4 +363,3 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,macos,windows,linux,node
-.pdm-python
