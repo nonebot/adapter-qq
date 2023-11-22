@@ -25,7 +25,7 @@ from .config import BotInfo
 from .utils import API, log, exclude_none
 from .models import Message as GuildMessage
 from .message import Message, MessageSegment
-from .models import DMS, User, Guild, Member, Channel
+from .models import DMS, User, Guild, Media, Member, Channel
 from .exception import (
     ActionFailed,
     NetworkError,
@@ -276,12 +276,13 @@ class Bot(BaseBot):
         await handle_event(self, event)
 
     @staticmethod
-    def _extract_send_message(
-        message: Union[str, Message, MessageSegment]
-    ) -> Dict[str, Any]:
-        message = MessageSegment.text(message) if isinstance(message, str) else message
-        message = message if isinstance(message, Message) else Message(message)
+    def _prepare_message(message: Union[str, Message, MessageSegment]) -> Message:
+        _message = MessageSegment.text(message) if isinstance(message, str) else message
+        _message = _message if isinstance(_message, Message) else Message(_message)
+        return _message
 
+    @staticmethod
+    def _extract_send_message(message: Message) -> Dict[str, Any]:
         kwargs = {}
         content = message.extract_content() or None
         kwargs["content"] = content
@@ -289,16 +290,50 @@ class Bot(BaseBot):
             kwargs["embed"] = embed[-1].data["embed"]
         if ark := (message["ark"] or None):
             kwargs["ark"] = ark[-1].data["ark"]
-        if image := (message["attachment"] or None):
-            kwargs["image"] = image[-1].data["url"]
-        if file_image := (message["file_image"] or None):
-            kwargs["file_image"] = file_image[-1].data["content"]
         if markdown := (message["markdown"] or None):
             kwargs["markdown"] = markdown[-1].data["markdown"]
         if reference := (message["reference"] or None):
             kwargs["message_reference"] = reference[-1].data["reference"]
         if keyboard := (message["keyboard"] or None):
             kwargs["keyboard"] = keyboard[-1].data["keyboard"]
+        return kwargs
+
+    @staticmethod
+    def _extract_guild_image(message: Message) -> Dict[str, Any]:
+        kwargs = {}
+        if image := (message["image"] or None):
+            kwargs["image"] = image[-1].data["url"]
+        if file_image := (message["file_image"] or None):
+            kwargs["file_image"] = file_image[-1].data["content"]
+        return kwargs
+
+    @staticmethod
+    def _extract_qq_media(message: Message) -> Dict[str, Any]:
+        kwargs = {}
+        if image := message["image"]:
+            kwargs["file_type"] = 1
+            kwargs["url"] = image[-1].data["url"]
+        elif audio := message["audio"]:
+            kwargs["file_type"] = 2
+            kwargs["url"] = audio[-1].data["url"]
+        elif video := message["video"]:
+            kwargs["file_type"] = 3
+            kwargs["url"] = video[-1].data["url"]
+        elif file := message["file"]:
+            kwargs["file_type"] = 4
+            kwargs["url"] = file[-1].data["url"]
+        elif file_image := message["file_image"]:
+            kwargs["file_type"] = 1
+            kwargs["file_data"] = file_image[-1].data["content"]
+        elif file_audio := message["file_audio"]:
+            kwargs["file_type"] = 2
+            kwargs["file_data"] = file_audio[-1].data["content"]
+        elif file_video := message["file_video"]:
+            kwargs["file_type"] = 3
+            kwargs["file_data"] = file_video[-1].data["content"]
+        elif file_file := message["file_file"]:
+            kwargs["file_type"] = 4
+            kwargs["file_data"] = file_file[-1].data["content"]
         return kwargs
 
     async def send_to_dms(
@@ -308,11 +343,13 @@ class Bot(BaseBot):
         msg_id: Optional[str] = None,
         event_id: Optional[str] = None,
     ) -> GuildMessage:
+        message = self._prepare_message(message)
         return await self.post_dms_messages(
             guild_id=guild_id,
             msg_id=msg_id,
             event_id=event_id,
             **self._extract_send_message(message=message),
+            **self._extract_guild_image(message=message),
         )
 
     async def send_to_channel(
@@ -322,11 +359,13 @@ class Bot(BaseBot):
         msg_id: Optional[str] = None,
         event_id: Optional[str] = None,
     ) -> GuildMessage:
+        message = self._prepare_message(message)
         return await self.post_messages(
             channel_id=channel_id,
             msg_id=msg_id,
             event_id=event_id,
             **self._extract_send_message(message=message),
+            **self._extract_guild_image(message=message),
         )
 
     async def send_to_c2c(
@@ -337,6 +376,7 @@ class Bot(BaseBot):
         msg_seq: Optional[int] = None,
         event_id: Optional[str] = None,
     ) -> Union[PostC2CMessagesReturn, PostC2CFilesReturn]:
+        message = self._prepare_message(message)
         kwargs = self._extract_send_message(message=message)
         if kwargs.get("embed"):
             msg_type = 4
@@ -344,25 +384,38 @@ class Bot(BaseBot):
             msg_type = 3
         elif kwargs.get("markdown"):
             msg_type = 2
-        elif kwargs.get("image"):
-            msg_type = 1
+        elif (
+            message["image"]
+            or message["audio"]
+            or message["video"]
+            or message["file"]
+            or message["file_image"]
+            or message["file_audio"]
+            or message["file_video"]
+            or message["file_file"]
+        ):
+            msg_type = 7
         else:
             msg_type = 0
 
-        # tmp fix due to image not implemented in message api
-        if msg_type == 1:
-            return await self.post_c2c_files(
-                user_id=user_id, file_type=msg_type, url=kwargs["image"]
+        media: Optional[Media] = None
+        if msg_type == 7:
+            media_info = await self.post_c2c_files(
+                user_id=user_id, srv_send_msg=False, **self._extract_qq_media(message)
             )
-        else:
-            return await self.post_c2c_messages(
-                user_id=user_id,
-                msg_type=msg_type,
-                msg_id=msg_id,
-                msg_seq=msg_seq,
-                event_id=event_id,
-                **kwargs,
+            media = (
+                Media(file_info=media_info.file_info) if media_info.file_info else None
             )
+        kwargs["media"] = media
+
+        return await self.post_c2c_messages(
+            user_id=user_id,
+            msg_type=msg_type,
+            msg_id=msg_id,
+            msg_seq=msg_seq,
+            event_id=event_id,
+            **kwargs,
+        )
 
     async def send_to_group(
         self,
@@ -372,6 +425,7 @@ class Bot(BaseBot):
         msg_seq: Optional[int] = None,
         event_id: Optional[str] = None,
     ) -> Union[PostGroupMessagesReturn, PostGroupFilesReturn]:
+        message = self._prepare_message(message)
         kwargs = self._extract_send_message(message=message)
         if kwargs.get("embed"):
             msg_type = 4
@@ -379,25 +433,38 @@ class Bot(BaseBot):
             msg_type = 3
         elif kwargs.get("markdown"):
             msg_type = 2
-        elif kwargs.get("image"):
-            msg_type = 1
+        elif (
+            message["image"]
+            or message["audio"]
+            or message["video"]
+            or message["file"]
+            or message["file_image"]
+            or message["file_audio"]
+            or message["file_video"]
+            or message["file_file"]
+        ):
+            msg_type = 7
         else:
             msg_type = 0
 
-        # tmp fix due to image not implemented in message api
-        if msg_type == 1:
-            return await self.post_group_files(
-                group_id=group_id, file_type=msg_type, url=kwargs["image"]
+        media: Optional[Media] = None
+        if msg_type == 7:
+            media_info = await self.post_group_files(
+                group_id=group_id, srv_send_msg=False, **self._extract_qq_media(message)
             )
-        else:
-            return await self.post_group_messages(
-                group_id=group_id,
-                msg_type=msg_type,
-                msg_id=msg_id,
-                msg_seq=msg_seq,
-                event_id=event_id,
-                **kwargs,
+            media = (
+                Media(file_info=media_info.file_info) if media_info.file_info else None
             )
+        kwargs["media"] = media
+
+        return await self.post_group_messages(
+            group_id=group_id,
+            msg_type=msg_type,
+            msg_id=msg_id,
+            msg_seq=msg_seq,
+            event_id=event_id,
+            **kwargs,
+        )
 
     @override
     async def send(
@@ -1540,10 +1607,11 @@ class Bot(BaseBot):
         self,
         *,
         user_id: str,
-        msg_type: Literal[0, 1, 2, 3, 4],
+        msg_type: Literal[0, 1, 2, 3, 4, 7],
         content: Optional[str] = None,
         markdown: Optional[MessageMarkdown] = None,
         keyboard: Optional[MessageKeyboard] = None,
+        media: Optional[Media] = None,
         ark: Optional[MessageArk] = None,
         embed: Optional[MessageEmbed] = None,
         image: None = None,
@@ -1553,6 +1621,10 @@ class Bot(BaseBot):
         msg_seq: Optional[int] = None,
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostC2CMessagesReturn:
+        # tmp fix. content must not be none if sending media
+        if media is not None and not content:
+            content = " "
+
         if isinstance(timestamp, datetime):
             timestamp = int(timestamp.timestamp())
         elif timestamp is None:
@@ -1574,6 +1646,9 @@ class Bot(BaseBot):
                         keyboard.dict(exclude_none=True)
                         if keyboard is not None
                         else None
+                    ),
+                    "media": (
+                        media.dict(exclude_none=True) if media is not None else None
                     ),
                     "ark": ark.dict(exclude_none=True) if ark is not None else None,
                     "embed": (
@@ -1598,6 +1673,7 @@ class Bot(BaseBot):
         file_type: Literal[1, 2, 3, 4],
         url: str,
         srv_send_msg: bool = True,
+        file_data: None = None,
     ) -> PostC2CFilesReturn:
         request = Request(
             "POST",
@@ -1607,6 +1683,7 @@ class Bot(BaseBot):
                     "file_type": file_type,
                     "url": url,
                     "srv_send_msg": srv_send_msg,
+                    "file_data": file_data,
                 }
             ),
         )
@@ -1618,10 +1695,11 @@ class Bot(BaseBot):
         self,
         *,
         group_id: str,
-        msg_type: Literal[0, 1, 2, 3, 4, 5],
+        msg_type: Literal[0, 1, 2, 3, 4, 7],
         content: Optional[str] = None,
         markdown: Optional[MessageMarkdown] = None,
         keyboard: Optional[MessageKeyboard] = None,
+        media: Optional[Media] = None,
         ark: Optional[MessageArk] = None,
         embed: Optional[MessageEmbed] = None,
         image: None = None,
@@ -1631,6 +1709,10 @@ class Bot(BaseBot):
         msg_seq: Optional[int] = None,
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostGroupMessagesReturn:
+        # tmp fix. content must not be none if sending media
+        if media is not None and not content:
+            content = " "
+
         if isinstance(timestamp, datetime):
             timestamp = int(timestamp.timestamp())
         elif timestamp is None:
@@ -1652,6 +1734,9 @@ class Bot(BaseBot):
                         keyboard.dict(exclude_none=True)
                         if keyboard is not None
                         else None
+                    ),
+                    "media": (
+                        media.dict(exclude_none=True) if media is not None else None
                     ),
                     "ark": ark.dict(exclude_none=True) if ark is not None else None,
                     "embed": (
@@ -1676,6 +1761,7 @@ class Bot(BaseBot):
         file_type: Literal[1, 2, 3, 4],
         url: str,
         srv_send_msg: bool = True,
+        file_data: None = None,
     ) -> PostGroupFilesReturn:
         request = Request(
             "POST",
@@ -1685,6 +1771,7 @@ class Bot(BaseBot):
                     "file_type": file_type,
                     "url": url,
                     "srv_send_msg": srv_send_msg,
+                    "file_data": file_data,
                 }
             ),
         )

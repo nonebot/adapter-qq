@@ -48,15 +48,51 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @staticmethod
     def image(url: str) -> "Attachment":
-        return Attachment("attachment", data={"url": url})
+        return Attachment("image", data={"url": url})
 
     @staticmethod
-    def file_image(data: Union[bytes, BytesIO, Path]) -> "LocalImage":
+    def file_image(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
             data = data.read_bytes()
-        return LocalImage("file_image", data={"content": data})
+        return LocalAttachment("file_image", data={"content": data})
+
+    @staticmethod
+    def audio(url: str) -> "Attachment":
+        return Attachment("audio", data={"url": url})
+
+    @staticmethod
+    def file_audio(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+        if isinstance(data, BytesIO):
+            data = data.getvalue()
+        elif isinstance(data, Path):
+            data = data.read_bytes()
+        return LocalAttachment("file_audio", data={"content": data})
+
+    @staticmethod
+    def video(url: str) -> "Attachment":
+        return Attachment("video", data={"url": url})
+
+    @staticmethod
+    def file_video(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+        if isinstance(data, BytesIO):
+            data = data.getvalue()
+        elif isinstance(data, Path):
+            data = data.read_bytes()
+        return LocalAttachment("file_video", data={"content": data})
+
+    @staticmethod
+    def file(url: str) -> "Attachment":
+        return Attachment("file", data={"url": url})
+
+    @staticmethod
+    def file_file(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+        if isinstance(data, BytesIO):
+            data = data.getvalue()
+        elif isinstance(data, Path):
+            data = data.read_bytes()
+        return LocalAttachment("file_file", data={"content": data})
 
     @staticmethod
     def ark(ark: MessageArk) -> "Ark":
@@ -209,21 +245,21 @@ class Attachment(MessageSegment):
 
     @override
     def __str__(self) -> str:
-        return f"<attachment:{self.data['url']}>"
+        return f"<attachment[{self.type}]:{self.data['url']}>"
 
 
-class _LocalImageData(TypedDict):
+class _LocalAttachmentData(TypedDict):
     content: bytes
 
 
 @dataclass
-class LocalImage(MessageSegment):
+class LocalAttachment(MessageSegment):
     if TYPE_CHECKING:
-        data: _LocalImageData
+        data: _LocalAttachmentData
 
     @override
     def __str__(self) -> str:
-        return "<local_image>"
+        return f"<local_attachment[{self.type}]>"
 
 
 class _EmbedData(TypedDict):
@@ -351,9 +387,7 @@ class Message(BaseMessage[MessageSegment]):
             msg.extend(Message(message.content))
         if message.attachments:
             msg.extend(
-                Attachment("attachment", data={"url": seg.url})
-                for seg in message.attachments
-                if seg.url
+                MessageSegment.image(seg.url) for seg in message.attachments if seg.url
             )
         if message.embeds:
             msg.extend(Embed("embed", data={"embed": seg}) for seg in message.embeds)
@@ -367,10 +401,19 @@ class Message(BaseMessage[MessageSegment]):
         if message.content:
             msg.extend(Message(message.content))
         if message.attachments:
+            attachment_types = {
+                "图片": "image",
+                "语音": "audio",
+                "视频": "video",
+                "文件": "file",
+            }
             msg.extend(
-                Attachment("attachment", data=seg.dict())  # type: ignore
+                Attachment(
+                    attachment_types.get(seg.content_type, "file"),
+                    data={"url": seg.url},
+                )
                 for seg in message.attachments
-                if seg.content_type
+                if seg.url
             )
         return msg
 

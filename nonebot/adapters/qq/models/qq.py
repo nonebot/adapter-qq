@@ -17,6 +17,10 @@ class Attachment(BaseModel):
     url: Optional[str] = None
 
 
+class Media(BaseModel):
+    file_info: str
+
+
 class QQMessage(BaseModel):
     id: str
     author: Author
@@ -36,13 +40,15 @@ class PostGroupMessagesReturn(BaseModel):
 
 
 class PostC2CFilesReturn(BaseModel):
-    id: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    file_uuid: Optional[str] = None
+    file_info: Optional[str] = None
+    ttl: Optional[int] = None
 
 
 class PostGroupFilesReturn(BaseModel):
-    id: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    file_uuid: Optional[str] = None
+    file_info: Optional[str] = None
+    ttl: Optional[int] = None
 
 
 class GroupMember(BaseModel):
@@ -83,6 +89,7 @@ class ButtonInteraction(BaseModel):
 __all__ = [
     "Author",
     "Attachment",
+    "Media",
     "QQMessage",
     "PostC2CMessagesReturn",
     "PostGroupMessagesReturn",
