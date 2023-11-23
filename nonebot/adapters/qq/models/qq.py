@@ -5,8 +5,14 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, validator
 
 
-class Author(BaseModel):
+class FriendAuthor(BaseModel):
     id: str
+    user_openid: str
+
+
+class GroupMemberAuthor(BaseModel):
+    id: str
+    member_openid: str
 
 
 class Attachment(BaseModel):
@@ -30,7 +36,6 @@ class Media(BaseModel):
 
 class QQMessage(BaseModel):
     id: str
-    author: Author
     content: str
     timestamp: str
     attachments: Optional[List[Attachment]] = None
@@ -94,7 +99,8 @@ class ButtonInteraction(BaseModel):
 
 
 __all__ = [
-    "Author",
+    "FriendAuthor",
+    "GroupMemberAuthor",
     "Attachment",
     "Media",
     "QQMessage",

@@ -14,12 +14,14 @@ from .models import (
     RichText,
     QQMessage,
     AudioAction,
+    FriendAuthor,
     MessageDelete,
     MessageAudited,
     ForumSourceInfo,
     MessageReaction,
     ForumAuditResult,
     ButtonInteraction,
+    GroupMemberAuthor,
 )
 
 E = TypeVar("E", bound="Event")
@@ -349,14 +351,6 @@ class QQMessageEvent(MessageEvent, QQMessage):
     _reply_seq: int = -1
 
     @override
-    def get_user_id(self) -> str:
-        return self.author.id
-
-    @override
-    def get_session_id(self) -> str:
-        return self.author.id
-
-    @override
     def get_message(self) -> Message:
         if not hasattr(self, "_message"):
             setattr(self, "_message", Message.from_qq_message(self))
@@ -367,7 +361,16 @@ class QQMessageEvent(MessageEvent, QQMessage):
 class C2CMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.C2C_MESSAGE_CREATE
 
+    author: FriendAuthor
     to_me: bool = True
+
+    @override
+    def get_user_id(self) -> str:
+        return self.author.user_openid
+
+    @override
+    def get_session_id(self) -> str:
+        return f"friend_{self.author.user_openid}"
 
     @override
     def get_event_description(self) -> str:
@@ -375,28 +378,30 @@ class C2CMessageCreateEvent(QQMessageEvent):
             f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
         )
 
-    @override
-    def get_session_id(self) -> str:
-        return f"friend_{self.author.id}"
-
 
 @register_event_class
 class GroupAtMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.GROUP_AT_MESSAGE_CREATE
 
+    author: GroupMemberAuthor
     group_id: str
     to_me: bool = True
 
     @override
-    def get_event_description(self) -> str:
-        return escape_tag(
-            f"Message {self.id} from {self.author.id}@[Group:{self.group_id}]: "
-            f"{self.get_message()!r}"
-        )
+    def get_user_id(self) -> str:
+        return self.author.member_openid
 
     @override
     def get_session_id(self) -> str:
-        return f"group_{self.group_id}_{self.author.id}"
+        return f"group_{self.group_id}_{self.author.member_openid}"
+
+    @override
+    def get_event_description(self) -> str:
+        return escape_tag(
+            f"Message {self.id} from "
+            f"{self.author.member_openid}@[Group:{self.group_id}]: "
+            f"{self.get_message()!r}"
+        )
 
 
 @register_event_class
