@@ -587,15 +587,15 @@ class OpenForumReplyDeleteEvent(OpenForumEvent):
 # Friend Robot Event
 class FriendRobotEvent(NoticeEvent):
     timestamp: datetime
-    open_id: str
+    openid: str
 
     @override
     def get_user_id(self) -> str:
-        return self.open_id
+        return self.openid
 
     @override
     def get_session_id(self) -> str:
-        return f"friend_{self.open_id}"
+        return f"friend_{self.openid}"
 
 
 @register_event_class
