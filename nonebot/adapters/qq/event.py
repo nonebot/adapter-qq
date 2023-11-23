@@ -384,7 +384,7 @@ class GroupAtMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.GROUP_AT_MESSAGE_CREATE
 
     author: GroupMemberAuthor
-    group_id: str
+    group_openid: str
     to_me: bool = True
 
     @override
@@ -393,13 +393,13 @@ class GroupAtMessageCreateEvent(QQMessageEvent):
 
     @override
     def get_session_id(self) -> str:
-        return f"group_{self.group_id}_{self.author.member_openid}"
+        return f"group_{self.group_openid}_{self.author.member_openid}"
 
     @override
     def get_event_description(self) -> str:
         return escape_tag(
             f"Message {self.id} from "
-            f"{self.author.member_openid}@[Group:{self.group_id}]: "
+            f"{self.author.member_openid}@[Group:{self.group_openid}]: "
             f"{self.get_message()!r}"
         )
 
