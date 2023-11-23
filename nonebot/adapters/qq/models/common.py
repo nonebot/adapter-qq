@@ -1,11 +1,18 @@
 from typing import List, Optional
+from urllib.parse import urlparse
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 # Message Attachment
 class MessageAttachment(BaseModel):
     url: str
+
+    @validator("url", allow_reuse=True)
+    def check_url(cls, v: str):
+        if v and not urlparse(v).hostname:
+            return f"https://{v}"
+        return v
 
 
 # Message Embed
