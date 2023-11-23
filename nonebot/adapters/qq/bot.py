@@ -370,7 +370,7 @@ class Bot(BaseBot):
 
     async def send_to_c2c(
         self,
-        user_id: str,
+        openid: str,
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
         msg_seq: Optional[int] = None,
@@ -401,7 +401,7 @@ class Bot(BaseBot):
         media: Optional[Media] = None
         if msg_type == 7:
             media_info = await self.post_c2c_files(
-                user_id=user_id, srv_send_msg=False, **self._extract_qq_media(message)
+                openid=openid, srv_send_msg=False, **self._extract_qq_media(message)
             )
             media = (
                 Media(file_info=media_info.file_info) if media_info.file_info else None
@@ -409,7 +409,7 @@ class Bot(BaseBot):
         kwargs["media"] = media
 
         return await self.post_c2c_messages(
-            user_id=user_id,
+            openid=openid,
             msg_type=msg_type,
             msg_id=msg_id,
             msg_seq=msg_seq,
@@ -419,7 +419,7 @@ class Bot(BaseBot):
 
     async def send_to_group(
         self,
-        group_id: str,
+        group_openid: str,
         message: Union[str, Message, MessageSegment],
         msg_id: Optional[str] = None,
         msg_seq: Optional[int] = None,
@@ -450,7 +450,9 @@ class Bot(BaseBot):
         media: Optional[Media] = None
         if msg_type == 7:
             media_info = await self.post_group_files(
-                group_id=group_id, srv_send_msg=False, **self._extract_qq_media(message)
+                group_openid=group_openid,
+                srv_send_msg=False,
+                **self._extract_qq_media(message),
             )
             media = (
                 Media(file_info=media_info.file_info) if media_info.file_info else None
@@ -458,7 +460,7 @@ class Bot(BaseBot):
         kwargs["media"] = media
 
         return await self.post_group_messages(
-            group_id=group_id,
+            group_openid=group_openid,
             msg_type=msg_type,
             msg_id=msg_id,
             msg_seq=msg_seq,
@@ -490,7 +492,7 @@ class Bot(BaseBot):
         elif isinstance(event, C2CMessageCreateEvent):
             event._reply_seq += 1
             return await self.send_to_c2c(
-                user_id=event.author.id,
+                openid=event.author.id,
                 message=message,
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
@@ -498,7 +500,7 @@ class Bot(BaseBot):
         elif isinstance(event, GroupAtMessageCreateEvent):
             event._reply_seq += 1
             return await self.send_to_group(
-                group_id=event.group_id,
+                group_openid=event.group_openid,
                 message=message,
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
@@ -1606,7 +1608,7 @@ class Bot(BaseBot):
     async def post_c2c_messages(
         self,
         *,
-        user_id: str,
+        openid: str,
         msg_type: Literal[0, 1, 2, 3, 4, 7],
         content: Optional[str] = None,
         markdown: Optional[MessageMarkdown] = None,
@@ -1632,7 +1634,7 @@ class Bot(BaseBot):
 
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("v2", "users", user_id, "messages"),
+            self.adapter.get_api_base().joinpath("v2", "users", openid, "messages"),
             json=exclude_none(
                 {
                     "msg_type": msg_type,
@@ -1669,7 +1671,7 @@ class Bot(BaseBot):
     async def post_c2c_files(
         self,
         *,
-        user_id: str,
+        openid: str,
         file_type: Literal[1, 2, 3, 4],
         url: str,
         srv_send_msg: bool = True,
@@ -1677,7 +1679,7 @@ class Bot(BaseBot):
     ) -> PostC2CFilesReturn:
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("v2", "users", user_id, "files"),
+            self.adapter.get_api_base().joinpath("v2", "users", openid, "files"),
             json=exclude_none(
                 {
                     "file_type": file_type,
@@ -1694,7 +1696,7 @@ class Bot(BaseBot):
     async def post_group_messages(
         self,
         *,
-        group_id: str,
+        group_openid: str,
         msg_type: Literal[0, 1, 2, 3, 4, 7],
         content: Optional[str] = None,
         markdown: Optional[MessageMarkdown] = None,
@@ -1720,7 +1722,9 @@ class Bot(BaseBot):
 
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "messages"),
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "messages"
+            ),
             json=exclude_none(
                 {
                     "msg_type": msg_type,
@@ -1757,7 +1761,7 @@ class Bot(BaseBot):
     async def post_group_files(
         self,
         *,
-        group_id: str,
+        group_openid: str,
         file_type: Literal[1, 2, 3, 4],
         url: str,
         srv_send_msg: bool = True,
@@ -1765,7 +1769,7 @@ class Bot(BaseBot):
     ) -> PostGroupFilesReturn:
         request = Request(
             "POST",
-            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "files"),
+            self.adapter.get_api_base().joinpath("v2", "groups", group_openid, "files"),
             json=exclude_none(
                 {
                     "file_type": file_type,
