@@ -6,12 +6,10 @@ from pydantic import BaseModel, validator
 
 
 class FriendAuthor(BaseModel):
-    id: str
     user_openid: str
 
 
 class GroupMemberAuthor(BaseModel):
-    id: str
     member_openid: str
 
 
