@@ -1024,7 +1024,7 @@ class Bot(BaseBot):
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath(
-                "guilds", guild_id, "messages", "setting"
+                "guilds", guild_id, "message", "setting"
             ),
         )
         return parse_obj_as(MessageSetting, await self._request(request))
