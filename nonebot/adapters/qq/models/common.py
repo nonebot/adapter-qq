@@ -68,7 +68,7 @@ class MessageMarkdownParams(BaseModel):
 class MessageMarkdown(BaseModel):
     template_id: Optional[int] = None
     custom_template_id: Optional[str] = None
-    params: Optional[MessageMarkdownParams] = None
+    params: Optional[List[MessageMarkdownParams]] = None
     content: Optional[str] = None
 
 
