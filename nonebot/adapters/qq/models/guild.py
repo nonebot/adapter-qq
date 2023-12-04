@@ -460,7 +460,7 @@ class APIPermission(BaseModel):
 
 class APIPermissionDemandIdentify(BaseModel):
     path: Optional[str] = None
-    name: Optional[str] = None
+    method: Optional[str] = None
 
 
 class APIPermissionDemand(BaseModel):
