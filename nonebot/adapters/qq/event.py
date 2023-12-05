@@ -388,6 +388,16 @@ class GroupAtMessageCreateEvent(QQMessageEvent):
     to_me: bool = True
 
     @override
+    def get_message(self) -> Message:
+        # tmp fix to remove space before text due to at not in content
+        msg = Message.from_qq_message(self)
+        if msg and msg[0].type == "text":
+            msg[0].data["text"] = msg[0].data["text"].lstrip()
+        if not hasattr(self, "_message"):
+            setattr(self, "_message", msg)
+        return getattr(self, "_message")
+
+    @override
     def get_user_id(self) -> str:
         return self.author.member_openid
 
