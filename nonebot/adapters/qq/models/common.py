@@ -82,10 +82,13 @@ class Permission(BaseModel):
 class Action(BaseModel):
     type: Optional[int] = None
     permission: Optional[Permission] = None
-    click_limit: Optional[int] = None
-    unsupport_tips: Optional[str] = None
     data: Optional[str] = None
-    at_bot_show_channel_list: Optional[bool] = None
+    reply: Optional[bool] = None
+    enter: Optional[bool] = None
+    anchor: Optional[bool] = None
+    unsupport_tips: Optional[str] = None
+    click_limit: Optional[int] = None  # deprecated
+    at_bot_show_channel_list: Optional[bool] = None  # deprecated
 
 
 class RenderData(BaseModel):
