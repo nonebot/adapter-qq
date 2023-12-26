@@ -77,6 +77,7 @@ class PostGroupMembersReturn(BaseModel):
 class ButtonInteractionContent(BaseModel):
     user_id: str
     message_id: str
+    feature_id: str
     button_id: str
     button_data: str
 
@@ -87,13 +88,16 @@ class ButtonInteractionData(BaseModel):
 
 class ButtonInteraction(BaseModel):
     id: str
-    type: Literal[11]
+    type: Literal[11, 12]
     version: int
     timestamp: str
+    scene: str
     chat_type: int
     guild_id: Optional[str] = None
     channel_id: Optional[str] = None
-    group_open_id: Optional[str] = None
+    user_openid: Optional[str] = None
+    group_openid: Optional[str] = None
+    group_member_openid: Optional[str] = None
     application_id: str
     data: ButtonInteractionData
 
