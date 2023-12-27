@@ -1,7 +1,7 @@
 from enum import Enum
 from datetime import datetime
 from typing_extensions import override
-from typing import Dict, Type, Tuple, TypeVar, Optional
+from typing import Dict, Type, Tuple, TypeVar, Optional, cast
 
 from nonebot.utils import escape_tag
 
@@ -420,14 +420,26 @@ class InteractionCreateEvent(NoticeEvent, ButtonInteraction):
 
     @override
     def get_user_id(self) -> str:
-        return self.data.resolved.user_id
+        if self.chat_type == 0:
+            return cast(str, self.data.resolved.user_id)
+        elif self.chat_type == 1:
+            return cast(str, self.group_member_openid)
+        elif self.chat_type == 2:
+            return cast(str, self.user_openid)
+        raise ValueError(f"Unknown chat_type: {self.chat_type}")
 
     @override
     def get_session_id(self) -> str:
-        return (
-            f"guild_{self.guild_id}_channel_{self.channel_id}"
-            f"_{self.data.resolved.user_id}"
-        )
+        if self.chat_type == 0:
+            return (
+                f"guild_{self.guild_id}_channel_{self.channel_id}"
+                f"_{self.data.resolved.user_id}"
+            )
+        elif self.chat_type == 1:
+            return f"group_{self.group_openid}_{self.group_member_openid}"
+        elif self.chat_type == 2:
+            return f"friend_{self.user_openid}"
+        raise ValueError(f"Unknown chat_type: {self.chat_type}")
 
 
 # Message Audit Event

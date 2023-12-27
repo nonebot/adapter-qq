@@ -1,6 +1,6 @@
 from datetime import datetime
+from typing import List, Optional
 from urllib.parse import urlparse
-from typing import List, Literal, Optional
 
 from pydantic import BaseModel, validator
 
@@ -73,35 +73,6 @@ class PostGroupMembersReturn(BaseModel):
     next_index: Optional[int] = None
 
 
-# Interaction Event
-class ButtonInteractionContent(BaseModel):
-    user_id: str
-    message_id: str
-    feature_id: str
-    button_id: str
-    button_data: str
-
-
-class ButtonInteractionData(BaseModel):
-    resolved: ButtonInteractionContent
-
-
-class ButtonInteraction(BaseModel):
-    id: str
-    type: Literal[11, 12]
-    version: int
-    timestamp: str
-    scene: str
-    chat_type: int
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    user_openid: Optional[str] = None
-    group_openid: Optional[str] = None
-    group_member_openid: Optional[str] = None
-    application_id: str
-    data: ButtonInteractionData
-
-
 __all__ = [
     "FriendAuthor",
     "GroupMemberAuthor",
@@ -114,7 +85,4 @@ __all__ = [
     "GroupMember",
     "PostGroupMembersReturn",
     "PostGroupFilesReturn",
-    "ButtonInteractionContent",
-    "ButtonInteractionData",
-    "ButtonInteraction",
 ]

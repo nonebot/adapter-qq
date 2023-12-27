@@ -1,5 +1,5 @@
-from typing import List, Optional
 from urllib.parse import urlparse
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, validator
 
@@ -116,6 +116,35 @@ class MessageKeyboard(BaseModel):
     content: Optional[InlineKeyboard] = None
 
 
+# Interaction Event
+class ButtonInteractionContent(BaseModel):
+    user_id: Optional[str] = None
+    message_id: Optional[str] = None
+    feature_id: Optional[str] = None
+    button_id: Optional[str] = None
+    button_data: Optional[str] = None
+
+
+class ButtonInteractionData(BaseModel):
+    resolved: ButtonInteractionContent
+
+
+class ButtonInteraction(BaseModel):
+    id: str
+    type: Literal[11, 12]
+    version: int
+    timestamp: str
+    scene: str
+    chat_type: int
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    user_openid: Optional[str] = None
+    group_openid: Optional[str] = None
+    group_member_openid: Optional[str] = None
+    application_id: str
+    data: ButtonInteractionData
+
+
 __all__ = [
     "MessageAttachment",
     "MessageEmbedThumbnail",
@@ -135,4 +164,7 @@ __all__ = [
     "InlineKeyboardRow",
     "InlineKeyboard",
     "MessageKeyboard",
+    "ButtonInteractionContent",
+    "ButtonInteractionData",
+    "ButtonInteraction",
 ]
