@@ -381,7 +381,7 @@ class Message(BaseMessage[MessageSegment]):
 
     @classmethod
     def from_guild_message(cls, message: GuildMessage) -> Self:
-        msg = Message()
+        msg = cls()
         if message.mention_everyone:
             msg.append(MessageSegment.mention_everyone())
         if message.content:
@@ -398,7 +398,7 @@ class Message(BaseMessage[MessageSegment]):
 
     @classmethod
     def from_qq_message(cls, message: QQMessage) -> Self:
-        msg = Message()
+        msg = cls()
         if message.content:
             msg.extend(Message(message.content))
         if message.attachments:
