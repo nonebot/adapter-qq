@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional
 from pydantic import Extra, Field, HttpUrl, BaseModel
 
 
-class Intents(BaseModel):
+class Intents(BaseModel, extra=Extra.forbid):
     guilds: bool = True
     guild_members: bool = True
     guild_messages: bool = False
