@@ -85,7 +85,7 @@ class Action(BaseModel):
     data: Optional[str] = None
     reply: Optional[bool] = None
     enter: Optional[bool] = None
-    anchor: Optional[bool] = None
+    anchor: Optional[int] = None
     unsupport_tips: Optional[str] = None
     click_limit: Optional[int] = None  # deprecated
     at_bot_show_channel_list: Optional[bool] = None  # deprecated
