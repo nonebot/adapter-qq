@@ -47,6 +47,7 @@ class BotInfo(BaseModel):
     secret: str = Field(alias="secret")
     shard: Optional[Tuple[int, int]] = None
     intent: Intents = Field(default_factory=Intents)
+    proxy: Optional[str] = None
 
     @property
     def is_group_bot(self) -> bool:

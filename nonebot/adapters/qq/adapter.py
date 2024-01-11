@@ -143,6 +143,7 @@ class Adapter(BaseAdapter):
             "GET",
             ws_url,
             timeout=30.0,
+            proxy=bot.bot_info.proxy,
         )
 
         heartbeat_task: Optional["asyncio.Task"] = None

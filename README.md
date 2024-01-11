@@ -95,3 +95,25 @@ QQ_BOTS='
 ]
 '
 ```
+
+### 关于IP白名单
+
+目前新上线机器人将强制使用ip白名单，如需使用代理ip可配置 `proxy` , 驱动器选择 `aiohttp`
+
+公域群机器人使用代理示例
+
+```dotenv
+QQ_BOTS='
+[
+  {
+    "id": "xxx",
+    "token": "xxx",
+    "secret": "xxx",
+    "intent": {
+      "c2c_group_at_messages": true
+    },
+    "proxy": "xxx",
+  }
+]
+'
+```
