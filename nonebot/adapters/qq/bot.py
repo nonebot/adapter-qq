@@ -1296,12 +1296,14 @@ class Bot(BaseBot):
                     {
                         "name": name,
                         "description": description,
-                        "start_timestamp": str(start_timestamp)
-                        if start_timestamp is not None
-                        else None,
-                        "end_timestamp": str(end_timestamp)
-                        if end_timestamp is not None
-                        else None,
+                        "start_timestamp": (
+                            str(start_timestamp)
+                            if start_timestamp is not None
+                            else None
+                        ),
+                        "end_timestamp": (
+                            str(end_timestamp) if end_timestamp is not None else None
+                        ),
                         "jump_channel_id": jump_channel_id,
                         "remind_type": str(remind_type),
                     }
@@ -1339,16 +1341,18 @@ class Bot(BaseBot):
                     {
                         "name": name,
                         "description": description,
-                        "start_timestamp": str(start_timestamp)
-                        if start_timestamp is not None
-                        else None,
-                        "end_timestamp": str(end_timestamp)
-                        if end_timestamp is not None
-                        else None,
+                        "start_timestamp": (
+                            str(start_timestamp)
+                            if start_timestamp is not None
+                            else None
+                        ),
+                        "end_timestamp": (
+                            str(end_timestamp) if end_timestamp is not None else None
+                        ),
                         "jump_channel_id": jump_channel_id,
-                        "remind_type": str(remind_type)
-                        if remind_type is not None
-                        else None,
+                        "remind_type": (
+                            str(remind_type) if remind_type is not None else None
+                        ),
                     }
                 )
             },
@@ -1489,8 +1493,7 @@ class Bot(BaseBot):
         title: str,
         content: str,
         format: Literal[1, 2, 3],
-    ) -> PutThreadReturn:
-        ...
+    ) -> PutThreadReturn: ...
 
     @overload
     async def put_thread(
@@ -1500,8 +1503,7 @@ class Bot(BaseBot):
         title: str,
         content: RichText,
         format: Literal[4],
-    ) -> PutThreadReturn:
-        ...
+    ) -> PutThreadReturn: ...
 
     @API
     async def put_thread(

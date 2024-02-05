@@ -268,9 +268,11 @@ class Adapter(BaseAdapter):
         except Exception as e:
             log(
                 "ERROR",
-                "<r><bg #f8bbd0>Error while sending " + "Identify"
-                if isinstance(payload, Identify)
-                else "Resume" + " event</bg #f8bbd0></r>",
+                (
+                    "<r><bg #f8bbd0>Error while sending " + "Identify"
+                    if isinstance(payload, Identify)
+                    else "Resume" + " event</bg #f8bbd0></r>"
+                ),
                 e,
             )
             return
