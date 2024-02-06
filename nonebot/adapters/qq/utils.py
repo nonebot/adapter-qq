@@ -45,12 +45,12 @@ class API(Generic[B, P, R]):
         self.name = name
 
     @overload
-    def __get__(self, obj: None, objtype: Type[B]) -> "API[B, P, R]":
-        ...
+    def __get__(self, obj: None, objtype: Type[B]) -> "API[B, P, R]": ...
 
     @overload
-    def __get__(self, obj: B, objtype: Optional[Type[B]]) -> Callable[P, Awaitable[R]]:
-        ...
+    def __get__(
+        self, obj: B, objtype: Optional[Type[B]]
+    ) -> Callable[P, Awaitable[R]]: ...
 
     def __get__(
         self, obj: Optional[B], objtype: Optional[Type[B]] = None

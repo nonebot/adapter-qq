@@ -56,13 +56,13 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @overload
     @staticmethod
-    def reference(reference: MessageReference) -> "Reference":
-        ...
+    def reference(reference: MessageReference) -> "Reference": ...
 
     @overload
     @staticmethod
-    def reference(reference: str, ignore_error: Optional[bool] = None) -> "Reference":
-        ...
+    def reference(
+        reference: str, ignore_error: Optional[bool] = None
+    ) -> "Reference": ...
 
     @staticmethod
     def reference(

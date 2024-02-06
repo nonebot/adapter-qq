@@ -443,8 +443,7 @@ class InteractionCreateEvent(NoticeEvent, ButtonInteraction):
 
 
 # Message Audit Event
-class MessageAuditEvent(NoticeEvent, MessageAudited):
-    ...
+class MessageAuditEvent(NoticeEvent, MessageAudited): ...
 
 
 @register_event_class
@@ -479,8 +478,7 @@ class MessageReactionRemoveEvent(MessageReactionEvent):
 
 
 # Audio Event
-class AudioEvent(NoticeEvent, AudioAction):
-    ...
+class AudioEvent(NoticeEvent, AudioAction): ...
 
 
 @register_event_class
@@ -514,8 +512,7 @@ class ForumEvent(NoticeEvent, ForumSourceInfo):
         return f"guild_{self.guild_id}_channel_{self.channel_id}_{self.author_id}"
 
 
-class ForumThreadEvent(ForumEvent, Thread[RichText]):
-    ...
+class ForumThreadEvent(ForumEvent, Thread[RichText]): ...
 
 
 @register_event_class
@@ -533,8 +530,7 @@ class ForumThreadDeleteEvent(ForumThreadEvent):
     __type__ = EventType.FORUM_THREAD_DELETE
 
 
-class ForumPostEvent(ForumEvent, Post):
-    ...
+class ForumPostEvent(ForumEvent, Post): ...
 
 
 @register_event_class
@@ -547,8 +543,7 @@ class ForumPostDeleteEvent(ForumPostEvent):
     __type__ = EventType.FORUM_POST_DELETE
 
 
-class ForumReplyEvent(ForumEvent, Reply):
-    ...
+class ForumReplyEvent(ForumEvent, Reply): ...
 
 
 @register_event_class

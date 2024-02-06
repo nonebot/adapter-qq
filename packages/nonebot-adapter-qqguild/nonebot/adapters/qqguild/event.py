@@ -336,8 +336,7 @@ class ForumEvent(Event, ForumObject):
         return f"forum_{self.author_id}"
 
 
-class ForumThreadEvent(ForumEvent, ForumThread[RichText]):
-    ...
+class ForumThreadEvent(ForumEvent, ForumThread[RichText]): ...
 
 
 class ForumThreadCreateEvent(ForumThreadEvent):
@@ -352,8 +351,7 @@ class ForumThreadDeleteEvent(ForumThreadEvent):
     __type__ = EventType.FORUM_THREAD_DELETE
 
 
-class ForumPostEvent(ForumEvent, ForumPost):
-    ...
+class ForumPostEvent(ForumEvent, ForumPost): ...
 
 
 class ForumPostCreateEvent(ForumPostEvent):
@@ -364,8 +362,7 @@ class ForumPostDeleteEvent(ForumPostEvent):
     __type__ = EventType.FORUM_POST_DELETE
 
 
-class ForumReplyEvent(ForumEvent, ForumReply):
-    ...
+class ForumReplyEvent(ForumEvent, ForumReply): ...
 
 
 class ForumReplyCreateEvent(ForumReplyEvent):
