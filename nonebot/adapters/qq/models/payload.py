@@ -2,9 +2,8 @@ from enum import IntEnum
 from typing import Tuple, Union
 from typing_extensions import Literal, Annotated
 
-from pydantic import Extra, Field, BaseModel
-
-from ._transformer import BoolToIntTransformer, AliasExportTransformer
+from pydantic import Field, BaseModel
+from nonebot.compat import PYDANTIC_V2, ConfigDict
 
 PAYLOAD_FIELD_ALIASES = {"opcode": "op", "data": "d", "sequence": "s", "type": "t"}
 
@@ -21,14 +20,22 @@ class Opcode(IntEnum):
     HTTP_CALLBACK_ACK = 12
 
 
-class Payload(AliasExportTransformer, BaseModel):
-    class Config:
-        extra = Extra.allow
-        allow_population_by_field_name = True
+class Payload(BaseModel):
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(
+            extra="allow",
+            populate_by_name=True,
+            alias_generator=lambda x: PAYLOAD_FIELD_ALIASES.get(x, x),
+        )
+    else:
 
-        @classmethod
-        def alias_generator(cls, string: str) -> str:
-            return PAYLOAD_FIELD_ALIASES.get(string, string)
+        class Config:
+            extra = "allow"
+            allow_population_by_field_name = True
+
+            @classmethod
+            def alias_generator(cls, string: str) -> str:
+                return PAYLOAD_FIELD_ALIASES.get(string, string)
 
 
 class Dispatch(Payload):
@@ -43,11 +50,18 @@ class Heartbeat(Payload):
     data: int
 
 
-class IdentifyData(BaseModel, extra=Extra.allow):
+class IdentifyData(BaseModel):
     token: str
     intents: int
     shard: Tuple[int, int]
     properties: dict
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(extra="allow")
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class Identify(Payload):
@@ -55,10 +69,17 @@ class Identify(Payload):
     data: IdentifyData
 
 
-class ResumeData(BaseModel, extra=Extra.allow):
+class ResumeData(BaseModel):
     token: str
     session_id: str
     seq: int
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(extra="allow")
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class Resume(Payload):
@@ -74,8 +95,15 @@ class InvalidSession(Payload):
     opcode: Literal[Opcode.INVALID_SESSION] = Field(Opcode.INVALID_SESSION)
 
 
-class HelloData(BaseModel, extra=Extra.allow):
+class HelloData(BaseModel):
     heartbeat_interval: int
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(extra="allow")
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class Hello(Payload):
@@ -87,9 +115,9 @@ class HeartbeatAck(Payload):
     opcode: Literal[Opcode.HEARTBEAT_ACK] = Field(Opcode.HEARTBEAT_ACK)
 
 
-class HTTPCallbackAck(BoolToIntTransformer, Payload):
+class HTTPCallbackAck(Payload):
     opcode: Literal[Opcode.HTTP_CALLBACK_ACK] = Field(Opcode.HTTP_CALLBACK_ACK)
-    data: bool
+    data: int
 
 
 PayloadType = Union[

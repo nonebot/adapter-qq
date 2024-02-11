@@ -1,9 +1,10 @@
 from typing import List, Tuple, Optional
 
-from pydantic import Extra, Field, HttpUrl, BaseModel
+from pydantic import Field, HttpUrl, BaseModel
+from nonebot.compat import PYDANTIC_V2, ConfigDict
 
 
-class Intents(BaseModel, extra=Extra.forbid):
+class Intents(BaseModel):
     guilds: bool = True
     guild_members: bool = True
     guild_messages: bool = False
@@ -17,6 +18,13 @@ class Intents(BaseModel, extra=Extra.forbid):
     forum_event: bool = False
     audio_action: bool = False
     at_messages: bool = True
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(extra="forbid")
+    else:
+
+        class Config:
+            extra = "forbid"
 
     def to_int(self):
         return (
@@ -54,7 +62,7 @@ class BotInfo(BaseModel):
         return self.intent.is_group_enabled
 
 
-class Config(BaseModel, extra=Extra.ignore):
+class Config(BaseModel):
     qq_is_sandbox: bool = False
     qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")
     qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")

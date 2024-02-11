@@ -1,11 +1,12 @@
 import sys
+import json
 import asyncio
 from typing_extensions import override
 from typing import Any, List, Tuple, Literal, Optional
 
-from pydantic import parse_raw_as
 from nonebot.utils import escape_tag
 from nonebot.exception import WebSocketClosed
+from nonebot.compat import PYDANTIC_V2, type_validate_python
 from nonebot.drivers import (
     URL,
     Driver,
@@ -376,36 +377,37 @@ class Adapter(BaseAdapter):
                 )
 
     def get_auth_base(self) -> URL:
-        return URL(self.qq_config.qq_auth_base)
+        return URL(str(self.qq_config.qq_auth_base))
 
     def get_api_base(self) -> URL:
         if self.qq_config.qq_is_sandbox:
-            return URL(self.qq_config.qq_sandbox_api_base)
+            return URL(str(self.qq_config.qq_sandbox_api_base))
         else:
-            return URL(self.qq_config.qq_api_base)
+            return URL(str(self.qq_config.qq_api_base))
 
     @staticmethod
     async def receive_payload(bot: Bot, ws: WebSocket) -> Payload:
-        payload = parse_raw_as(PayloadType, await ws.receive())
+        payload = type_validate_python(PayloadType, json.loads(await ws.receive()))
         if isinstance(payload, Dispatch):
             bot.on_dispatch(payload)
         return payload
 
     @staticmethod
     def payload_to_json(payload: Payload) -> str:
-        return payload.__config__.json_dumps(
-            payload.dict(), default=payload.__json_encoder__
-        )
+        if PYDANTIC_V2:
+            return payload.model_dump_json(by_alias=True)
+
+        return payload.json(by_alias=True)
 
     @staticmethod
     def payload_to_event(payload: Dispatch) -> Event:
         EventClass = EVENT_CLASSES.get(payload.type, None)
         if EventClass is None:
             log("WARNING", f"Unknown payload type: {payload.type}")
-            event = Event.parse_obj(payload.data)
+            event = type_validate_python(Event, payload.data)
             event.__type__ = payload.type  # type: ignore
             return event
-        return EventClass.parse_obj(payload.data)
+        return type_validate_python(EventClass, payload.data)
 
     @override
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
