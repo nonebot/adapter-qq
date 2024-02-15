@@ -3,8 +3,10 @@ from enum import IntEnum
 from datetime import datetime
 from typing import List, Union, Generic, TypeVar, Optional
 
-from pydantic import BaseModel, validator, root_validator
+from pydantic import BaseModel
 from nonebot.compat import PYDANTIC_V2, model_fields, type_validate_python
+
+from nonebot.adapters.qq.compat import field_validator, model_validator
 
 from .common import MessageArk, MessageEmbed, MessageReference, MessageAttachment
 
@@ -335,7 +337,7 @@ class Elem(BaseModel):
     video: Optional[VideoElem] = None
     url: Optional[URLElem] = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
     def infer_type(cls, values: dict):
         if values.get("type") is not None:
@@ -380,7 +382,7 @@ class ThreadObjectInfo(BaseModel):
     content: RichText
     date_time: datetime
 
-    @validator("content", pre=True)
+    @field_validator("content", model="before")
     @classmethod
     def parse_content(cls, v):
         if isinstance(v, str):
@@ -395,7 +397,7 @@ class ThreadInfo(ThreadObjectInfo, GenericModel, Generic[_T_Title]):
     # 事件推送拿到的title实际上是RichText的JSON字符串，而API调用返回的title是普通文本
     title: _T_Title
 
-    @validator("title", pre=True)
+    @field_validator("title", mode="before")
     @classmethod
     def parse_title(cls, v):
         if (

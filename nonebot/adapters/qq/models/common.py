@@ -1,14 +1,17 @@
 from urllib.parse import urlparse
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
+
+from nonebot.adapters.qq.compat import field_validator
 
 
 # Message Attachment
 class MessageAttachment(BaseModel):
     url: str
 
-    @validator("url", allow_reuse=True)
+    @field_validator("url", mode="after")
+    @classmethod
     def check_url(cls, v: str):
         if v and not urlparse(v).hostname:
             return f"https://{v}"
