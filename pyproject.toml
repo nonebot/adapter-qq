@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-adapter-qq"
-version = "1.3.5"
+version = "1.4.0"
 description = "QQ adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
