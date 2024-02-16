@@ -382,7 +382,7 @@ class ThreadObjectInfo(BaseModel):
     content: RichText
     date_time: datetime
 
-    @field_validator("content", model="before")
+    @field_validator("content", mode="before")
     @classmethod
     def parse_content(cls, v):
         if isinstance(v, str):
