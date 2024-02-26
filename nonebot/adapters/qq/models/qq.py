@@ -20,9 +20,9 @@ class GroupMemberAuthor(BaseModel):
 class Attachment(BaseModel):
     content_type: str
     filename: Optional[str] = None
-    height: Optional[str] = None
-    width: Optional[str] = None
-    size: Optional[str] = None
+    height: Optional[int] = None
+    width: Optional[int] = None
+    size: Optional[int] = None
     url: Optional[str] = None
 
     @field_validator("url", mode="after")
