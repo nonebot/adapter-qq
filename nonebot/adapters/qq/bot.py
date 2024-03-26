@@ -1,4 +1,5 @@
 import json
+from base64 import b64encode
 from typing_extensions import Never, override
 from datetime import datetime, timezone, timedelta
 from typing import (
@@ -1675,10 +1676,12 @@ class Bot(BaseBot):
         *,
         openid: str,
         file_type: Literal[1, 2, 3, 4],
-        url: str,
+        url: Optional[str] = None,
         srv_send_msg: bool = True,
-        file_data: None = None,
+        file_data: Optional[Union[str, bytes]] = None,
     ) -> PostC2CFilesReturn:
+        if isinstance(file_data, bytes):
+            file_data = b64encode(file_data).decode()
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("v2", "users", openid, "files"),
@@ -1765,10 +1768,12 @@ class Bot(BaseBot):
         *,
         group_openid: str,
         file_type: Literal[1, 2, 3, 4],
-        url: str,
+        url: Optional[str] = None,
         srv_send_msg: bool = True,
-        file_data: None = None,
+        file_data: Optional[Union[str, bytes]] = None,
     ) -> PostGroupFilesReturn:
+        if isinstance(file_data, bytes):
+            file_data = b64encode(file_data).decode()
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("v2", "groups", group_openid, "files"),
