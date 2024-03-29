@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-adapter-qq"
-version = "1.4.2"
+version = "1.4.3"
 description = "QQ adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
@@ -26,7 +26,7 @@ typing-extensions = ">=4.4.0, <5.0.0"
 pydantic = ">=1.10.0,<3.0.0,!=2.5.0,!=2.5.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.2.0"
+ruff = "^0.3.0"
 isort = "^5.10.1"
 black = "^24.0.0"
 nonemoji = "^0.1.3"
