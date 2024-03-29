@@ -16,9 +16,10 @@ from typing import (
     overload,
 )
 
+from pydantic import BaseModel
 from nonebot.message import handle_event
-from pydantic import BaseModel, parse_obj_as
 from nonebot.drivers import Request, Response
+from nonebot.compat import type_validate_python
 
 from nonebot.adapters import Bot as BaseBot
 
@@ -579,7 +580,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("users/@me"),
         )
-        return parse_obj_as(User, await self._request(request))
+        return type_validate_python(User, await self._request(request))
 
     @API
     async def guilds(
@@ -594,7 +595,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base().joinpath("users", "@me", "guilds"),
             params=exclude_none({"before": before, "after": after, "limit": limit}),
         )
-        return parse_obj_as(List[Guild], await self._request(request))
+        return type_validate_python(List[Guild], await self._request(request))
 
     # Guild API
     @API
@@ -603,7 +604,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id),
         )
-        return parse_obj_as(Guild, await self._request(request))
+        return type_validate_python(Guild, await self._request(request))
 
     # Channel API
     @API
@@ -612,7 +613,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
         )
-        return parse_obj_as(List[Channel], await self._request(request))
+        return type_validate_python(List[Channel], await self._request(request))
 
     @API
     async def get_channel(self, *, channel_id: str) -> Channel:
@@ -620,7 +621,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("channels", channel_id),
         )
-        return parse_obj_as(Channel, await self._request(request))
+        return type_validate_python(Channel, await self._request(request))
 
     @API
     async def post_channels(
@@ -654,7 +655,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(List[Channel], await self._request(request))
+        return type_validate_python(List[Channel], await self._request(request))
 
     @API
     async def patch_channel(
@@ -686,7 +687,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(Channel, await self._request(request))
+        return type_validate_python(Channel, await self._request(request))
 
     @API
     async def delete_channel(self, *, channel_id: str) -> None:
@@ -710,7 +711,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base().joinpath("guilds", guild_id, "members"),
             params=exclude_none({"after": after, "limit": limit}),
         )
-        return parse_obj_as(List[Member], await self._request(request))
+        return type_validate_python(List[Member], await self._request(request))
 
     @API
     async def get_role_members(
@@ -728,7 +729,7 @@ class Bot(BaseBot):
             ),
             params=exclude_none({"start_index": start_index, "limit": limit}),
         )
-        return parse_obj_as(GetRoleMembersReturn, await self._request(request))
+        return type_validate_python(GetRoleMembersReturn, await self._request(request))
 
     @API
     async def get_member(self, *, guild_id: str, user_id: str) -> Member:
@@ -738,7 +739,7 @@ class Bot(BaseBot):
                 "guilds", guild_id, "members", user_id
             ),
         )
-        return parse_obj_as(Member, await self._request(request))
+        return type_validate_python(Member, await self._request(request))
 
     @API
     async def delete_member(
@@ -770,7 +771,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "roles"),
         )
-        return parse_obj_as(GetGuildRolesReturn, await self._request(request))
+        return type_validate_python(GetGuildRolesReturn, await self._request(request))
 
     @API
     async def post_guild_role(
@@ -792,7 +793,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PostGuildRoleReturn, await self._request(request))
+        return type_validate_python(PostGuildRoleReturn, await self._request(request))
 
     @API
     async def patch_guild_role(
@@ -815,7 +816,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PatchGuildRoleReturn, await self._request(request))
+        return type_validate_python(PatchGuildRoleReturn, await self._request(request))
 
     @API
     async def delete_guild_role(self, *, guild_id: str, role_id: str) -> None:
@@ -872,7 +873,7 @@ class Bot(BaseBot):
                 "channels", channel_id, "members", user_id, "permissions"
             ),
         )
-        return parse_obj_as(ChannelPermissions, await self._request(request))
+        return type_validate_python(ChannelPermissions, await self._request(request))
 
     @API
     async def put_channel_permissions(
@@ -902,7 +903,7 @@ class Bot(BaseBot):
                 "channels", channel_id, "roles", role_id, "permissions"
             ),
         )
-        return parse_obj_as(ChannelPermissions, await self._request(request))
+        return type_validate_python(ChannelPermissions, await self._request(request))
 
     @API
     async def put_channel_roles_permissions(
@@ -936,7 +937,7 @@ class Bot(BaseBot):
         result = await self._request(request)
         if isinstance(result, dict) and "message" in result:
             result = result["message"]
-        return parse_obj_as(GuildMessage, result)
+        return type_validate_python(GuildMessage, result)
 
     @staticmethod
     def _parse_send_message(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1000,7 +1001,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base().joinpath("channels", channel_id, "messages"),
             **params,
         )
-        return parse_obj_as(GuildMessage, await self._request(request))
+        return type_validate_python(GuildMessage, await self._request(request))
 
     @API
     async def delete_message(
@@ -1028,7 +1029,7 @@ class Bot(BaseBot):
                 "guilds", guild_id, "message", "setting"
             ),
         )
-        return parse_obj_as(MessageSetting, await self._request(request))
+        return type_validate_python(MessageSetting, await self._request(request))
 
     # DMS API
     @API
@@ -1040,7 +1041,7 @@ class Bot(BaseBot):
                 {"recipient_id": recipient_id, "source_guild_id": source_guild_id}
             ),
         )
-        return parse_obj_as(DMS, await self._request(request))
+        return type_validate_python(DMS, await self._request(request))
 
     @API
     async def post_dms_messages(
@@ -1077,7 +1078,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base().joinpath("dms", guild_id, "messages"),
             **params,
         )
-        return parse_obj_as(GuildMessage, await self._request(request))
+        return type_validate_python(GuildMessage, await self._request(request))
 
     @API
     async def delete_dms_message(
@@ -1174,7 +1175,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(List[int], await self._request(request))
+        return type_validate_python(List[int], await self._request(request))
 
     # Announce API
     @API
@@ -1226,7 +1227,7 @@ class Bot(BaseBot):
                 "channels", channel_id, "pins", message_id
             ),
         )
-        return parse_obj_as(PinsMessage, await self._request(request))
+        return type_validate_python(PinsMessage, await self._request(request))
 
     @API
     async def delete_pins_message(self, *, channel_id: str, message_id: str) -> None:
@@ -1244,7 +1245,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("channels", channel_id, "pins"),
         )
-        return parse_obj_as(PinsMessage, await self._request(request))
+        return type_validate_python(PinsMessage, await self._request(request))
 
     # Schedule API
     @API
@@ -1259,7 +1260,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base() / f"channels/{channel_id}/schedules",
             json=exclude_none({"since": since}),
         )
-        return parse_obj_as(List[Schedule], await self._request(request))
+        return type_validate_python(List[Schedule], await self._request(request))
 
     @API
     async def get_schedule(self, *, channel_id: str, schedule_id: str) -> Schedule:
@@ -1269,7 +1270,7 @@ class Bot(BaseBot):
                 "channels", channel_id, "schedules", schedule_id
             ),
         )
-        return parse_obj_as(Schedule, await self._request(request))
+        return type_validate_python(Schedule, await self._request(request))
 
     @API
     async def post_schedule(
@@ -1311,7 +1312,7 @@ class Bot(BaseBot):
                 )
             },
         )
-        return parse_obj_as(Schedule, await self._request(request))
+        return type_validate_python(Schedule, await self._request(request))
 
     @API
     async def patch_schedule(
@@ -1358,7 +1359,7 @@ class Bot(BaseBot):
                 )
             },
         )
-        return parse_obj_as(Schedule, await self._request(request))
+        return type_validate_python(Schedule, await self._request(request))
 
     @API
     async def delete_schedule(self, *, channel_id: str, schedule_id: str) -> None:
@@ -1474,7 +1475,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("channels", channel_id, "threads"),
         )
-        return parse_obj_as(GetThreadsListReturn, await self._request(request))
+        return type_validate_python(GetThreadsListReturn, await self._request(request))
 
     @API
     async def get_thread(self, *, channel_id: str, thread_id: str) -> GetThreadReturn:
@@ -1484,7 +1485,7 @@ class Bot(BaseBot):
                 "channels", channel_id, "threads", thread_id
             ),
         )
-        return parse_obj_as(GetThreadReturn, await self._request(request))
+        return type_validate_python(GetThreadReturn, await self._request(request))
 
     @overload
     async def put_thread(
@@ -1530,7 +1531,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PutThreadReturn, await self._request(request))
+        return type_validate_python(PutThreadReturn, await self._request(request))
 
     @API
     async def delete_thread(self, *, channel_id: str, thread_id: str) -> None:
@@ -1551,7 +1552,9 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "api_permission"),
         )
-        return parse_obj_as(GetGuildAPIPermissionReturn, await self._request(request))
+        return type_validate_python(
+            GetGuildAPIPermissionReturn, await self._request(request)
+        )
 
     @API
     async def post_api_permission_demand(
@@ -1575,7 +1578,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(APIPermissionDemand, await self._request(request))
+        return type_validate_python(APIPermissionDemand, await self._request(request))
 
     # WebSocket API
     @API
@@ -1584,7 +1587,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("gateway"),
         )
-        return parse_obj_as(UrlGetReturn, await self._request(request))
+        return type_validate_python(UrlGetReturn, await self._request(request))
 
     @API
     async def shard_url_get(self) -> ShardUrlGetReturn:
@@ -1592,7 +1595,7 @@ class Bot(BaseBot):
             "GET",
             self.adapter.get_api_base().joinpath("gateway", "bot"),
         )
-        return parse_obj_as(ShardUrlGetReturn, await self._request(request))
+        return type_validate_python(ShardUrlGetReturn, await self._request(request))
 
     # Interaction API
     @API
@@ -1668,7 +1671,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PostC2CMessagesReturn, await self._request(request))
+        return type_validate_python(PostC2CMessagesReturn, await self._request(request))
 
     @API
     async def post_c2c_files(
@@ -1694,7 +1697,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PostC2CFilesReturn, await self._request(request))
+        return type_validate_python(PostC2CFilesReturn, await self._request(request))
 
     @API
     async def delete_c2c_message(self, *, openid: str, message_id: str) -> None:
@@ -1702,7 +1705,7 @@ class Bot(BaseBot):
             "DELETE",
             self.adapter.get_api_base().joinpath(
                 "v2", "users", openid, "messages", message_id
-            )
+            ),
         )
         return await self._request(request)
 
@@ -1770,7 +1773,9 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PostGroupMessagesReturn, await self._request(request))
+        return type_validate_python(
+            PostGroupMessagesReturn, await self._request(request)
+        )
 
     @API
     async def post_group_files(
@@ -1796,17 +1801,15 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return parse_obj_as(PostGroupFilesReturn, await self._request(request))
+        return type_validate_python(PostGroupFilesReturn, await self._request(request))
 
     @API
-    async def delete_group_message(
-        self, *, group_openid: str, message_id: str
-    ) -> None:
+    async def delete_group_message(self, *, group_openid: str, message_id: str) -> None:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath(
                 "v2", "groups", group_openid, "messages", message_id
-            )
+            ),
         )
         return await self._request(request)
 
@@ -1823,4 +1826,6 @@ class Bot(BaseBot):
             self.adapter.get_api_base().joinpath("v2", "groups", group_id, "members"),
             json=exclude_none({"limit": limit, "start_index": start_index}),
         )
-        return parse_obj_as(PostGroupMembersReturn, await self._request(request))
+        return type_validate_python(
+            PostGroupMembersReturn, await self._request(request)
+        )
