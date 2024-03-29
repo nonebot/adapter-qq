@@ -1696,6 +1696,16 @@ class Bot(BaseBot):
         )
         return parse_obj_as(PostC2CFilesReturn, await self._request(request))
 
+    @API
+    async def delete_c2c_message(self, *, openid: str, message_id: str) -> None:
+        request = Request(
+            "DELETE",
+            self.adapter.get_api_base().joinpath(
+                "v2", "users", openid, "messages", message_id
+            )
+        )
+        return await self._request(request)
+
     # Group API
     @API
     async def post_group_messages(
@@ -1787,6 +1797,18 @@ class Bot(BaseBot):
             ),
         )
         return parse_obj_as(PostGroupFilesReturn, await self._request(request))
+
+    @API
+    async def delete_group_message(
+        self, *, group_openid: str, message_id: str
+    ) -> None:
+        request = Request(
+            "DELETE",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "messages", message_id
+            )
+        )
+        return await self._request(request)
 
     @API
     async def post_group_members(
