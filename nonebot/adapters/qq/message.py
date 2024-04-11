@@ -18,6 +18,9 @@ from .models import (
     MessageKeyboard,
     MessageMarkdown,
     MessageReference,
+    MessageStream,
+    MessagePromptKeyboard,
+    MessageActionButton,
 )
 
 
@@ -333,6 +336,48 @@ class Keyboard(MessageSegment):
     @override
     def __str__(self) -> str:
         return f"<keyboard:{self.data['keyboard']!r}>"
+
+
+class _ActionButtonData(TypedDict):
+    action_button: MessageActionButton
+
+
+@dataclass
+class ActionButton(MessageSegment):
+    if TYPE_CHECKING:
+        data: _ActionButtonData
+
+    @override
+    def __str__(self) -> str:
+        return f"<action_button:{self.data['action_button']!r}>"
+
+
+class _PromptKeyboardData(TypedDict):
+    prompt_keyboard: MessagePromptKeyboard
+
+
+@dataclass
+class PromptKeyboard(MessageSegment):
+    if TYPE_CHECKING:
+        data: _PromptKeyboardData
+
+    @override
+    def __str__(self) -> str:
+        return f"<prompt_keyboard:{self.data['prompt_keyboard']!r}>"
+
+
+class _StreamData(TypedDict):
+    stream: MessageStream
+
+
+@dataclass
+class Stream(MessageSegment):
+    if TYPE_CHECKING:
+        data: _StreamData
+
+    @override
+    def __str__(self) -> str:
+        return f"<stream:{self.data['stream']!r}>"
 
 
 class Message(BaseMessage[MessageSegment]):
