@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import List, Optional, Literal
 from urllib.parse import urlparse
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
