@@ -68,7 +68,7 @@ class Adapter(BaseAdapter):
                 "websocket client! "
                 "QQ Adapter need a WebSocketClient Driver to work."
             )
-        self.driver.on_startup(self.startup)
+        self.on_ready(self.startup)
         self.driver.on_shutdown(self.shutdown)
 
     async def startup(self) -> None:
