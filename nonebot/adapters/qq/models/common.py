@@ -119,6 +119,19 @@ class MessageKeyboard(BaseModel):
     content: Optional[InlineKeyboard] = None
 
 
+# Message Audit Event
+class MessageAudited(BaseModel):
+    audit_id: str
+    message_id: Optional[str] = None
+    user_openid: Optional[str] = None
+    group_openid: Optional[str] = None
+    guild_id: Optional[str] = None
+    channel_id: Optional[str] = None
+    audit_time: datetime
+    create_time: Optional[datetime] = None
+    seq_in_channel: Optional[str] = None
+
+
 # Interaction Event
 class ButtonInteractionContent(BaseModel):
     user_id: Optional[str] = None
@@ -167,6 +180,7 @@ __all__ = [
     "InlineKeyboardRow",
     "InlineKeyboard",
     "MessageKeyboard",
+    "MessageAudited",
     "ButtonInteractionContent",
     "ButtonInteractionData",
     "ButtonInteraction",

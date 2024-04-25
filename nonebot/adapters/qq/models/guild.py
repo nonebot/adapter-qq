@@ -162,17 +162,6 @@ class MessageDelete(BaseModel):
     op_user: User
 
 
-# Message Audit Event
-class MessageAudited(BaseModel):
-    audit_id: str
-    message_id: Optional[str] = None
-    guild_id: str
-    channel_id: str
-    audit_time: datetime
-    create_time: Optional[datetime] = None
-    seq_in_channel: Optional[str] = None
-
-
 # Message Setting
 class MessageSetting(BaseModel):
     disable_create_dm: bool
@@ -525,7 +514,6 @@ __all__ = [
     "ChannelPermissions",
     "Message",
     "MessageDelete",
-    "MessageAudited",
     "MessageSetting",
     "DMS",
     "RecommendChannel",
