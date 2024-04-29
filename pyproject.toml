@@ -21,12 +21,12 @@ packages = [{ include = "nonebot" }]
 [tool.poetry.dependencies]
 python = "^3.8"
 yarl = "^1.9.0"
-nonebot2 = "^2.2.0"
+nonebot2 = "^2.2.1"
 typing-extensions = ">=4.4.0, <5.0.0"
 pydantic = ">=1.10.0,<3.0.0,!=2.5.0,!=2.5.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.3.0"
+ruff = "^0.4.0"
 isort = "^5.10.1"
 black = "^24.0.0"
 nonemoji = "^0.1.3"

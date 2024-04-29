@@ -1,12 +1,11 @@
 import sys
-import json
 import asyncio
 from typing_extensions import override
 from typing import Any, List, Tuple, Literal, Optional
 
 from nonebot.utils import escape_tag
 from nonebot.exception import WebSocketClosed
-from nonebot.compat import PYDANTIC_V2, type_validate_python
+from nonebot.compat import PYDANTIC_V2, type_validate_json, type_validate_python
 from nonebot.drivers import (
     URL,
     Driver,
@@ -241,7 +240,8 @@ class Adapter(BaseAdapter):
     ) -> Optional[Literal[True]]:
         """鉴权连接"""
         if not bot.ready:
-            payload = Identify.parse_obj(
+            payload = type_validate_python(
+                Identify,
                 {
                     "data": {
                         "token": await bot._get_authorization_header(),
@@ -252,18 +252,19 @@ class Adapter(BaseAdapter):
                             "$language": f"python {sys.version}",
                             "$sdk": "NoneBot2",
                         },
-                    },
-                }
+                    }
+                },
             )
         else:
-            payload = Resume.parse_obj(
+            payload = type_validate_python(
+                Resume,
                 {
                     "data": {
                         "token": await bot._get_authorization_header(),
                         "session_id": bot.session_id,
                         "seq": bot.sequence,
                     }
-                }
+                },
             )
 
         try:
@@ -326,7 +327,7 @@ class Adapter(BaseAdapter):
         while True:
             if bot.ready:
                 log("TRACE", f"Heartbeat {bot.sequence}")
-                payload = Heartbeat.parse_obj({"data": bot.sequence})
+                payload = type_validate_python(Heartbeat, {"data": bot.sequence})
                 try:
                     await ws.send(self.payload_to_json(payload))
                 except Exception as e:
@@ -387,7 +388,7 @@ class Adapter(BaseAdapter):
 
     @staticmethod
     async def receive_payload(bot: Bot, ws: WebSocket) -> Payload:
-        payload = type_validate_python(PayloadType, json.loads(await ws.receive()))
+        payload = type_validate_json(PayloadType, await ws.receive())
         if isinstance(payload, Dispatch):
             bot.on_dispatch(payload)
         return payload
