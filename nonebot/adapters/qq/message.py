@@ -428,3 +428,7 @@ class Message(BaseMessage[MessageSegment]):
             if seg.type
             in ("text", "emoji", "mention_user", "mention_everyone", "mention_channel")
         )
+
+    @override
+    def extract_plain_text(self) -> str:
+        return "".join(seg.data["text"] for seg in self if seg.is_text())
