@@ -327,12 +327,12 @@ class Bot(BaseBot):
         elif file_image := message["file_image"]:
             kwargs["file_type"] = 1
             kwargs["file_data"] = file_image[-1].data["content"]
-        elif file_audio := message["file_audio"]:
-            kwargs["file_type"] = 2
-            kwargs["file_data"] = file_audio[-1].data["content"]
         elif file_video := message["file_video"]:
-            kwargs["file_type"] = 3
+            kwargs["file_type"] = 2
             kwargs["file_data"] = file_video[-1].data["content"]
+        elif file_audio := message["file_audio"]:
+            kwargs["file_type"] = 3
+            kwargs["file_data"] = file_audio[-1].data["content"]
         elif file_file := message["file_file"]:
             kwargs["file_type"] = 4
             kwargs["file_data"] = file_file[-1].data["content"]
