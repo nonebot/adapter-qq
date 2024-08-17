@@ -403,11 +403,10 @@ class Adapter(BaseAdapter):
     @staticmethod
     def payload_to_event(payload: Dispatch) -> Event:
 
-        if hasattr(payload,'id'):
-            payload.data['event_id'] = payload.id
+        if hasattr(payload, "id"):
+            payload.data["event_id"] = payload.id
         else:
-            payload.data['event_id'] = None
-
+            payload.data["event_id"] = None
 
         EventClass = EVENT_CLASSES.get(payload.type, None)
         if EventClass is None:
