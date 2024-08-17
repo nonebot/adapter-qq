@@ -402,13 +402,19 @@ class Adapter(BaseAdapter):
 
     @staticmethod
     def payload_to_event(payload: Dispatch) -> Event:
+
         EventClass = EVENT_CLASSES.get(payload.type, None)
+        event = None
         if EventClass is None:
             log("WARNING", f"Unknown payload type: {payload.type}")
             event = type_validate_python(Event, payload.data)
             event.__type__ = payload.type  # type: ignore
-            return event
-        return type_validate_python(EventClass, payload.data)
+        else:
+            event = type_validate_python(EventClass, payload.data)
+
+        if hasattr(payload,'id'):
+            setattr(event, 'event_id', payload.id)
+        return event
 
     @override
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
