@@ -645,6 +645,7 @@ class GroupRobotEvent(NoticeEvent):
     timestamp: datetime
     group_openid: str
     op_member_openid: str
+    event_id: str
 
     @override
     def get_user_id(self) -> str:
