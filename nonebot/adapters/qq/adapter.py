@@ -412,8 +412,8 @@ class Adapter(BaseAdapter):
         else:
             event = type_validate_python(EventClass, payload.data)
 
-        if hasattr(payload,'id'):
-            setattr(event, 'event_id', payload.id)
+        if hasattr(payload, "id"):
+            setattr(event, "event_id", payload.id)
         return event
 
     @override
