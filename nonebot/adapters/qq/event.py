@@ -117,6 +117,9 @@ class EventType(str, Enum):
 class Event(BaseEvent):
     __type__: EventType
 
+    # event id from payload id
+    event_id: Optional[str] = None
+
     @override
     def get_event_name(self) -> str:
         return self.__type__
@@ -645,7 +648,6 @@ class GroupRobotEvent(NoticeEvent):
     timestamp: datetime
     group_openid: str
     op_member_openid: str
-    event_id: str
 
     @override
     def get_user_id(self) -> str:
