@@ -43,6 +43,7 @@ class Dispatch(Payload):
     data: dict
     sequence: int
     type: str
+    id: Optional[str] = None
 
 
 class Heartbeat(Payload):
