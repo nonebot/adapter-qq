@@ -117,6 +117,9 @@ class EventType(str, Enum):
 class Event(BaseEvent):
     __type__: EventType
 
+    # event id from payload id
+    event_id: Optional[str] = None
+
     @override
     def get_event_name(self) -> str:
         return self.__type__

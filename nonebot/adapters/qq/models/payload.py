@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 from typing_extensions import Literal, Annotated
 
 from pydantic import Field, BaseModel
@@ -43,6 +43,7 @@ class Dispatch(Payload):
     data: dict
     sequence: int
     type: str
+    id: Optional[str] = None
 
 
 class Heartbeat(Payload):
