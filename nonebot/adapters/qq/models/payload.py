@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 from typing_extensions import Literal, Annotated
 
 from pydantic import Field, BaseModel
