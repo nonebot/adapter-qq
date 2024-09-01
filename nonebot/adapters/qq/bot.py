@@ -38,11 +38,11 @@ from .exception import (
 )
 from .event import (
     Event,
-    InteractionCreateEvent,
     ReadyEvent,
     QQMessageEvent,
     GuildMessageEvent,
     C2CMessageCreateEvent,
+    InteractionCreateEvent,
     DirectMessageCreateEvent,
     GroupAtMessageCreateEvent,
 )
