@@ -140,6 +140,8 @@ class ButtonInteractionContent(BaseModel):
     feature_id: Optional[str] = None
     button_id: Optional[str] = None
     button_data: Optional[str] = None
+    checked: Optional[int] = None
+    feedback_opt: Optional[str] = None
 
 
 class ButtonInteractionData(BaseModel):
@@ -148,7 +150,7 @@ class ButtonInteractionData(BaseModel):
 
 class ButtonInteraction(BaseModel):
     id: str
-    type: Literal[11, 12]
+    type: Literal[11, 12, 13]
     version: int
     timestamp: str
     scene: str
