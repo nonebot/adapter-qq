@@ -42,6 +42,7 @@ from .event import (
     QQMessageEvent,
     GuildMessageEvent,
     C2CMessageCreateEvent,
+    InteractionCreateEvent,
     DirectMessageCreateEvent,
     GroupAtMessageCreateEvent,
 )
@@ -507,6 +508,23 @@ class Bot(BaseBot):
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
             )
+        elif isinstance(event, InteractionCreateEvent):
+            if gid := event.group_openid:
+                return await self.send_to_group(
+                    group_openid=gid, event_id=event.event_id, message=message
+                )
+            elif cid := event.channel_id:
+                return await self.send_to_channel(
+                    channel_id=cid, event_id=event.event_id, message=message
+                )
+            elif uid := event.user_openid:
+                return await self.send_to_c2c(
+                    openid=uid, event_id=event.event_id, message=message
+                )
+            elif gid := event.guild_id:
+                return await self.send_to_dms(
+                    guild_id=gid, event_id=event.event_id, message=message
+                )
 
         raise RuntimeError("Event cannot be replied to!")
 
