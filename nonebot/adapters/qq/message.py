@@ -166,6 +166,25 @@ class MessageSegment(BaseMessageSegment["Message"]):
     def is_text(self) -> bool:
         return self.type == "text"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, MessageSegment):
+            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
+        if not isinstance(value, dict):
+            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
+        if "type" not in value:
+            raise ValueError(
+                f"Expected dict with 'type' for MessageSegment, got {value}"
+            )
+        if value["type"] not in SEGMENT_TYPE_MAP:
+            raise ValueError(f"Invalid MessageSegment type: {value['type']}")
+        return SEGMENT_TYPE_MAP[value["type"]](
+            type=value["type"], data=value.get("data", {})
+        )
+
 
 class _TextData(TypedDict):
     text: str
@@ -333,6 +352,28 @@ class Keyboard(MessageSegment):
     @override
     def __str__(self) -> str:
         return f"<keyboard:{self.data['keyboard']!r}>"
+
+
+SEGMENT_TYPE_MAP = {
+    "text": Text,
+    "emoji": Emoji,
+    "mention_user": MentionUser,
+    "mention_channel": MentionChannel,
+    "mention_everyone": MentionEveryone,
+    "image": Attachment,
+    "file_image": LocalAttachment,
+    "audio": Attachment,
+    "file_audio": LocalAttachment,
+    "video": Attachment,
+    "file_video": LocalAttachment,
+    "file": Attachment,
+    "file_file": LocalAttachment,
+    "ark": Ark,
+    "embed": Embed,
+    "markdown": Markdown,
+    "keyboard": Keyboard,
+    "reference": Reference,
+}
 
 
 class Message(BaseMessage[MessageSegment]):
