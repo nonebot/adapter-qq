@@ -1,10 +1,21 @@
 import re
 from io import BytesIO
 from pathlib import Path
+from pydantic import BaseModel
 from dataclasses import dataclass
 from typing_extensions import Self, override
-from typing import TYPE_CHECKING, Type, Union, Iterable, Optional, TypedDict, overload
+from typing import (
+    TYPE_CHECKING,
+    Type,
+    Union,
+    Iterable,
+    Optional,
+    TypedDict,
+    overload,
+    Dict,
+)
 
+from nonebot.compat import type_validate_python
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
@@ -179,11 +190,14 @@ class MessageSegment(BaseMessageSegment["Message"]):
             raise ValueError(
                 f"Expected dict with 'type' for MessageSegment, got {value}"
             )
-        if value["type"] not in SEGMENT_TYPE_MAP:
-            raise ValueError(f"Invalid MessageSegment type: {value['type']}")
-        return SEGMENT_TYPE_MAP[value["type"]](
-            type=value["type"], data=value.get("data", {})
-        )
+        _type = value["type"]
+        if _type not in SEGMENT_TYPE_MAP:
+            raise ValueError(f"Invalid MessageSegment type: {_type}")
+        data = value.get("data", {})
+        for key, data_type in SEGMENT_DATA_MAP.items():
+            if key in data and not isinstance(data[key], data_type):
+                data[key] = type_validate_python(data_type, data[key])
+        return SEGMENT_TYPE_MAP[_type](type=_type, data=data)
 
 
 class _TextData(TypedDict):
@@ -354,7 +368,7 @@ class Keyboard(MessageSegment):
         return f"<keyboard:{self.data['keyboard']!r}>"
 
 
-SEGMENT_TYPE_MAP = {
+SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
     "text": Text,
     "emoji": Emoji,
     "mention_user": MentionUser,
@@ -373,6 +387,14 @@ SEGMENT_TYPE_MAP = {
     "markdown": Markdown,
     "keyboard": Keyboard,
     "reference": Reference,
+}
+
+SEGMENT_DATA_MAP: Dict[str, Type[BaseModel]] = {
+    "embed": MessageEmbed,
+    "ark": MessageArk,
+    "reference": MessageReference,
+    "markdown": MessageMarkdown,
+    "keyboard": MessageKeyboard,
 }
 
 
