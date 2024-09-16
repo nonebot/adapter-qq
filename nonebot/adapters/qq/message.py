@@ -1,21 +1,22 @@
 import re
 from io import BytesIO
 from pathlib import Path
-from pydantic import BaseModel
 from dataclasses import dataclass
 from typing_extensions import Self, override
 from typing import (
     TYPE_CHECKING,
+    Dict,
     Type,
     Union,
     Iterable,
     Optional,
     TypedDict,
     overload,
-    Dict,
 )
 
+from pydantic import BaseModel
 from nonebot.compat import type_validate_python
+
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
