@@ -14,7 +14,6 @@ from typing import (
     overload,
 )
 
-from pydantic import BaseModel
 from nonebot.compat import type_validate_python
 
 from nonebot.adapters import Message as BaseMessage
@@ -194,11 +193,8 @@ class MessageSegment(BaseMessageSegment["Message"]):
         _type = value["type"]
         if _type not in SEGMENT_TYPE_MAP:
             raise ValueError(f"Invalid MessageSegment type: {_type}")
-        data = value.get("data", {})
-        for key, data_type in SEGMENT_DATA_MAP.items():
-            if key in data and not isinstance(data[key], data_type):
-                data[key] = type_validate_python(data_type, data[key])
-        return SEGMENT_TYPE_MAP[_type](type=_type, data=data)
+        sub_cls = SEGMENT_TYPE_MAP[_type]
+        return sub_cls._validate(sub_cls(type=_type, data=value.get("data", {})))
 
 
 class _TextData(TypedDict):
@@ -312,6 +308,15 @@ class Embed(MessageSegment):
     def __str__(self) -> str:
         return f"<embed:{self.data['embed']!r}>"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if not isinstance(value, cls):
+            value = super()._validate(value)
+        if not isinstance(embed := value.data["embed"], MessageEmbed):
+            value.data["embed"] = type_validate_python(MessageEmbed, embed)
+        return value
+
 
 class _ArkData(TypedDict):
     ark: MessageArk
@@ -325,6 +330,15 @@ class Ark(MessageSegment):
     @override
     def __str__(self) -> str:
         return f"<ark:{self.data['ark']!r}>"
+
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if not isinstance(value, cls):
+            value = super()._validate(value)
+        if not isinstance(ark := value.data["ark"], MessageArk):
+            value.data["ark"] = type_validate_python(MessageArk, ark)
+        return value
 
 
 class _ReferenceData(TypedDict):
@@ -340,6 +354,15 @@ class Reference(MessageSegment):
     def __str__(self) -> str:
         return f"<reference:{self.data['reference'].message_id}>"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if not isinstance(value, cls):
+            value = super()._validate(value)
+        if not isinstance(reference := value.data["reference"], MessageReference):
+            value.data["reference"] = type_validate_python(MessageReference, reference)
+        return value
+
 
 class _MarkdownData(TypedDict):
     markdown: MessageMarkdown
@@ -354,6 +377,15 @@ class Markdown(MessageSegment):
     def __str__(self) -> str:
         return f"<markdown:{self.data['markdown']!r}>"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if not isinstance(value, cls):
+            value = super()._validate(value)
+        if not isinstance(markdown := value.data["markdown"], MessageMarkdown):
+            value.data["markdown"] = type_validate_python(MessageMarkdown, markdown)
+        return value
+
 
 class _KeyboardData(TypedDict):
     keyboard: MessageKeyboard
@@ -367,6 +399,15 @@ class Keyboard(MessageSegment):
     @override
     def __str__(self) -> str:
         return f"<keyboard:{self.data['keyboard']!r}>"
+
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if not isinstance(value, cls):
+            value = super()._validate(value)
+        if not isinstance(keyboard := value.data["keyboard"], MessageKeyboard):
+            value.data["keyboard"] = type_validate_python(MessageKeyboard, keyboard)
+        return value
 
 
 SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
@@ -388,14 +429,6 @@ SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
     "markdown": Markdown,
     "keyboard": Keyboard,
     "reference": Reference,
-}
-
-SEGMENT_DATA_MAP: Dict[str, Type[BaseModel]] = {
-    "embed": MessageEmbed,
-    "ark": MessageArk,
-    "reference": MessageReference,
-    "markdown": MessageMarkdown,
-    "keyboard": MessageKeyboard,
 }
 
 
