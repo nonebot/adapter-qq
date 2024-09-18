@@ -194,11 +194,14 @@ class MessageSegment(BaseMessageSegment["Message"]):
         if _type not in SEGMENT_TYPE_MAP:
             raise ValueError(f"Invalid MessageSegment type: {_type}")
         segment_type = SEGMENT_TYPE_MAP[_type]
+
+        # casting value to subclass of MessageSegment
         if cls is MessageSegment:
             return type_validate_python(segment_type, value)
+        # init segment instance directly if type matched
         if cls is segment_type:
             return segment_type(type=_type, data=value.get("data", {}))
-        raise ValueError(f"Type {cls} can not be converted to {segment_type}")
+        raise ValueError(f"Segment type {_type!r} can not be converted to {cls}")
 
 
 class _TextData(TypedDict):
@@ -315,21 +318,14 @@ class Embed(MessageSegment):
     @classmethod
     @override
     def _validate(cls, value) -> Self:
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, MessageSegment):
-            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
-        if not isinstance(value, dict):
-            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
-        if "data" not in value:
-            raise ValueError(f"Expected dict with 'data' for Embed, got {value}")
-        if "embed" not in value["data"]:
+        instance = super()._validate(value)
+        if "embed" not in instance.data:
             raise ValueError(
                 f"Expected dict with 'embed' in 'data' for Embed, got {value}"
             )
-        if not isinstance(embed := value["data"]["embed"], MessageEmbed):
-            value["data"]["embed"] = type_validate_python(MessageEmbed, embed)
-        return cls(type="embed", data=value["data"])
+        if not isinstance(embed := instance.data["embed"], MessageEmbed):
+            instance.data["embed"] = type_validate_python(MessageEmbed, embed)
+        return instance
 
 
 class _ArkData(TypedDict):
@@ -348,19 +344,12 @@ class Ark(MessageSegment):
     @classmethod
     @override
     def _validate(cls, value) -> Self:
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, MessageSegment):
-            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
-        if not isinstance(value, dict):
-            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
-        if "data" not in value:
-            raise ValueError(f"Expected dict with 'data' for Ark, got {value}")
-        if "ark" not in value["data"]:
+        instance = super()._validate(value)
+        if "ark" not in instance.data:
             raise ValueError(f"Expected dict with 'ark' in 'data' for Ark, got {value}")
-        if not isinstance(ark := value["data"]["ark"], MessageArk):
-            value["data"]["ark"] = type_validate_python(MessageArk, ark)
-        return cls(type="ark", data=value["data"])
+        if not isinstance(ark := instance.data["ark"], MessageArk):
+            instance.data["ark"] = type_validate_python(MessageArk, ark)
+        return instance
 
 
 class _ReferenceData(TypedDict):
@@ -379,23 +368,16 @@ class Reference(MessageSegment):
     @classmethod
     @override
     def _validate(cls, value) -> Self:
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, MessageSegment):
-            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
-        if not isinstance(value, dict):
-            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
-        if "data" not in value:
-            raise ValueError(f"Expected dict with 'data' for Reference, got {value}")
-        if "reference" not in value["data"]:
+        instance = super()._validate(value)
+        if "reference" not in instance.data:
             raise ValueError(
                 f"Expected dict with 'reference' in 'data' for Reference, got {value}"
             )
-        if not isinstance(reference := value["data"]["reference"], MessageReference):
-            value["data"]["reference"] = type_validate_python(
+        if not isinstance(reference := instance.data["reference"], MessageReference):
+            instance.data["reference"] = type_validate_python(
                 MessageReference, reference
             )
-        return cls(type="reference", data=value["data"])
+        return instance
 
 
 class _MarkdownData(TypedDict):
@@ -414,21 +396,14 @@ class Markdown(MessageSegment):
     @classmethod
     @override
     def _validate(cls, value) -> Self:
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, MessageSegment):
-            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
-        if not isinstance(value, dict):
-            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
-        if "data" not in value:
-            raise ValueError(f"Expected dict with 'data' for Markdown, got {value}")
-        if "markdown" not in value["data"]:
+        instance = super()._validate(value)
+        if "markdown" not in instance.data:
             raise ValueError(
                 f"Expected dict with 'markdown' in 'data' for Markdown, got {value}"
             )
-        if not isinstance(markdown := value["data"]["markdown"], MessageMarkdown):
-            value["data"]["markdown"] = type_validate_python(MessageMarkdown, markdown)
-        return cls(type="markdown", data=value["data"])
+        if not isinstance(markdown := instance.data["markdown"], MessageMarkdown):
+            instance.data["markdown"] = type_validate_python(MessageMarkdown, markdown)
+        return instance
 
 
 class _KeyboardData(TypedDict):
@@ -447,21 +422,14 @@ class Keyboard(MessageSegment):
     @classmethod
     @override
     def _validate(cls, value) -> Self:
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, MessageSegment):
-            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
-        if not isinstance(value, dict):
-            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
-        if "data" not in value:
-            raise ValueError(f"Expected dict with 'data' for Keyboard, got {value}")
-        if "keyboard" not in value["data"]:
+        instance = super()._validate(value)
+        if "keyboard" not in instance.data:
             raise ValueError(
                 f"Expected dict with 'keyboard' in 'data' for Keyboard, got {value}"
             )
-        if not isinstance(keyboard := value["data"]["keyboard"], MessageKeyboard):
-            value["data"]["keyboard"] = type_validate_python(MessageKeyboard, keyboard)
-        return cls(type="keyboard", data=value["data"])
+        if not isinstance(keyboard := instance.data["keyboard"], MessageKeyboard):
+            instance.data["keyboard"] = type_validate_python(MessageKeyboard, keyboard)
+        return instance
 
 
 SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
