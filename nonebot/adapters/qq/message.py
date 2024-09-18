@@ -3,7 +3,18 @@ from io import BytesIO
 from pathlib import Path
 from dataclasses import dataclass
 from typing_extensions import Self, override
-from typing import TYPE_CHECKING, Type, Union, Iterable, Optional, TypedDict, overload
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Type,
+    Union,
+    Iterable,
+    Optional,
+    TypedDict,
+    overload,
+)
+
+from nonebot.compat import type_validate_python
 
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
@@ -166,6 +177,32 @@ class MessageSegment(BaseMessageSegment["Message"]):
     def is_text(self) -> bool:
         return self.type == "text"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, MessageSegment):
+            raise ValueError(f"Type {type(value)} can not be converted to {cls}")
+        if not isinstance(value, dict):
+            raise ValueError(f"Expected dict for MessageSegment, got {type(value)}")
+        if "type" not in value:
+            raise ValueError(
+                f"Expected dict with 'type' for MessageSegment, got {value}"
+            )
+        _type = value["type"]
+        if _type not in SEGMENT_TYPE_MAP:
+            raise ValueError(f"Invalid MessageSegment type: {_type}")
+        segment_type = SEGMENT_TYPE_MAP[_type]
+
+        # casting value to subclass of MessageSegment
+        if cls is MessageSegment:
+            return type_validate_python(segment_type, value)
+        # init segment instance directly if type matched
+        if cls is segment_type:
+            return segment_type(type=_type, data=value.get("data", {}))
+        raise ValueError(f"Segment type {_type!r} can not be converted to {cls}")
+
 
 class _TextData(TypedDict):
     text: str
@@ -278,6 +315,18 @@ class Embed(MessageSegment):
     def __str__(self) -> str:
         return f"<embed:{self.data['embed']!r}>"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        if "embed" not in instance.data:
+            raise ValueError(
+                f"Expected dict with 'embed' in 'data' for Embed, got {value}"
+            )
+        if not isinstance(embed := instance.data["embed"], MessageEmbed):
+            instance.data["embed"] = type_validate_python(MessageEmbed, embed)
+        return instance
+
 
 class _ArkData(TypedDict):
     ark: MessageArk
@@ -291,6 +340,16 @@ class Ark(MessageSegment):
     @override
     def __str__(self) -> str:
         return f"<ark:{self.data['ark']!r}>"
+
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        if "ark" not in instance.data:
+            raise ValueError(f"Expected dict with 'ark' in 'data' for Ark, got {value}")
+        if not isinstance(ark := instance.data["ark"], MessageArk):
+            instance.data["ark"] = type_validate_python(MessageArk, ark)
+        return instance
 
 
 class _ReferenceData(TypedDict):
@@ -306,6 +365,20 @@ class Reference(MessageSegment):
     def __str__(self) -> str:
         return f"<reference:{self.data['reference'].message_id}>"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        if "reference" not in instance.data:
+            raise ValueError(
+                f"Expected dict with 'reference' in 'data' for Reference, got {value}"
+            )
+        if not isinstance(reference := instance.data["reference"], MessageReference):
+            instance.data["reference"] = type_validate_python(
+                MessageReference, reference
+            )
+        return instance
+
 
 class _MarkdownData(TypedDict):
     markdown: MessageMarkdown
@@ -320,6 +393,18 @@ class Markdown(MessageSegment):
     def __str__(self) -> str:
         return f"<markdown:{self.data['markdown']!r}>"
 
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        if "markdown" not in instance.data:
+            raise ValueError(
+                f"Expected dict with 'markdown' in 'data' for Markdown, got {value}"
+            )
+        if not isinstance(markdown := instance.data["markdown"], MessageMarkdown):
+            instance.data["markdown"] = type_validate_python(MessageMarkdown, markdown)
+        return instance
+
 
 class _KeyboardData(TypedDict):
     keyboard: MessageKeyboard
@@ -333,6 +418,40 @@ class Keyboard(MessageSegment):
     @override
     def __str__(self) -> str:
         return f"<keyboard:{self.data['keyboard']!r}>"
+
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        if "keyboard" not in instance.data:
+            raise ValueError(
+                f"Expected dict with 'keyboard' in 'data' for Keyboard, got {value}"
+            )
+        if not isinstance(keyboard := instance.data["keyboard"], MessageKeyboard):
+            instance.data["keyboard"] = type_validate_python(MessageKeyboard, keyboard)
+        return instance
+
+
+SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
+    "text": Text,
+    "emoji": Emoji,
+    "mention_user": MentionUser,
+    "mention_channel": MentionChannel,
+    "mention_everyone": MentionEveryone,
+    "image": Attachment,
+    "file_image": LocalAttachment,
+    "audio": Attachment,
+    "file_audio": LocalAttachment,
+    "video": Attachment,
+    "file_video": LocalAttachment,
+    "file": Attachment,
+    "file_file": LocalAttachment,
+    "ark": Ark,
+    "embed": Embed,
+    "markdown": Markdown,
+    "keyboard": Keyboard,
+    "reference": Reference,
+}
 
 
 class Message(BaseMessage[MessageSegment]):
