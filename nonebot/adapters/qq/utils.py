@@ -1,17 +1,7 @@
 from functools import partial
+from collections.abc import Awaitable
 from typing_extensions import ParamSpec, Concatenate
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Type,
-    Generic,
-    TypeVar,
-    Callable,
-    Optional,
-    Awaitable,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Optional, overload
 
 from nonebot.utils import logger_wrapper
 
@@ -33,7 +23,7 @@ def unescape(s: str) -> str:
     return s.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
 
 
-def exclude_none(data: Dict[str, Any]) -> Dict[str, Any]:
+def exclude_none(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
 
 
@@ -41,19 +31,19 @@ class API(Generic[B, P, R]):
     def __init__(self, func: Callable[Concatenate[B, P], Awaitable[R]]) -> None:
         self.func = func
 
-    def __set_name__(self, owner: Type[B], name: str) -> None:
+    def __set_name__(self, owner: type[B], name: str) -> None:
         self.name = name
 
     @overload
-    def __get__(self, obj: None, objtype: Type[B]) -> "API[B, P, R]": ...
+    def __get__(self, obj: None, objtype: type[B]) -> "API[B, P, R]": ...
 
     @overload
     def __get__(
-        self, obj: B, objtype: Optional[Type[B]]
+        self, obj: B, objtype: Optional[type[B]]
     ) -> Callable[P, Awaitable[R]]: ...
 
     def __get__(
-        self, obj: Optional[B], objtype: Optional[Type[B]] = None
+        self, obj: Optional[B], objtype: Optional[type[B]] = None
     ) -> "API[B, P, R] | Callable[P, Awaitable[R]]":
         if obj is None:
             return self

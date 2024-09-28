@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import Optional
 
 from pydantic import Field, HttpUrl, BaseModel
 from nonebot.compat import PYDANTIC_V2, ConfigDict
@@ -53,7 +53,7 @@ class BotInfo(BaseModel):
     id: str = Field(alias="id")
     token: str = Field(alias="token")
     secret: str = Field(alias="secret")
-    shard: Optional[Tuple[int, int]] = None
+    shard: Optional[tuple[int, int]] = None
     intent: Intents = Field(default_factory=Intents)
 
     @property
@@ -67,4 +67,4 @@ class Config(BaseModel):
     qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")
     qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")
     qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")
-    qq_bots: List[BotInfo] = Field(default_factory=list)
+    qq_bots: list[BotInfo] = Field(default_factory=list)

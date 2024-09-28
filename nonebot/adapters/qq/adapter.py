@@ -1,7 +1,7 @@
 import sys
 import asyncio
 from typing_extensions import override
-from typing import Any, List, Tuple, Literal, Optional
+from typing import Any, Literal, Optional
 
 from nonebot.utils import escape_tag
 from nonebot.exception import WebSocketClosed
@@ -46,7 +46,7 @@ class Adapter(BaseAdapter):
 
         self.qq_config: Config = Config(**self.config.dict())
 
-        self.tasks: List["asyncio.Task"] = []
+        self.tasks: list["asyncio.Task"] = []
         self.setup()
 
     @classmethod
@@ -137,7 +137,7 @@ class Adapter(BaseAdapter):
             # wait for session start concurrency limit
             await asyncio.sleep(gateway_info.session_start_limit.max_concurrency or 1)
 
-    async def _forward_ws(self, bot: Bot, ws_url: URL, shard: Tuple[int, int]) -> None:
+    async def _forward_ws(self, bot: Bot, ws_url: URL, shard: tuple[int, int]) -> None:
         # ws setup request
         request = Request(
             "GET",
@@ -236,7 +236,7 @@ class Adapter(BaseAdapter):
             )
 
     async def _authenticate(
-        self, bot: Bot, ws: WebSocket, shard: Tuple[int, int]
+        self, bot: Bot, ws: WebSocket, shard: tuple[int, int]
     ) -> Optional[Literal[True]]:
         """鉴权连接"""
         if not bot.ready:
@@ -318,7 +318,7 @@ class Adapter(BaseAdapter):
             )
 
         if ready_event:
-            asyncio.create_task(bot.handle_event(ready_event))
+            asyncio.create_task(bot.handle_event(ready_event))  # noqa: RUF006
 
         return True
 
@@ -354,7 +354,7 @@ class Adapter(BaseAdapter):
                 else:
                     if isinstance(event, MessageAuditEvent):
                         audit_result.add_result(event)
-                    asyncio.create_task(bot.handle_event(event))
+                    asyncio.create_task(bot.handle_event(event))  # noqa: RUF006
             elif isinstance(payload, HeartbeatAck):
                 log("TRACE", "Heartbeat ACK")
                 continue

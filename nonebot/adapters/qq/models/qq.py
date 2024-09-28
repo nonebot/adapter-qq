@@ -1,5 +1,5 @@
+from typing import Optional
 from datetime import datetime
-from typing import List, Optional
 from urllib.parse import urlparse
 
 from pydantic import BaseModel
@@ -40,7 +40,7 @@ class QQMessage(BaseModel):
     id: str
     content: str
     timestamp: str
-    attachments: Optional[List[Attachment]] = None
+    attachments: Optional[list[Attachment]] = None
 
 
 class PostC2CMessagesReturn(BaseModel):
@@ -71,7 +71,7 @@ class GroupMember(BaseModel):
 
 
 class PostGroupMembersReturn(BaseModel):
-    members: List[GroupMember]
+    members: list[GroupMember]
     next_index: Optional[int] = None
 
 

@@ -6,8 +6,6 @@ from typing import (
     IO,
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
     Union,
     Literal,
     NoReturn,
@@ -111,7 +109,7 @@ async def _check_reply(
         if event.reply.author.id == bot.self_info.id:
             event.to_me = True
     except Exception as e:
-        log("WARNING", f"Error when getting message reply info: {repr(e)}", e)
+        log("WARNING", f"Error when getting message reply info: {e!r}", e)
 
 
 def _check_at_me(
@@ -265,7 +263,7 @@ class Bot(BaseBot):
             return f"QQBot {await self.get_access_token()}"
         return f"Bot {self.bot_info.id}.{self.bot_info.token}"
 
-    async def get_authorization_header(self) -> Dict[str, str]:
+    async def get_authorization_header(self) -> dict[str, str]:
         """获取当前 Bot 的鉴权信息"""
         headers = {"Authorization": await self._get_authorization_header()}
         if self.bot_info.is_group_bot:
@@ -285,7 +283,7 @@ class Bot(BaseBot):
         return _message
 
     @staticmethod
-    def _extract_send_message(message: Message) -> Dict[str, Any]:
+    def _extract_send_message(message: Message) -> dict[str, Any]:
         kwargs = {}
         content = message.extract_content() or None
         kwargs["content"] = content
@@ -302,7 +300,7 @@ class Bot(BaseBot):
         return kwargs
 
     @staticmethod
-    def _extract_guild_image(message: Message) -> Dict[str, Any]:
+    def _extract_guild_image(message: Message) -> dict[str, Any]:
         kwargs = {}
         if image := (message["image"] or None):
             kwargs["image"] = image[-1].data["url"]
@@ -311,7 +309,7 @@ class Bot(BaseBot):
         return kwargs
 
     @staticmethod
-    def _extract_qq_media(message: Message) -> Dict[str, Any]:
+    def _extract_qq_media(message: Message) -> dict[str, Any]:
         kwargs = {}
         if image := message["image"]:
             kwargs["file_type"] = 1
@@ -607,13 +605,13 @@ class Bot(BaseBot):
         before: Optional[str] = None,
         after: Optional[str] = None,
         limit: Optional[float] = None,
-    ) -> List[Guild]:
+    ) -> list[Guild]:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath("users", "@me", "guilds"),
             params=exclude_none({"before": before, "after": after, "limit": limit}),
         )
-        return type_validate_python(List[Guild], await self._request(request))
+        return type_validate_python(list[Guild], await self._request(request))
 
     # Guild API
     @API
@@ -626,12 +624,12 @@ class Bot(BaseBot):
 
     # Channel API
     @API
-    async def get_channels(self, *, guild_id: str) -> List[Channel]:
+    async def get_channels(self, *, guild_id: str) -> list[Channel]:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
         )
-        return type_validate_python(List[Channel], await self._request(request))
+        return type_validate_python(list[Channel], await self._request(request))
 
     @API
     async def get_channel(self, *, channel_id: str) -> Channel:
@@ -652,10 +650,10 @@ class Bot(BaseBot):
         position: Optional[int] = None,
         parent_id: Optional[int] = None,
         private_type: Optional[Union[PrivateType, int]] = None,
-        private_user_ids: Optional[List[str]] = None,
+        private_user_ids: Optional[list[str]] = None,
         speak_permission: Optional[Union[SpeakPermission, int]] = None,
         application_id: Optional[str] = None,
-    ) -> List[Channel]:
+    ) -> list[Channel]:
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
@@ -673,7 +671,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return type_validate_python(List[Channel], await self._request(request))
+        return type_validate_python(list[Channel], await self._request(request))
 
     @API
     async def patch_channel(
@@ -723,13 +721,13 @@ class Bot(BaseBot):
         guild_id: str,
         after: Optional[str] = None,
         limit: Optional[float] = None,
-    ) -> List[Member]:
+    ) -> list[Member]:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "members"),
             params=exclude_none({"after": after, "limit": limit}),
         )
-        return type_validate_python(List[Member], await self._request(request))
+        return type_validate_python(list[Member], await self._request(request))
 
     @API
     async def get_role_members(
@@ -958,7 +956,7 @@ class Bot(BaseBot):
         return type_validate_python(GuildMessage, result)
 
     @staticmethod
-    def _parse_send_message(data: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_send_message(data: dict[str, Any]) -> dict[str, Any]:
         data = exclude_none(data)
         data = {
             k: v.dict(exclude_none=True) if isinstance(v, BaseModel) else v
@@ -966,8 +964,8 @@ class Bot(BaseBot):
         }
         if file_image := data.pop("file_image", None):
             # 使用 multipart/form-data
-            multipart_files: Dict[str, Any] = {"file_image": ("file_image", file_image)}
-            multipart_data: Dict[str, Any] = {}
+            multipart_files: dict[str, Any] = {"file_image": ("file_image", file_image)}
+            multipart_data: dict[str, Any] = {}
             for k, v in data.items():
                 if isinstance(v, (dict, list)):
                     # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
@@ -1172,10 +1170,10 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        user_ids: List[str],
+        user_ids: list[str],
         mute_end_timestamp: Optional[Union[int, datetime]] = None,
         mute_seconds: Optional[Union[int, timedelta]] = None,
-    ) -> List[int]:
+    ) -> list[int]:
         if isinstance(mute_end_timestamp, datetime):
             mute_end_timestamp = int(mute_end_timestamp.timestamp())
 
@@ -1193,7 +1191,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return type_validate_python(List[int], await self._request(request))
+        return type_validate_python(list[int], await self._request(request))
 
     # Announce API
     @API
@@ -1204,7 +1202,7 @@ class Bot(BaseBot):
         message_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         announces_type: Optional[int] = None,
-        recommend_channels: Optional[List[RecommendChannel]] = None,
+        recommend_channels: Optional[list[RecommendChannel]] = None,
     ) -> None:
         request = Request(
             "POST",
@@ -1269,7 +1267,7 @@ class Bot(BaseBot):
     @API
     async def get_schedules(
         self, *, channel_id: str, since: Optional[Union[int, datetime]] = None
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         if isinstance(since, datetime):
             since = int(since.timestamp() * 1000)
 
@@ -1278,7 +1276,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base() / f"channels/{channel_id}/schedules",
             json=exclude_none({"since": since}),
         )
-        return type_validate_python(List[Schedule], await self._request(request))
+        return type_validate_python(list[Schedule], await self._request(request))
 
     @API
     async def get_schedule(self, *, channel_id: str, schedule_id: str) -> Schedule:
@@ -1460,7 +1458,7 @@ class Bot(BaseBot):
         audio_url: Optional[str] = None,
         text: Optional[str] = None,
         status: Union[AudioStatus, int],
-    ) -> Dict[Never, Never]:
+    ) -> dict[Never, Never]:
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("channels", channel_id, "audio"),
@@ -1471,7 +1469,7 @@ class Bot(BaseBot):
         return await self._request(request)
 
     @API
-    async def put_mic(self, *, channel_id: str) -> Dict[Never, Never]:
+    async def put_mic(self, *, channel_id: str) -> dict[Never, Never]:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath("channels", channel_id, "mic"),
@@ -1479,7 +1477,7 @@ class Bot(BaseBot):
         return await self._request(request)
 
     @API
-    async def delete_mic(self, *, channel_id: str) -> Dict[Never, Never]:
+    async def delete_mic(self, *, channel_id: str) -> dict[Never, Never]:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath("channels", channel_id, "mic"),

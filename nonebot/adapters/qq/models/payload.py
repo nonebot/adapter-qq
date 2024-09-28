@@ -1,6 +1,6 @@
 from enum import IntEnum
-from typing import Tuple, Union, Optional
-from typing_extensions import Literal, Annotated
+from typing_extensions import Literal
+from typing import Union, Optional, Annotated
 
 from pydantic import Field, BaseModel
 from nonebot.compat import PYDANTIC_V2, ConfigDict
@@ -54,7 +54,7 @@ class Heartbeat(Payload):
 class IdentifyData(BaseModel):
     token: str
     intents: int
-    shard: Tuple[int, int]
+    shard: tuple[int, int]
     properties: dict
 
     if PYDANTIC_V2:

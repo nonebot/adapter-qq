@@ -1,6 +1,6 @@
 from datetime import datetime
 from urllib.parse import urlparse
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -33,7 +33,7 @@ class MessageEmbed(BaseModel):
     description: Optional[str] = None
     prompt: str
     thumbnail: Optional[MessageEmbedThumbnail] = None
-    fields: Optional[List[MessageEmbedField]] = None
+    fields: Optional[list[MessageEmbedField]] = None
 
 
 # Message Ark
@@ -43,18 +43,18 @@ class MessageArkObjKv(BaseModel):
 
 
 class MessageArkObj(BaseModel):
-    obj_kv: Optional[List[MessageArkObjKv]] = None
+    obj_kv: Optional[list[MessageArkObjKv]] = None
 
 
 class MessageArkKv(BaseModel):
     key: Optional[str] = None
     value: Optional[str] = None
-    obj: Optional[List[MessageArkObj]] = None
+    obj: Optional[list[MessageArkObj]] = None
 
 
 class MessageArk(BaseModel):
     template_id: Optional[int] = None
-    kv: Optional[List[MessageArkKv]] = None
+    kv: Optional[list[MessageArkKv]] = None
 
 
 # Message Reference
@@ -66,21 +66,21 @@ class MessageReference(BaseModel):
 # Message Markdown
 class MessageMarkdownParams(BaseModel):
     key: Optional[str] = None
-    values: Optional[List[str]] = None
+    values: Optional[list[str]] = None
 
 
 class MessageMarkdown(BaseModel):
     template_id: Optional[int] = None
     custom_template_id: Optional[str] = None
-    params: Optional[List[MessageMarkdownParams]] = None
+    params: Optional[list[MessageMarkdownParams]] = None
     content: Optional[str] = None
 
 
 # Message Keyboard
 class Permission(BaseModel):
     type: Optional[int] = None
-    specify_role_ids: Optional[List[str]] = None
-    specify_user_ids: Optional[List[str]] = None
+    specify_role_ids: Optional[list[str]] = None
+    specify_user_ids: Optional[list[str]] = None
 
 
 class Action(BaseModel):
@@ -108,11 +108,11 @@ class Button(BaseModel):
 
 
 class InlineKeyboardRow(BaseModel):
-    buttons: Optional[List[Button]] = None
+    buttons: Optional[list[Button]] = None
 
 
 class InlineKeyboard(BaseModel):
-    rows: Optional[List[InlineKeyboardRow]] = None
+    rows: Optional[list[InlineKeyboardRow]] = None
 
 
 class MessageKeyboard(BaseModel):

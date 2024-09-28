@@ -2,17 +2,9 @@ import re
 from io import BytesIO
 from pathlib import Path
 from dataclasses import dataclass
+from collections.abc import Iterable
 from typing_extensions import Self, override
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Type,
-    Union,
-    Iterable,
-    Optional,
-    TypedDict,
-    overload,
-)
+from typing import TYPE_CHECKING, Union, Optional, TypedDict, overload
 
 from nonebot.compat import type_validate_python
 
@@ -35,7 +27,7 @@ from .models import (
 class MessageSegment(BaseMessageSegment["Message"]):
     @classmethod
     @override
-    def get_message_class(cls) -> Type["Message"]:
+    def get_message_class(cls) -> type["Message"]:
         return Message
 
     @staticmethod
@@ -432,7 +424,7 @@ class Keyboard(MessageSegment):
         return instance
 
 
-SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
+SEGMENT_TYPE_MAP: dict[str, type[MessageSegment]] = {
     "text": Text,
     "emoji": Emoji,
     "mention_user": MentionUser,
@@ -457,7 +449,7 @@ SEGMENT_TYPE_MAP: Dict[str, Type[MessageSegment]] = {
 class Message(BaseMessage[MessageSegment]):
     @classmethod
     @override
-    def get_segment_class(cls) -> Type[MessageSegment]:
+    def get_segment_class(cls) -> type[MessageSegment]:
         return MessageSegment
 
     @override

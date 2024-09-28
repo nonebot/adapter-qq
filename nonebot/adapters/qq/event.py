@@ -1,7 +1,7 @@
 from enum import Enum
 from datetime import datetime
 from typing_extensions import override
-from typing import Dict, Type, Tuple, TypeVar, Optional, cast
+from typing import TypeVar, Optional, cast
 
 from nonebot.utils import escape_tag
 
@@ -145,10 +145,10 @@ class Event(BaseEvent):
         return False
 
 
-EVENT_CLASSES: Dict[str, Type[Event]] = {}
+EVENT_CLASSES: dict[str, type[Event]] = {}
 
 
-def register_event_class(event_class: Type[E]) -> Type[E]:
+def register_event_class(event_class: type[E]) -> type[E]:
     EVENT_CLASSES[event_class.__type__.value] = event_class
     return event_class
 
@@ -166,7 +166,7 @@ class ReadyEvent(MetaEvent):
     version: int
     session_id: str
     user: User
-    shard: Tuple[int, int]
+    shard: tuple[int, int]
 
 
 @register_event_class
