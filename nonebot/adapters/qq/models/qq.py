@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from urllib.parse import urlparse
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -75,6 +76,47 @@ class PostGroupMembersReturn(BaseModel):
     next_index: Optional[int] = None
 
 
+class MessageActionButton(BaseModel):
+    template_id: Literal["1", "10"] = "1"
+    callback_data: Optional[str] = None
+
+
+class PromptAction(BaseModel):
+    type: Literal[2] = 2
+
+
+class PromptRenderData(BaseModel):
+    label: str
+    style: Literal[2] = 2
+
+
+class PromptButton(BaseModel):
+    render_data: str
+    action: PromptAction
+
+
+class PromptRow(BaseModel):
+    buttons: List[PromptButton]
+
+
+class PromptContent(BaseModel):
+    rows: List[PromptRow]
+
+
+class Keyboard(BaseModel):
+    content: PromptContent
+
+
+class MessagePromptKeyboard(BaseModel):
+    keyboard: Keyboard
+
+
+class MessageStream(BaseModel):
+    state: Literal[1, 10, 11]
+    id: str  # msg_id
+    index: int
+
+
 __all__ = [
     "FriendAuthor",
     "GroupMemberAuthor",
@@ -87,4 +129,13 @@ __all__ = [
     "GroupMember",
     "PostGroupMembersReturn",
     "PostGroupFilesReturn",
+    "MessageActionButton",
+    "PromptAction",
+    "PromptRenderData",
+    "PromptButton",
+    "PromptRow",
+    "PromptContent",
+    "Keyboard",
+    "MessagePromptKeyboard",
+    "MessageStream",
 ]

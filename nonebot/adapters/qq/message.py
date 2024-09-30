@@ -18,9 +18,12 @@ from .models import Attachment as QQAttachment
 from .models import (
     MessageArk,
     MessageEmbed,
+    MessageStream,
     MessageKeyboard,
     MessageMarkdown,
     MessageReference,
+    MessageActionButton,
+    MessagePromptKeyboard,
 )
 
 
@@ -444,6 +447,48 @@ SEGMENT_TYPE_MAP: dict[str, type[MessageSegment]] = {
     "keyboard": Keyboard,
     "reference": Reference,
 }
+
+
+class _ActionButtonData(TypedDict):
+    action_button: MessageActionButton
+
+
+@dataclass
+class ActionButton(MessageSegment):
+    if TYPE_CHECKING:
+        data: _ActionButtonData
+
+    @override
+    def __str__(self) -> str:
+        return f"<action_button:{self.data['action_button']!r}>"
+
+
+class _PromptKeyboardData(TypedDict):
+    prompt_keyboard: MessagePromptKeyboard
+
+
+@dataclass
+class PromptKeyboard(MessageSegment):
+    if TYPE_CHECKING:
+        data: _PromptKeyboardData
+
+    @override
+    def __str__(self) -> str:
+        return f"<prompt_keyboard:{self.data['prompt_keyboard']!r}>"
+
+
+class _StreamData(TypedDict):
+    stream: MessageStream
+
+
+@dataclass
+class Stream(MessageSegment):
+    if TYPE_CHECKING:
+        data: _StreamData
+
+    @override
+    def __str__(self) -> str:
+        return f"<stream:{self.data['stream']!r}>"
 
 
 class Message(BaseMessage[MessageSegment]):
