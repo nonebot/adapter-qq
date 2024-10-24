@@ -46,7 +46,7 @@ class Adapter(BaseAdapter):
 
         self.qq_config: Config = Config(**self.config.dict())
 
-        self.tasks: list["asyncio.Task"] = []
+        self.tasks: set["asyncio.Task"] = set()
         self.setup()
 
     @classmethod
@@ -85,7 +85,9 @@ class Adapter(BaseAdapter):
         log("DEBUG", f"QQ api base url: <y>{escape_tag(str(api_base))}</y>")
 
         for bot in self.qq_config.qq_bots:
-            self.tasks.append(asyncio.create_task(self.run_bot(bot)))
+            task = asyncio.create_task(self.run_bot(bot))
+            task.add_done_callback(self.tasks.discard)
+            self.tasks.add(task)
 
     async def shutdown(self) -> None:
         for task in self.tasks:
@@ -123,17 +125,17 @@ class Adapter(BaseAdapter):
 
         # start connection in single shard mode
         if bot_info.shard is not None:
-            self.tasks.append(
-                asyncio.create_task(self._forward_ws(bot, ws_url, bot_info.shard))
-            )
+            task = asyncio.create_task(self._forward_ws(bot, ws_url, bot_info.shard))
+            task.add_done_callback(self.tasks.discard)
+            self.tasks.add(task)
             return
 
         # start connection in sharding mode
         shards = gateway_info.shards or 1
         for i in range(shards):
-            self.tasks.append(
-                asyncio.create_task(self._forward_ws(bot, ws_url, (i, shards)))
-            )
+            task = asyncio.create_task(self._forward_ws(bot, ws_url, (i, shards)))
+            task.add_done_callback(self.tasks.discard)
+            self.tasks.add(task)
             # wait for session start concurrency limit
             await asyncio.sleep(gateway_info.session_start_limit.max_concurrency or 1)
 
@@ -318,7 +320,9 @@ class Adapter(BaseAdapter):
             )
 
         if ready_event:
-            asyncio.create_task(bot.handle_event(ready_event))  # noqa: RUF006
+            task = asyncio.create_task(bot.handle_event(ready_event))
+            task.add_done_callback(self.tasks.discard)
+            self.tasks.add(task)
 
         return True
 
@@ -354,7 +358,9 @@ class Adapter(BaseAdapter):
                 else:
                     if isinstance(event, MessageAuditEvent):
                         audit_result.add_result(event)
-                    asyncio.create_task(bot.handle_event(event))  # noqa: RUF006
+                    task = asyncio.create_task(bot.handle_event(event))
+                    task.add_done_callback(self.tasks.discard)
+                    self.tasks.add(task)
             elif isinstance(payload, HeartbeatAck):
                 log("TRACE", "Heartbeat ACK")
                 continue
