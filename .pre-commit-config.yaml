@@ -6,23 +6,19 @@ ci:
   autoupdate_schedule: monthly
   autoupdate_commit_msg: ":arrow_up: auto update by pre-commit hooks"
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.2
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-        stages: [pre-commit]
-
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
         stages: [pre-commit]
 
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
     hooks:
-      - id: black
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        stages: [pre-commit]
+      - id: ruff-format
         stages: [pre-commit]
 
   - repo: https://github.com/nonebot/nonemoji
