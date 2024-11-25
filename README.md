@@ -37,6 +37,10 @@ QQ_IS_SANDBOX=true
 
 配置机器人帐号 `id` `token` `secret`，intent 需要根据机器人类型以及需要的事件进行配置。
 
+#### Webhook / WebSocket
+
+通过配置项 `use_websocket` 来选择是否启用 WebSocket 连接。当前默认为 `True`。
+
 #### Intent
 
 以下为所有 Intent 配置项以及默认值：
@@ -73,7 +77,8 @@ QQ_BOTS='
     "intent": {
       "guild_messages": true,
       "at_messages": false
-    }
+    },
+    "use_websocket": false
   }
 ]
 '
@@ -90,7 +95,8 @@ QQ_BOTS='
     "secret": "xxx",
     "intent": {
       "c2c_group_at_messages": true
-    }
+    },
+    "use_websocket": false
   }
 ]
 '
