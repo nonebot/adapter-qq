@@ -18,6 +18,7 @@ class Opcode(IntEnum):
     HELLO = 10
     HEARTBEAT_ACK = 11
     HTTP_CALLBACK_ACK = 12
+    WEBHOOK_VERIFY = 13
 
 
 class Payload(BaseModel):
@@ -121,9 +122,26 @@ class HTTPCallbackAck(Payload):
     data: int
 
 
+class WebhookVerifyData(BaseModel):
+    plain_token: str
+    event_ts: str
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(extra="allow")
+    else:
+
+        class Config:
+            extra = "allow"
+
+
+class WebhookVerify(Payload):
+    opcode: Literal[Opcode.WEBHOOK_VERIFY] = Field(Opcode.WEBHOOK_VERIFY)
+    data: WebhookVerifyData
+
+
 PayloadType = Union[
     Annotated[
-        Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck],
+        Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck, WebhookVerify],
         Field(discriminator="opcode"),
     ],
     Payload,

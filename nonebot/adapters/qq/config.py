@@ -55,6 +55,7 @@ class BotInfo(BaseModel):
     secret: str = Field(alias="secret")
     shard: Optional[tuple[int, int]] = None
     intent: Intents = Field(default_factory=Intents)
+    use_websocket: bool = True
 
     @property
     def is_group_bot(self) -> bool:
@@ -67,4 +68,5 @@ class Config(BaseModel):
     qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")
     qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")
     qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")
+    qq_verify_webhook: bool = True
     qq_bots: list[BotInfo] = Field(default_factory=list)

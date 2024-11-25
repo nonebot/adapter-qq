@@ -1,20 +1,28 @@
 import sys
+import json
 import asyncio
+import binascii
 from typing_extensions import override
-from typing import Any, Literal, Optional
+from typing import Any, Union, Literal, Optional, cast
 
 from nonebot.utils import escape_tag
 from nonebot.exception import WebSocketClosed
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from nonebot.compat import PYDANTIC_V2, type_validate_json, type_validate_python
 from nonebot.drivers import (
     URL,
     Driver,
     Request,
+    Response,
+    ASGIMixin,
     WebSocket,
     HTTPClientMixin,
+    HTTPServerSetup,
     WebSocketClientMixin,
 )
 
+from nonebot import get_plugin_config
 from nonebot.adapters import Adapter as BaseAdapter
 
 from .bot import Bot
@@ -33,6 +41,7 @@ from .models import (
     Reconnect,
     PayloadType,
     HeartbeatAck,
+    WebhookVerify,
     InvalidSession,
 )
 
@@ -44,7 +53,7 @@ class Adapter(BaseAdapter):
     def __init__(self, driver: Driver, **kwargs: Any):
         super().__init__(driver, **kwargs)
 
-        self.qq_config: Config = Config(**self.config.dict())
+        self.qq_config: Config = get_plugin_config(Config)
 
         self.tasks: set["asyncio.Task"] = set()
         self.setup()
@@ -61,11 +70,23 @@ class Adapter(BaseAdapter):
                 "http client requests! "
                 "QQ Adapter need a HTTPClient Driver to work."
             )
-        if not isinstance(self.driver, WebSocketClientMixin):
+
+        if any(bot.use_websocket for bot in self.qq_config.qq_bots) and not isinstance(
+            self.driver, WebSocketClientMixin
+        ):
             raise RuntimeError(
                 f"Current driver {self.config.driver} does not support "
                 "websocket client! "
                 "QQ Adapter need a WebSocketClient Driver to work."
+            )
+
+        if not all(
+            bot.use_websocket for bot in self.qq_config.qq_bots
+        ) and not isinstance(self.driver, ASGIMixin):
+            raise RuntimeError(
+                f"Current driver {self.config.driver} does not support "
+                "ASGI server! "
+                "QQ Adapter need a ASGI Driver to receive webhook."
             )
         self.on_ready(self.startup)
         self.driver.on_shutdown(self.shutdown)
@@ -84,8 +105,36 @@ class Adapter(BaseAdapter):
 
         log("DEBUG", f"QQ api base url: <y>{escape_tag(str(api_base))}</y>")
 
+        if isinstance(self.driver, ASGIMixin):
+            self.setup_http_server(
+                HTTPServerSetup(
+                    URL("/qq/"),
+                    "POST",
+                    f"{self.get_name()} Root Webhook",
+                    self._handle_http,
+                ),
+            )
+            self.setup_http_server(
+                HTTPServerSetup(
+                    URL("/qq/webhook"),
+                    "POST",
+                    f"{self.get_name()} Webhook",
+                    self._handle_http,
+                ),
+            )
+            self.setup_http_server(
+                HTTPServerSetup(
+                    URL("/qq/webhook/"),
+                    "POST",
+                    f"{self.get_name()} Webhook Slash",
+                    self._handle_http,
+                ),
+            )
+
         for bot in self.qq_config.qq_bots:
-            task = asyncio.create_task(self.run_bot(bot))
+            if not bot.use_websocket:
+                continue
+            task = asyncio.create_task(self.run_bot_websocket(bot))
             task.add_done_callback(self.tasks.discard)
             self.tasks.add(task)
 
@@ -99,7 +148,7 @@ class Adapter(BaseAdapter):
             return_exceptions=True,
         )
 
-    async def run_bot(self, bot_info: BotInfo) -> None:
+    async def run_bot_websocket(self, bot_info: BotInfo) -> None:
         bot = Bot(self, bot_info.id, bot_info)
 
         # get sharded gateway url
@@ -347,20 +396,7 @@ class Adapter(BaseAdapter):
                 f"Received payload: {escape_tag(repr(payload))}",
             )
             if isinstance(payload, Dispatch):
-                try:
-                    event = self.payload_to_event(payload)
-                except Exception as e:
-                    log(
-                        "WARNING",
-                        f"Failed to parse event {escape_tag(repr(payload))}",
-                        e,
-                    )
-                else:
-                    if isinstance(event, MessageAuditEvent):
-                        audit_result.add_result(event)
-                    task = asyncio.create_task(bot.handle_event(event))
-                    task.add_done_callback(self.tasks.discard)
-                    self.tasks.add(task)
+                self.dispatch_event(bot, payload)
             elif isinstance(payload, HeartbeatAck):
                 log("TRACE", "Heartbeat ACK")
                 continue
@@ -383,6 +419,122 @@ class Adapter(BaseAdapter):
                     f"Unknown payload from server: {escape_tag(repr(payload))}",
                 )
 
+    async def receive_payload(self, bot: Bot, ws: WebSocket) -> Payload:
+        return self.data_to_payload(bot, await ws.receive())
+
+    async def _handle_http(self, request: Request) -> Response:
+        bot_id = request.headers.get("X-Bot-Appid")
+        if not bot_id:
+            log("WARNING", "Missing X-Bot-Appid header in request")
+            return Response(403, content="Missing X-Bot-Appid header")
+        elif bot_id in self.bots:
+            bot = cast(Bot, self.bots[bot_id])
+        elif bot_id in self.qq_config.qq_bots:
+            bot = Bot(self, bot_id, self.qq_config.qq_bots[bot_id])
+        else:
+            log("ERROR", f"Bot {bot_id} not found")
+            return Response(403, content="Bot not found")
+
+        if request.content is None:
+            return Response(400, content="Missing request content")
+
+        try:
+            payload = self.data_to_payload(bot, request.content)
+        except Exception as e:
+            log(
+                "ERROR",
+                "<r><bg #f8bbd0>Error while parsing data from webhook</bg #f8bbd0></r>",
+                e,
+            )
+            return Response(400, content="Invalid request content")
+
+        if isinstance(payload, WebhookVerify):
+            log("INFO", "Received qq webhook verify request")
+            return self._webhook_verify(bot, payload)
+
+        if self.qq_config.qq_verify_webhook and (
+            response := self._check_signature(bot, request)
+        ):
+            return response
+
+        if bot.self_id not in self.bots:
+            self.bot_connect(bot)
+
+        if isinstance(payload, Dispatch):
+            self.dispatch_event(bot, payload)
+
+        return Response(200)
+
+    def _get_ed25519_key(self, bot: Bot) -> Ed25519PrivateKey:
+        secret = bot.bot_info.secret.encode()
+        seed = secret
+        while len(seed) < 32:
+            seed += secret
+        seed = seed[:32]
+        return Ed25519PrivateKey.from_private_bytes(seed)
+
+    def _webhook_verify(self, bot: Bot, payload: WebhookVerify) -> Response:
+        plain_token = payload.data.plain_token
+        event_ts = payload.data.event_ts
+
+        try:
+            private_key = self._get_ed25519_key(bot)
+        except Exception as e:
+            log("ERROR", "Failed to create private key", e)
+            return Response(500, content="Failed to create private key")
+
+        msg = f"{event_ts}{plain_token}".encode()
+        try:
+            signature = private_key.sign(msg)
+            signature_hex = binascii.hexlify(signature).decode()
+        except Exception as e:
+            log("ERROR", "Failed to sign message", e)
+            return Response(500, content="Failed to sign message")
+
+        return Response(
+            200,
+            content=json.dumps(
+                {"plain_token": plain_token, "signature": signature_hex}
+            ),
+        )
+
+    def _check_signature(self, bot: Bot, request: Request) -> Optional[Response]:
+        signature = request.headers.get("X-Signature-Ed25519")
+        timestamp = request.headers.get("X-Signature-Timestamp")
+        if not signature or not timestamp:
+            log("WARNING", "Missing signature or timestamp in request")
+            return Response(403, content="Missing signature or timestamp")
+
+        if request.content is None:
+            return Response(400, content="Missing request content")
+
+        try:
+            private_key = self._get_ed25519_key(bot)
+            public_key = private_key.public_key()
+        except Exception as e:
+            log("ERROR", "Failed to create public key", e)
+            return Response(500, content="Failed to create public key")
+
+        signature = binascii.unhexlify(signature)
+        if len(signature) != 64 or signature[63] & 224 != 0:
+            log("WARNING", "Invalid signature in request")
+            return Response(403, content="Invalid signature")
+
+        body = (
+            request.content.encode()
+            if isinstance(request.content, str)
+            else request.content
+        )
+        msg = timestamp.encode() + body
+        try:
+            public_key.verify(signature, msg)
+        except InvalidSignature:
+            log("WARNING", "Invalid signature in request")
+            return Response(403, content="Invalid signature")
+        except Exception as e:
+            log("ERROR", "Failed to verify signature", e)
+            return Response(403, content="Failed to verify signature")
+
     def get_auth_base(self) -> URL:
         return URL(str(self.qq_config.qq_auth_base))
 
@@ -393,8 +545,8 @@ class Adapter(BaseAdapter):
             return URL(str(self.qq_config.qq_api_base))
 
     @staticmethod
-    async def receive_payload(bot: Bot, ws: WebSocket) -> Payload:
-        payload = type_validate_json(PayloadType, await ws.receive())
+    def data_to_payload(bot: Bot, data: Union[str, bytes]) -> Payload:
+        payload = type_validate_json(PayloadType, data)
         if isinstance(payload, Dispatch):
             bot.on_dispatch(payload)
         return payload
@@ -405,6 +557,22 @@ class Adapter(BaseAdapter):
             return payload.model_dump_json(by_alias=True)
 
         return payload.json(by_alias=True)
+
+    def dispatch_event(self, bot: Bot, payload: Dispatch):
+        try:
+            event = self.payload_to_event(payload)
+        except Exception as e:
+            log(
+                "WARNING",
+                f"Failed to parse event {escape_tag(repr(payload))}",
+                e,
+            )
+        else:
+            if isinstance(event, MessageAuditEvent):
+                audit_result.add_result(event)
+            task = asyncio.create_task(bot.handle_event(event))
+            task.add_done_callback(self.tasks.discard)
+            self.tasks.add(task)
 
     @staticmethod
     def payload_to_event(payload: Dispatch) -> Event:

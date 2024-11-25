@@ -11,4 +11,5 @@ from .payload import Heartbeat as Heartbeat
 from .payload import Reconnect as Reconnect
 from .payload import PayloadType as PayloadType
 from .payload import HeartbeatAck as HeartbeatAck
+from .payload import WebhookVerify as WebhookVerify
 from .payload import InvalidSession as InvalidSession
