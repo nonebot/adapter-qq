@@ -6,7 +6,7 @@ from .event import MessageCreateEvent, AtMessageCreateEvent
 
 
 async def _guild_channel_admin(
-    event: Union[AtMessageCreateEvent, MessageCreateEvent]
+    event: Union[AtMessageCreateEvent, MessageCreateEvent],
 ) -> bool:
     return "5" in getattr(event.member, "roles", ())
 
@@ -27,7 +27,7 @@ GUILD_OWNER: Permission = Permission(_guild_owner)
 """匹配任意频道群主群消息类型事件"""
 
 __all__ = [
-    "GUILD_CHANNEL_ADMIN",
     "GUILD_ADMIN",
+    "GUILD_CHANNEL_ADMIN",
     "GUILD_OWNER",
 ]

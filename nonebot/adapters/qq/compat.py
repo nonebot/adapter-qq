@@ -2,7 +2,7 @@ from typing import Literal, overload
 
 from nonebot.compat import PYDANTIC_V2
 
-__all__ = ("model_validator", "field_validator")
+__all__ = ("field_validator", "model_validator")
 
 if PYDANTIC_V2:
     from pydantic import field_validator as field_validator
@@ -19,5 +19,5 @@ else:
     def model_validator(*, mode: Literal["before", "after"]):
         return root_validator(pre=mode == "before", allow_reuse=True)
 
-    def field_validator(__field, *fields, mode: Literal["before", "after"] = "after"):
-        return validator(__field, *fields, pre=mode == "before", allow_reuse=True)
+    def field_validator(field, /, *fields, mode: Literal["before", "after"] = "after"):
+        return validator(field, *fields, pre=mode == "before", allow_reuse=True)
