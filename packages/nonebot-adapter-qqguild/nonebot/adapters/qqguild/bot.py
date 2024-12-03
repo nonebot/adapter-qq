@@ -140,7 +140,7 @@ class Bot(BaseBot, ApiClient):
 
     @staticmethod
     def _extract_send_message(
-        message: Union[str, Message, MessageSegment]
+        message: Union[str, Message, MessageSegment],
     ) -> Dict[str, Any]:
         message = MessageSegment.text(message) if isinstance(message, str) else message
         message = message if isinstance(message, Message) else Message(message)
