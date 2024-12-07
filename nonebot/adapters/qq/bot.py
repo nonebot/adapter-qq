@@ -259,16 +259,14 @@ class Bot(BaseBot):
 
     async def _get_authorization_header(self) -> str:
         """获取当前 Bot 的鉴权信息"""
-        if self.bot_info.is_group_bot:
-            return f"QQBot {await self.get_access_token()}"
-        return f"Bot {self.bot_info.id}.{self.bot_info.token}"
+        return f"QQBot {await self.get_access_token()}"
 
     async def get_authorization_header(self) -> dict[str, str]:
         """获取当前 Bot 的鉴权信息"""
-        headers = {"Authorization": await self._get_authorization_header()}
-        if self.bot_info.is_group_bot:
-            headers["X-Union-Appid"] = self.bot_info.id
-        return headers
+        return {
+            "Authorization": await self._get_authorization_header(),
+            "X-Union-Appid": self.bot_info.id,
+        }
 
     async def handle_event(self, event: Event) -> None:
         if isinstance(event, (GuildMessageEvent, QQMessageEvent)):
@@ -566,9 +564,6 @@ class Bot(BaseBot):
         try:
             return self._handle_response(response)
         except UnauthorizedException as e:
-            if not self.bot_info.is_group_bot:
-                raise
-
             log("DEBUG", "Access token expired, try to refresh it.")
 
             # try to refresh access token

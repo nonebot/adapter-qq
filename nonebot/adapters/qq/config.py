@@ -43,11 +43,6 @@ class Intents(BaseModel):
             | self.at_messages << 30
         )
 
-    @property
-    def is_group_enabled(self) -> bool:
-        """是否开启群聊功能"""
-        return self.c2c_group_at_messages is True
-
 
 class BotInfo(BaseModel):
     id: str = Field(alias="id")
@@ -57,16 +52,11 @@ class BotInfo(BaseModel):
     intent: Intents = Field(default_factory=Intents)
     use_websocket: bool = True
 
-    @property
-    def is_group_bot(self) -> bool:
-        """是否为群机器人"""
-        return self.intent.is_group_enabled
-
 
 class Config(BaseModel):
     qq_is_sandbox: bool = False
-    qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")
-    qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")
-    qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")
+    qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")  # type: ignore
+    qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")  # type: ignore
+    qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")  # type: ignore
     qq_verify_webhook: bool = True
     qq_bots: list[BotInfo] = Field(default_factory=list)
