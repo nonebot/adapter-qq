@@ -451,6 +451,10 @@ class Adapter(BaseAdapter):
             )
             return Response(400, content="Invalid request content")
 
+        log(
+            "TRACE",
+            f"Received payload: {escape_tag(repr(payload))}",
+        )
         if isinstance(payload, WebhookVerify):
             log("INFO", "Received qq webhook verify request")
             return self._webhook_verify(bot, payload)
