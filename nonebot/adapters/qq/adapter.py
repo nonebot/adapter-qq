@@ -429,8 +429,11 @@ class Adapter(BaseAdapter):
             return Response(403, content="Missing X-Bot-Appid header")
         elif bot_id in self.bots:
             bot = cast(Bot, self.bots[bot_id])
-        elif bot_id in self.qq_config.qq_bots:
-            bot = Bot(self, bot_id, self.qq_config.qq_bots[bot_id])
+        elif bot_info := next(
+            (bot_info for bot_info in self.qq_config.qq_bots if bot_info.id == bot_id),
+            None,
+        ):
+            bot = Bot(self, bot_id, bot_info)
         else:
             log("ERROR", f"Bot {bot_id} not found")
             return Response(403, content="Bot not found")
