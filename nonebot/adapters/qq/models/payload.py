@@ -42,7 +42,7 @@ class Payload(BaseModel):
 class Dispatch(Payload):
     opcode: Literal[Opcode.DISPATCH] = Field(Opcode.DISPATCH)
     data: dict
-    sequence: int
+    sequence: Optional[int] = None
     type: str
     id: Optional[str] = None
 
