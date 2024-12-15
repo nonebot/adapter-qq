@@ -16,13 +16,17 @@ _✨ QQ 协议适配 ✨_
 
 ### Driver
 
-参考 [driver](https://nonebot.dev/docs/appendices/config#driver) 配置项，添加 `HTTPClient` 和 `WebSocketClient` 支持。
-
-如：
+如果使用 WebSocket 连接方式，请参考 [driver](https://nonebot.dev/docs/appendices/config#driver) 配置项，添加 `HTTPClient` 和 `WebSocketClient` 支持。如：
 
 ```dotenv
 DRIVER=~httpx+~websockets
 DRIVER=~aiohttp
+```
+
+如果使用 WebHook 连接方式，则添加 `ASGIServer` 支持。如：
+
+```dotenv
+DRIVER=~fastapi
 ```
 
 ### QQ_IS_SANDBOX
@@ -39,11 +43,11 @@ QQ_IS_SANDBOX=true
 
 #### Webhook / WebSocket
 
-通过配置项 `use_websocket` 来选择是否启用 WebSocket 连接。当前默认为 `True`。
+通过配置项 `use_websocket` 来选择是否启用 WebSocket 连接，当前默认为 `True`。如果关闭 WebSocket 连接方式，则可以通过 WebHook 方式来连接机器人，请在 QQ 开放平台中配置机器人回调地址：`https://host:port/qq/webhook`。
 
 #### Intent
 
-以下为所有 Intent 配置项以及默认值：
+Intent 仅对 WebSocket 连接方式生效。以下为所有 Intent 配置项以及默认值：
 
 ```json
 {
