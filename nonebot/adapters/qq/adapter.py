@@ -464,6 +464,10 @@ class Adapter(BaseAdapter):
         ):
             return response
 
+        # ensure bot self info
+        if not bot._self_info:
+            bot.self_info = await bot.me()
+
         if bot.self_id not in self.bots:
             self.bot_connect(bot)
 

@@ -200,6 +200,10 @@ class Bot(BaseBot):
             raise RuntimeError(f"Bot {self.bot_info} is not connected!")
         return self._self_info
 
+    @self_info.setter
+    def self_info(self, info: User):
+        self._self_info = info
+
     @property
     def ready(self) -> bool:
         """Bot 是否已经准备就绪"""
