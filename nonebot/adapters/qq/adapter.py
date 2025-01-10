@@ -92,10 +92,7 @@ class Adapter(BaseAdapter):
         self.driver.on_shutdown(self.shutdown)
 
     async def startup(self) -> None:
-        log(
-            "DEBUG",
-            ("QQ run in sandbox mode: " f"<y>{self.qq_config.qq_is_sandbox}</y>"),
-        )
+        log("DEBUG", f"QQ run in sandbox mode: <y>{self.qq_config.qq_is_sandbox}</y>")
 
         try:
             api_base = self.get_api_base()
