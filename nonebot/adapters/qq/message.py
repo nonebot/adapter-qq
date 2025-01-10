@@ -532,9 +532,9 @@ class Message(BaseMessage[MessageSegment]):
             )
         return msg
 
-    def extract_content(self) -> str:
+    def extract_content(self, escape_text: bool = True) -> str:
         return "".join(
-            str(seg)
+            seg.data["text"] if not escape_text and seg.type == "text" else str(seg)
             for seg in self
             if seg.type
             in ("text", "emoji", "mention_user", "mention_everyone", "mention_channel")
