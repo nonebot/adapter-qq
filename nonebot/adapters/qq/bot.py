@@ -285,9 +285,11 @@ class Bot(BaseBot):
         return _message
 
     @staticmethod
-    def _extract_send_message(message: Message) -> dict[str, Any]:
+    def _extract_send_message(
+        message: Message, escape_text: bool = True
+    ) -> dict[str, Any]:
         kwargs = {}
-        content = message.extract_content() or None
+        content = message.extract_content(escape_text) or None
         kwargs["content"] = content
         if embed := (message["embed"] or None):
             kwargs["embed"] = embed[-1].data["embed"]
@@ -351,7 +353,7 @@ class Bot(BaseBot):
             guild_id=guild_id,
             msg_id=msg_id,
             event_id=event_id,
-            **self._extract_send_message(message=message),
+            **self._extract_send_message(message=message, escape_text=True),
             **self._extract_guild_image(message=message),
         )
 
@@ -367,7 +369,7 @@ class Bot(BaseBot):
             channel_id=channel_id,
             msg_id=msg_id,
             event_id=event_id,
-            **self._extract_send_message(message=message),
+            **self._extract_send_message(message=message, escape_text=True),
             **self._extract_guild_image(message=message),
         )
 
@@ -380,7 +382,7 @@ class Bot(BaseBot):
         event_id: Optional[str] = None,
     ) -> Union[PostC2CMessagesReturn, PostC2CFilesReturn]:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message)
+        kwargs = self._extract_send_message(message=message, escape_text=False)
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
@@ -429,7 +431,7 @@ class Bot(BaseBot):
         event_id: Optional[str] = None,
     ) -> Union[PostGroupMessagesReturn, PostGroupFilesReturn]:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message)
+        kwargs = self._extract_send_message(message=message, escape_text=False)
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
