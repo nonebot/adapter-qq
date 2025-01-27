@@ -1680,7 +1680,11 @@ class Bot(BaseBot):
                         embed.dict(exclude_none=True) if embed is not None else None
                     ),
                     "image": image,
-                    "message_reference": message_reference,
+                    "message_reference": (
+                        message_reference.dict(exclude_none=True)
+                        if message_reference is not None
+                        else None
+                    ),
                     "event_id": event_id,
                     "msg_id": msg_id,
                     "msg_seq": msg_seq,
@@ -1782,7 +1786,11 @@ class Bot(BaseBot):
                         embed.dict(exclude_none=True) if embed is not None else None
                     ),
                     "image": image,
-                    "message_reference": message_reference,
+                    "message_reference": (
+                        message_reference.dict(exclude_none=True)
+                        if message_reference is not None
+                        else None
+                    ),
                     "event_id": event_id,
                     "msg_id": msg_id,
                     "msg_seq": msg_seq,
