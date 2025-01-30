@@ -25,7 +25,14 @@ from .config import BotInfo
 from .utils import API, log, exclude_none
 from .models import Message as GuildMessage
 from .message import Message, MessageSegment
-from .models import DMS, User, Guild, Media, Member, Channel
+from .models import (
+    DMS,
+    User,
+    Guild,
+    Media,
+    Member,
+    Channel,
+)
 from .exception import (
     ActionFailed,
     NetworkError,

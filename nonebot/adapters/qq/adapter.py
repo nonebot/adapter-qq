@@ -268,9 +268,9 @@ class Adapter(BaseAdapter):
         """接收并处理服务器的 Hello 事件"""
         try:
             payload = await self.receive_payload(bot, ws)
-            assert isinstance(
-                payload, Hello
-            ), f"Received unexpected payload: {payload!r}"
+            assert isinstance(payload, Hello), (
+                f"Received unexpected payload: {payload!r}"
+            )
             return payload.data.heartbeat_interval
         except Exception as e:
             log(

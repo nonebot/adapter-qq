@@ -9,7 +9,15 @@ from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
 from .models import Message as GuildMessage
-from .models import Post, User, Guild, Reply, Member, Thread, Channel
+from .models import (
+    Post,
+    User,
+    Guild,
+    Reply,
+    Member,
+    Thread,
+    Channel,
+)
 from .models import (
     RichText,
     QQMessage,

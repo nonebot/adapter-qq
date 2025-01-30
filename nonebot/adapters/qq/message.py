@@ -11,8 +11,10 @@ from nonebot.compat import type_validate_python
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
-from .models import QQMessage
 from .utils import escape, unescape
+from .models import (
+    QQMessage,
+)
 from .models import Message as GuildMessage
 from .models import Attachment as QQAttachment
 from .models import (
