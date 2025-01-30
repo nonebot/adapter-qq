@@ -387,7 +387,7 @@ class Bot(BaseBot):
             msg_type = 4
         elif kwargs.get("ark"):
             msg_type = 3
-        elif kwargs.get("markdown"):
+        elif kwargs.get("markdown") or kwargs.get("keyboard"):
             msg_type = 2
         elif (
             message["image"]
