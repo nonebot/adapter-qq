@@ -363,7 +363,7 @@ class Paragraph(BaseModel):
 
 
 class RichText(BaseModel):
-    paragraphs: list[Paragraph]
+    paragraphs: Optional[list[Paragraph]] = None
 
 
 class ThreadObjectInfo(BaseModel):
