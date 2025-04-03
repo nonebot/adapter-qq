@@ -545,7 +545,7 @@ class Bot(BaseBot):
                 f"Called API {response.request and response.request.url} "
                 f"response {response.status_code} with trace id {trace_id}",
             )
-        if 200 <= response.status_code <= 202:
+        if response.status_code == 201 or response.status_code == 202:
             if response.content and (content := json.loads(response.content)):
                 audit_id = (
                     content.get("data", {})
@@ -555,7 +555,19 @@ class Bot(BaseBot):
                 if audit_id:
                     raise AuditException(audit_id)
             raise ActionFailed(response)
-        elif 200 <= response.status_code < 300:
+        elif response.status_code == 200:
+            if response.content and (content := json.loads(response.content)):
+                audit_id = (
+                    content.get("data", {})
+                    .get("message_audit", {})
+                    .get("audit_id", None)
+                )
+                if audit_id:
+                    raise AuditException(audit_id)
+                else:
+                    return content
+            raise ActionFailed(response)
+        elif 201 <= response.status_code < 300:
             return response.content and json.loads(response.content)
         elif response.status_code == 401:
             raise UnauthorizedException(response)
