@@ -545,7 +545,7 @@ class Bot(BaseBot):
                 f"Called API {response.request and response.request.url} "
                 f"response {response.status_code} with trace id {trace_id}",
             )
-        if response.status_code == 201 or response.status_code == 202:
+        if 200 <= response.status_code <= 202:
             if response.content and (content := json.loads(response.content)):
                 audit_id = (
                     content.get("data", {})
