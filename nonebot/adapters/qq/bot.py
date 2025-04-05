@@ -566,7 +566,7 @@ class Bot(BaseBot):
                     raise AuditException(audit_id)
                 else:
                     return content
-            raise response.content
+            return response.content
         elif 201 <= response.status_code < 300:
             return response.content and json.loads(response.content)
         elif response.status_code == 401:
