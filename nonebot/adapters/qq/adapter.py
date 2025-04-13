@@ -128,12 +128,14 @@ class Adapter(BaseAdapter):
                 ),
             )
 
-        for bot in self.qq_config.qq_bots:
-            if not bot.use_websocket:
-                continue
-            task = asyncio.create_task(self.run_bot_websocket(bot))
-            task.add_done_callback(self.tasks.discard)
-            self.tasks.add(task)
+        for bot_info in self.qq_config.qq_bots:
+            if bot_info.use_websocket:
+                task = asyncio.create_task(self.run_bot_websocket(bot_info))
+                task.add_done_callback(self.tasks.discard)
+                self.tasks.add(task)
+            else:
+                bot = Bot(self, bot_info.id, bot_info)
+                self.bot_connect(bot)
 
     async def shutdown(self) -> None:
         for task in self.tasks:
@@ -426,11 +428,6 @@ class Adapter(BaseAdapter):
             return Response(403, content="Missing X-Bot-Appid header")
         elif bot_id in self.bots:
             bot = cast(Bot, self.bots[bot_id])
-        elif bot_info := next(
-            (bot_info for bot_info in self.qq_config.qq_bots if bot_info.id == bot_id),
-            None,
-        ):
-            bot = Bot(self, bot_id, bot_info)
         else:
             log("ERROR", f"Bot {bot_id} not found")
             return Response(403, content="Bot not found")
@@ -464,9 +461,6 @@ class Adapter(BaseAdapter):
         # ensure bot self info
         if not bot._self_info:
             bot.self_info = await bot.me()
-
-        if bot.self_id not in self.bots:
-            self.bot_connect(bot)
 
         if isinstance(payload, Dispatch):
             self.dispatch_event(bot, payload)
