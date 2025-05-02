@@ -542,14 +542,19 @@ class Bot(BaseBot):
     def _handle_audit(self, response: Response) -> None:
         if 200 <= response.status_code <= 202:
             with suppress(json.JSONDecodeError):
-                if response.content and (content := json.loads(response.content)):
-                    audit_id = (
-                        content.get("data", {})
-                        .get("message_audit", {})
-                        .get("audit_id", None)
+                if (
+                    response.content
+                    and (content := json.loads(response.content))
+                    and isinstance(content, dict)
+                    and (
+                        audit_id := (
+                            content.get("data", {})
+                            .get("message_audit", {})
+                            .get("audit_id", None)
+                        )
                     )
-                    if audit_id:
-                        raise AuditException(audit_id)
+                ):
+                    raise AuditException(audit_id)
 
     def _handle_response(self, response: Response) -> Any:
         if trace_id := response.headers.get("X-Tps-trace-ID", None):
