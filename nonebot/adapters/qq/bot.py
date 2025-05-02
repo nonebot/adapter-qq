@@ -263,6 +263,15 @@ class Bot(BaseBot):
                     " Please check your config."
                 )
             data = json.loads(resp.content)
+            if (
+                not isinstance(data, dict)
+                or "access_token" not in data
+                or "expires_in" not in data
+            ):
+                raise NetworkError(
+                    f"Get authorization failed with invalid response {data!r}."
+                    " Please check your config."
+                )
             self._access_token = cast(str, data["access_token"])
             self._expires_in = datetime.now(timezone.utc) + timedelta(
                 seconds=int(data["expires_in"])
