@@ -8,7 +8,7 @@ if PYDANTIC_V2:
     from pydantic import field_validator as field_validator
     from pydantic import model_validator as model_validator
 else:
-    from pydantic import validator, root_validator
+    from pydantic import root_validator, validator
 
     @overload
     def model_validator(*, mode: Literal["before"]): ...

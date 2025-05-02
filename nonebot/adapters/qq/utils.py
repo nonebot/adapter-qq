@@ -1,7 +1,7 @@
-from functools import partial
 from collections.abc import Awaitable
-from typing_extensions import ParamSpec, Concatenate
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Optional, overload
+from functools import partial
+from typing import TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar, overload
+from typing_extensions import Concatenate, ParamSpec
 
 from nonebot.utils import logger_wrapper
 

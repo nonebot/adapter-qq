@@ -1,49 +1,49 @@
-import sys
-import json
 import asyncio
 import binascii
+import json
+import sys
+from typing import Any, Literal, Optional, Union, cast
 from typing_extensions import override
-from typing import Any, Union, Literal, Optional, cast
 
-from nonebot.utils import escape_tag
-from nonebot.exception import WebSocketClosed
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from nonebot.compat import PYDANTIC_V2, type_validate_json, type_validate_python
-from nonebot.drivers import (
-    URL,
-    Driver,
-    Request,
-    Response,
-    ASGIMixin,
-    WebSocket,
-    HTTPClientMixin,
-    HTTPServerSetup,
-    WebSocketClientMixin,
-)
 
 from nonebot import get_plugin_config
 from nonebot.adapters import Adapter as BaseAdapter
+from nonebot.compat import PYDANTIC_V2, type_validate_json, type_validate_python
+from nonebot.drivers import (
+    URL,
+    ASGIMixin,
+    Driver,
+    HTTPClientMixin,
+    HTTPServerSetup,
+    Request,
+    Response,
+    WebSocket,
+    WebSocketClientMixin,
+)
+from nonebot.exception import WebSocketClosed
+from nonebot.utils import escape_tag
 
 from .bot import Bot
-from .utils import API, log
-from .store import audit_result
-from .config import Config, BotInfo
+from .config import BotInfo, Config
+from .event import EVENT_CLASSES, Event, MessageAuditEvent, ReadyEvent
 from .exception import ApiNotAvailable
-from .event import EVENT_CLASSES, Event, ReadyEvent, MessageAuditEvent
 from .models import (
-    Hello,
-    Resume,
-    Payload,
     Dispatch,
-    Identify,
     Heartbeat,
-    Reconnect,
-    PayloadType,
     HeartbeatAck,
-    WebhookVerify,
+    Hello,
+    Identify,
     InvalidSession,
+    Payload,
+    PayloadType,
+    Reconnect,
+    Resume,
+    WebhookVerify,
 )
+from .store import audit_result
+from .utils import API, log
 
 RECONNECT_INTERVAL = 3.0
 

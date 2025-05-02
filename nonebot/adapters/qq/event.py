@@ -1,36 +1,33 @@
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Optional, TypeVar, cast
 from typing_extensions import override
-from typing import TypeVar, Optional, cast
-
-from nonebot.utils import escape_tag
 
 from nonebot.adapters import Event as BaseEvent
+from nonebot.utils import escape_tag
 
 from .message import Message
-from .models import Message as GuildMessage
 from .models import (
-    Post,
-    User,
-    Guild,
-    Reply,
-    Member,
-    Thread,
-    Channel,
-)
-from .models import (
-    RichText,
-    QQMessage,
     AudioAction,
-    FriendAuthor,
-    MessageDelete,
-    MessageAudited,
-    ForumSourceInfo,
-    MessageReaction,
-    ForumAuditResult,
     ButtonInteraction,
+    Channel,
+    ForumAuditResult,
+    ForumSourceInfo,
+    FriendAuthor,
     GroupMemberAuthor,
+    Guild,
+    Member,
+    MessageAudited,
+    MessageDelete,
+    MessageReaction,
+    Post,
+    QQMessage,
+    Reply,
+    RichText,
+    Thread,
+    User,
 )
+from .models import Message as GuildMessage
 
 E = TypeVar("E", bound="Event")
 

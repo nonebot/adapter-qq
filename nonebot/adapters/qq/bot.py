@@ -1,97 +1,95 @@
-import json
 from base64 import b64encode
 from contextlib import suppress
-from typing_extensions import Never, override
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+import json
 from typing import (
     IO,
     TYPE_CHECKING,
     Any,
-    Union,
     Literal,
     NoReturn,
     Optional,
+    Union,
     cast,
     overload,
 )
+from typing_extensions import Never, override
 
 from pydantic import BaseModel
-from nonebot.message import handle_event
-from nonebot.drivers import Request, Response
-from nonebot.compat import type_validate_python
 
 from nonebot.adapters import Bot as BaseBot
+from nonebot.compat import type_validate_python
+from nonebot.drivers import Request, Response
+from nonebot.message import handle_event
 
 from .config import BotInfo
-from .utils import API, log, exclude_none
-from .models import Message as GuildMessage
-from .message import Message, MessageSegment
-from .models import (
-    DMS,
-    User,
-    Guild,
-    Media,
-    Member,
-    Channel,
+from .event import (
+    C2CMessageCreateEvent,
+    DirectMessageCreateEvent,
+    Event,
+    GroupAtMessageCreateEvent,
+    GuildMessageEvent,
+    InteractionCreateEvent,
+    QQMessageEvent,
+    ReadyEvent,
 )
 from .exception import (
     ActionFailed,
-    NetworkError,
-    AuditException,
     ApiNotAvailable,
+    AuditException,
+    NetworkError,
     RateLimitException,
     UnauthorizedException,
 )
-from .event import (
-    Event,
-    ReadyEvent,
-    QQMessageEvent,
-    GuildMessageEvent,
-    C2CMessageCreateEvent,
-    InteractionCreateEvent,
-    DirectMessageCreateEvent,
-    GroupAtMessageCreateEvent,
-)
+from .message import Message, MessageSegment
 from .models import (
-    Dispatch,
-    RichText,
-    Schedule,
-    EmojiType,
-    MessageArk,
-    RemindType,
-    AudioStatus,
-    ChannelType,
-    PinsMessage,
-    PrivateType,
+    DMS,
+    APIPermissionDemand,
+    APIPermissionDemandIdentify,
     AudioControl,
-    MessageEmbed,
-    UrlGetReturn,
+    AudioStatus,
+    Channel,
+    ChannelPermissions,
     ChannelSubType,
-    MessageSetting,
+    ChannelType,
+    Dispatch,
+    EmojiType,
+    GetGuildAPIPermissionReturn,
+    GetGuildRolesReturn,
+    GetReactionUsersReturn,
+    GetRoleMembersReturn,
     GetThreadReturn,
+    GetThreadsListReturn,
+    Guild,
+    Media,
+    Member,
+    MessageArk,
+    MessageEmbed,
     MessageKeyboard,
     MessageMarkdown,
-    PutThreadReturn,
-    SpeakPermission,
     MessageReference,
-    RecommendChannel,
-    ShardUrlGetReturn,
-    ChannelPermissions,
-    PostC2CFilesReturn,
-    APIPermissionDemand,
-    GetGuildRolesReturn,
-    PostGuildRoleReturn,
-    GetRoleMembersReturn,
-    GetThreadsListReturn,
+    MessageSetting,
     PatchGuildRoleReturn,
-    PostGroupFilesReturn,
+    PinsMessage,
+    PostC2CFilesReturn,
     PostC2CMessagesReturn,
-    GetReactionUsersReturn,
+    PostGroupFilesReturn,
     PostGroupMembersReturn,
     PostGroupMessagesReturn,
-    APIPermissionDemandIdentify,
-    GetGuildAPIPermissionReturn,
+    PostGuildRoleReturn,
+    PrivateType,
+    PutThreadReturn,
+    RecommendChannel,
+    RemindType,
+    RichText,
+    Schedule,
+    ShardUrlGetReturn,
+    SpeakPermission,
+    UrlGetReturn,
+    User,
 )
+from .models import Message as GuildMessage
+from .utils import API, exclude_none, log
 
 if TYPE_CHECKING:
     from .adapter import Adapter

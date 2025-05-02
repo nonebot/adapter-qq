@@ -1,8 +1,9 @@
 from enum import IntEnum
+from typing import Annotated, Optional, Union
 from typing_extensions import Literal
-from typing import Union, Optional, Annotated
 
-from pydantic import Field, BaseModel
+from pydantic import BaseModel, Field
+
 from nonebot.compat import PYDANTIC_V2, ConfigDict
 
 PAYLOAD_FIELD_ALIASES = {"opcode": "op", "data": "d", "sequence": "s", "type": "t"}

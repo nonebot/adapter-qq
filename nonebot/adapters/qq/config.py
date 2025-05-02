@@ -1,6 +1,7 @@
 from typing import Optional
 
-from pydantic import Field, HttpUrl, BaseModel
+from pydantic import BaseModel, Field, HttpUrl
+
 from nonebot.compat import PYDANTIC_V2, ConfigDict
 
 

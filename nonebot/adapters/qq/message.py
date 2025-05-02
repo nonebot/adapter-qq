@@ -1,29 +1,26 @@
-import re
+from collections.abc import Iterable
+from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-from dataclasses import dataclass
-from collections.abc import Iterable
+import re
+from typing import TYPE_CHECKING, Optional, TypedDict, Union, overload
 from typing_extensions import Self, override
-from typing import TYPE_CHECKING, Union, Optional, TypedDict, overload
-
-from nonebot.compat import type_validate_python
 
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
+from nonebot.compat import type_validate_python
 
-from .utils import escape, unescape
-from .models import (
-    QQMessage,
-)
-from .models import Message as GuildMessage
 from .models import Attachment as QQAttachment
+from .models import Message as GuildMessage
 from .models import (
     MessageArk,
     MessageEmbed,
     MessageKeyboard,
     MessageMarkdown,
     MessageReference,
+    QQMessage,
 )
+from .utils import escape, unescape
 
 
 class MessageSegment(BaseMessageSegment["Message"]):
