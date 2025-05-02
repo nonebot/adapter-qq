@@ -1,5 +1,6 @@
 import json
 from base64 import b64encode
+from contextlib import suppress
 from typing_extensions import Never, override
 from datetime import datetime, timezone, timedelta
 from typing import (
@@ -538,6 +539,18 @@ class Bot(BaseBot):
         raise RuntimeError("Event cannot be replied to!")
 
     # API request methods
+    def _handle_audit(self, response: Response) -> None:
+        if 200 <= response.status_code <= 202:
+            with suppress(json.JSONDecodeError):
+                if response.content and (content := json.loads(response.content)):
+                    audit_id = (
+                        content.get("data", {})
+                        .get("message_audit", {})
+                        .get("audit_id", None)
+                    )
+                    if audit_id:
+                        raise AuditException(audit_id)
+
     def _handle_response(self, response: Response) -> Any:
         if trace_id := response.headers.get("X-Tps-trace-ID", None):
             log(
@@ -545,29 +558,12 @@ class Bot(BaseBot):
                 f"Called API {response.request and response.request.url} "
                 f"response {response.status_code} with trace id {trace_id}",
             )
+
+        self._handle_audit(response)
+
         if response.status_code == 201 or response.status_code == 202:
-            if response.content and (content := json.loads(response.content)):
-                audit_id = (
-                    content.get("data", {})
-                    .get("message_audit", {})
-                    .get("audit_id", None)
-                )
-                if audit_id:
-                    raise AuditException(audit_id)
             raise ActionFailed(response)
-        elif response.status_code == 200:
-            if response.content and (content := json.loads(response.content)):
-                audit_id = (
-                    content.get("data", {})
-                    .get("message_audit", {})
-                    .get("audit_id", None)
-                )
-                if audit_id:
-                    raise AuditException(audit_id)
-                else:
-                    return content
-            return response.content
-        elif 201 <= response.status_code < 300:
+        elif 200 <= response.status_code < 300:
             return response.content and json.loads(response.content)
         elif response.status_code == 401:
             raise UnauthorizedException(response)
