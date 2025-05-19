@@ -1674,7 +1674,7 @@ class Bot(BaseBot):
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostC2CMessagesReturn:
         # tmp fix. content must not be none if sending media
-        if media is not None and not content:
+        if media is None and not content:
             content = " "
 
         if isinstance(timestamp, datetime):
