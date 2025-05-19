@@ -1684,7 +1684,11 @@ class Bot(BaseBot):
             json=exclude_none(
                 {
                     "msg_type": msg_type,
-                    "content": (content if content is not None else " "),
+                    "content": (
+                        content
+                        if ((media is not None) or (content is not None))
+                        else " "
+                    ),
                     "markdown": (
                         markdown.dict(exclude_none=True)
                         if markdown is not None
@@ -1786,7 +1790,11 @@ class Bot(BaseBot):
             json=exclude_none(
                 {
                     "msg_type": msg_type,
-                    "content": (content if content is not None else " "),
+                    "content": (
+                        content
+                        if ((media is not None) or (content is not None))
+                        else " "
+                    ),
                     "markdown": (
                         markdown.dict(exclude_none=True)
                         if markdown is not None
