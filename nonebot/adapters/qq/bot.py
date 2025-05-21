@@ -1674,8 +1674,8 @@ class Bot(BaseBot):
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostC2CMessagesReturn:
         # tmp fix. content must not be none if sending media
-        if media is not None and not content:
-            content = " "
+        # if media is not None and not content:
+        #    content = " "
 
         if isinstance(timestamp, datetime):
             timestamp = int(timestamp.timestamp())
@@ -1778,8 +1778,8 @@ class Bot(BaseBot):
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostGroupMessagesReturn:
         # tmp fix. content must not be none if sending media
-        if media is not None and not content:
-            content = " "
+        # if media is not None and not content:
+        #    content = " "
 
         if isinstance(timestamp, datetime):
             timestamp = int(timestamp.timestamp())
