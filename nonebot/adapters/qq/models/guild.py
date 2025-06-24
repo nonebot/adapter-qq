@@ -1,14 +1,14 @@
-import json
-from enum import IntEnum
 from datetime import datetime
-from typing import List, Union, Generic, TypeVar, Optional
+from enum import IntEnum
+import json
+from typing import Generic, Optional, TypeVar, Union
 
 from pydantic import BaseModel
-from nonebot.compat import PYDANTIC_V2, model_fields, type_validate_python
 
 from nonebot.adapters.qq.compat import field_validator, model_validator
+from nonebot.compat import PYDANTIC_V2, model_fields, type_validate_python
 
-from .common import MessageArk, MessageEmbed, MessageReference, MessageAttachment
+from .common import MessageArk, MessageAttachment, MessageEmbed, MessageReference
 
 if PYDANTIC_V2:
     GenericModel = BaseModel
@@ -91,12 +91,12 @@ class Channel(BaseModel):
 class Member(BaseModel):
     user: Optional[User] = None
     nick: Optional[str] = None
-    roles: Optional[List[str]] = None
+    roles: Optional[list[str]] = None
     joined_at: datetime
 
 
 class GetRoleMembersReturn(BaseModel):
-    data: List[Member]
+    data: list[Member]
     next: str
 
 
@@ -112,7 +112,7 @@ class Role(BaseModel):
 
 class GetGuildRolesReturn(BaseModel):
     guild_id: str
-    roles: List[Role]
+    roles: list[Role]
     role_num_limit: int
 
 
@@ -145,9 +145,9 @@ class Message(BaseModel):
     edited_timestamp: Optional[datetime] = None
     mention_everyone: Optional[bool] = None
     author: User
-    attachments: Optional[List[MessageAttachment]] = None
-    embeds: Optional[List[MessageEmbed]] = None
-    mentions: Optional[List[User]] = None
+    attachments: Optional[list[MessageAttachment]] = None
+    embeds: Optional[list[MessageEmbed]] = None
+    mentions: Optional[list[User]] = None
     member: Optional[Member] = None
     ark: Optional[MessageArk] = None
     seq: Optional[int] = None
@@ -162,22 +162,11 @@ class MessageDelete(BaseModel):
     op_user: User
 
 
-# Message Audit Event
-class MessageAudited(BaseModel):
-    audit_id: str
-    message_id: Optional[str] = None
-    guild_id: str
-    channel_id: str
-    audit_time: datetime
-    create_time: Optional[datetime] = None
-    seq_in_channel: Optional[str] = None
-
-
 # Message Setting
 class MessageSetting(BaseModel):
     disable_create_dm: bool
     disable_push_msg: bool
-    channel_ids: List[str]
+    channel_ids: list[str]
     channel_push_max_num: int
 
 
@@ -199,14 +188,14 @@ class Announces(BaseModel):
     channel_id: Optional[str] = None
     message_id: Optional[str] = None
     announces_type: Optional[int] = None
-    recommend_channels: Optional[List[RecommendChannel]] = None
+    recommend_channels: Optional[list[RecommendChannel]] = None
 
 
 # Pins
 class PinsMessage(BaseModel):
     guild_id: str
     channel_id: str
-    message_ids: List[str]
+    message_ids: list[str]
 
 
 # Schedule
@@ -262,7 +251,7 @@ class MessageReaction(BaseModel):
 
 
 class GetReactionUsersReturn(BaseModel):
-    users: List[User]
+    users: list[User]
     cookie: str
     is_end: bool
 
@@ -369,12 +358,12 @@ class ParagraphProps(BaseModel):
 
 
 class Paragraph(BaseModel):
-    elems: List[Elem]
+    elems: list[Elem]
     props: Optional[ParagraphProps] = None
 
 
 class RichText(BaseModel):
-    paragraphs: List[Paragraph]
+    paragraphs: Optional[list[Paragraph]] = None
 
 
 class ThreadObjectInfo(BaseModel):
@@ -452,7 +441,7 @@ class ForumAuditResult(ForumSourceInfo):
 
 
 class GetThreadsListReturn(BaseModel):
-    threads: List[Thread[str]]
+    threads: list[Thread[str]]
     is_finish: bool
 
 
@@ -487,7 +476,7 @@ class APIPermissionDemand(BaseModel):
 
 
 class GetGuildAPIPermissionReturn(BaseModel):
-    apis: List[APIPermission]
+    apis: list[APIPermission]
 
 
 # WebSocket
@@ -509,68 +498,67 @@ class ShardUrlGetReturn(BaseModel):
 
 
 __all__ = [
-    "Guild",
-    "User",
-    "ChannelType",
-    "ChannelSubType",
-    "PrivateType",
-    "SpeakPermission",
+    "DMS",
+    "APIPermission",
+    "APIPermissionDemand",
+    "APIPermissionDemandIdentify",
+    "Alignment",
+    "Announces",
+    "AudioAction",
+    "AudioControl",
+    "AudioStatus",
     "Channel",
-    "Member",
-    "GetRoleMembersReturn",
-    "Role",
-    "GetGuildRolesReturn",
-    "PostGuildRoleReturn",
-    "PatchGuildRoleReturn",
     "ChannelPermissions",
+    "ChannelSubType",
+    "ChannelType",
+    "Elem",
+    "ElemType",
+    "Emoji",
+    "EmojiType",
+    "ForumAuditResult",
+    "ForumAuditType",
+    "ForumSourceInfo",
+    "GetGuildAPIPermissionReturn",
+    "GetGuildRolesReturn",
+    "GetReactionUsersReturn",
+    "GetRoleMembersReturn",
+    "GetThreadReturn",
+    "GetThreadsListReturn",
+    "Guild",
+    "ImageElem",
+    "Member",
     "Message",
     "MessageDelete",
-    "MessageAudited",
-    "MessageSetting",
-    "DMS",
-    "RecommendChannel",
-    "Announces",
-    "PinsMessage",
-    "RemindType",
-    "Schedule",
-    "EmojiType",
-    "Emoji",
-    "ReactionTargetType",
-    "ReactionTarget",
     "MessageReaction",
-    "GetReactionUsersReturn",
-    "AudioStatus",
-    "AudioControl",
-    "AudioAction",
-    "ElemType",
-    "TextProps",
-    "TextElem",
-    "ImageElem",
-    "VideoElem",
-    "URLElem",
-    "Elem",
-    "Alignment",
-    "ParagraphProps",
+    "MessageSetting",
     "Paragraph",
-    "RichText",
-    "ThreadObjectInfo",
-    "ThreadInfo",
-    "ForumSourceInfo",
-    "Thread",
-    "PostInfo",
+    "ParagraphProps",
+    "PatchGuildRoleReturn",
+    "PinsMessage",
     "Post",
-    "ReplyInfo",
-    "Reply",
-    "ForumAuditType",
-    "ForumAuditResult",
-    "GetThreadsListReturn",
-    "GetThreadReturn",
+    "PostGuildRoleReturn",
+    "PostInfo",
+    "PrivateType",
     "PutThreadReturn",
-    "APIPermission",
-    "APIPermissionDemandIdentify",
-    "APIPermissionDemand",
-    "GetGuildAPIPermissionReturn",
-    "UrlGetReturn",
+    "ReactionTarget",
+    "ReactionTargetType",
+    "RecommendChannel",
+    "RemindType",
+    "Reply",
+    "ReplyInfo",
+    "RichText",
+    "Role",
+    "Schedule",
     "SessionStartLimit",
     "ShardUrlGetReturn",
+    "SpeakPermission",
+    "TextElem",
+    "TextProps",
+    "Thread",
+    "ThreadInfo",
+    "ThreadObjectInfo",
+    "URLElem",
+    "UrlGetReturn",
+    "User",
+    "VideoElem",
 ]

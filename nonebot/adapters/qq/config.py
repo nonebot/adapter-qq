@@ -1,6 +1,7 @@
-from typing import List, Tuple, Optional
+from typing import Optional
 
-from pydantic import Field, HttpUrl, BaseModel
+from pydantic import BaseModel, Field, HttpUrl
+
 from nonebot.compat import PYDANTIC_V2, ConfigDict
 
 
@@ -43,28 +44,20 @@ class Intents(BaseModel):
             | self.at_messages << 30
         )
 
-    @property
-    def is_group_enabled(self) -> bool:
-        """是否开启群聊功能"""
-        return self.c2c_group_at_messages is True
-
 
 class BotInfo(BaseModel):
     id: str = Field(alias="id")
     token: str = Field(alias="token")
     secret: str = Field(alias="secret")
-    shard: Optional[Tuple[int, int]] = None
+    shard: Optional[tuple[int, int]] = None
     intent: Intents = Field(default_factory=Intents)
-
-    @property
-    def is_group_bot(self) -> bool:
-        """是否为群机器人"""
-        return self.intent.is_group_enabled
+    use_websocket: bool = True
 
 
 class Config(BaseModel):
     qq_is_sandbox: bool = False
-    qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")
-    qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")
-    qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")
-    qq_bots: List[BotInfo] = Field(default_factory=list)
+    qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")  # type: ignore
+    qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")  # type: ignore
+    qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")  # type: ignore
+    qq_verify_webhook: bool = True
+    qq_bots: list[BotInfo] = Field(default_factory=list)

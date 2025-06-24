@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from urllib.parse import urlparse
 from typing import List, Literal, Optional
 
@@ -10,11 +11,13 @@ from nonebot.adapters.qq.compat import field_validator
 class FriendAuthor(BaseModel):
     id: str
     user_openid: str
+    union_openid: Optional[str] = None
 
 
 class GroupMemberAuthor(BaseModel):
     id: str
     member_openid: str
+    union_openid: Optional[str] = None
 
 
 class Attachment(BaseModel):
@@ -40,7 +43,7 @@ class QQMessage(BaseModel):
     id: str
     content: str
     timestamp: str
-    attachments: Optional[List[Attachment]] = None
+    attachments: Optional[list[Attachment]] = None
 
 
 class PostC2CMessagesReturn(BaseModel):
@@ -71,7 +74,7 @@ class GroupMember(BaseModel):
 
 
 class PostGroupMembersReturn(BaseModel):
-    members: List[GroupMember]
+    members: list[GroupMember]
     next_index: Optional[int] = None
 
 
@@ -117,16 +120,13 @@ class MessageStream(BaseModel):
 
 
 __all__ = [
-    "FriendAuthor",
-    "GroupMemberAuthor",
     "Attachment",
-    "Media",
-    "QQMessage",
-    "PostC2CMessagesReturn",
-    "PostGroupMessagesReturn",
-    "PostC2CFilesReturn",
+    "FriendAuthor",
     "GroupMember",
-    "PostGroupMembersReturn",
+    "GroupMemberAuthor",
+    "Media",
+    "PostC2CFilesReturn",
+    "PostC2CMessagesReturn",
     "PostGroupFilesReturn",
     "MessageActionButton",
     "PromptAction",
@@ -137,4 +137,7 @@ __all__ = [
     "Keyboard",
     "MessagePromptKeyboard",
     "MessageStream",
+    "PostGroupMembersReturn",
+    "PostGroupMessagesReturn",
+    "QQMessage",
 ]

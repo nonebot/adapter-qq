@@ -1,8 +1,9 @@
 from enum import IntEnum
-from typing import Tuple, Union
-from typing_extensions import Literal, Annotated
+from typing import Annotated, Optional, Union
+from typing_extensions import Literal
 
-from pydantic import Field, BaseModel
+from pydantic import BaseModel, Field
+
 from nonebot.compat import PYDANTIC_V2, ConfigDict
 
 PAYLOAD_FIELD_ALIASES = {"opcode": "op", "data": "d", "sequence": "s", "type": "t"}
@@ -18,6 +19,7 @@ class Opcode(IntEnum):
     HELLO = 10
     HEARTBEAT_ACK = 11
     HTTP_CALLBACK_ACK = 12
+    WEBHOOK_VERIFY = 13
 
 
 class Payload(BaseModel):
@@ -41,8 +43,9 @@ class Payload(BaseModel):
 class Dispatch(Payload):
     opcode: Literal[Opcode.DISPATCH] = Field(Opcode.DISPATCH)
     data: dict
-    sequence: int
+    sequence: Optional[int] = None
     type: str
+    id: Optional[str] = None
 
 
 class Heartbeat(Payload):
@@ -53,7 +56,7 @@ class Heartbeat(Payload):
 class IdentifyData(BaseModel):
     token: str
     intents: int
-    shard: Tuple[int, int]
+    shard: tuple[int, int]
     properties: dict
 
     if PYDANTIC_V2:
@@ -120,9 +123,26 @@ class HTTPCallbackAck(Payload):
     data: int
 
 
+class WebhookVerifyData(BaseModel):
+    plain_token: str
+    event_ts: str
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(extra="allow")
+    else:
+
+        class Config:
+            extra = "allow"
+
+
+class WebhookVerify(Payload):
+    opcode: Literal[Opcode.WEBHOOK_VERIFY] = Field(Opcode.WEBHOOK_VERIFY)
+    data: WebhookVerifyData
+
+
 PayloadType = Union[
     Annotated[
-        Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck],
+        Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck, WebhookVerify],
         Field(discriminator="opcode"),
     ],
     Payload,
