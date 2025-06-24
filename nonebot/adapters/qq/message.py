@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Optional, TypedDict, Union, overload
+from typing import TYPE_CHECKING, Optional, TypedDict, Union, overload, Literal
 from typing_extensions import Self, override
 
 from nonebot.adapters import Message as BaseMessage
@@ -149,6 +149,31 @@ class MessageSegment(BaseMessageSegment["Message"]):
                     message_id=reference, ignore_get_message_error=ignore_error
                 )
             },
+        )
+
+    @staticmethod
+    def stream(
+        state: Literal[1, 10, 11, 20],
+        _id: Optional[str],
+        index: int,
+        reset: Optional[bool] = None,
+    ) -> "Stream":
+        _data = {
+            'state': state,
+            'index': index,
+        }
+        if _id is not None:
+            _data['id'] = _id
+
+        if reset is not None:
+            _data['reset'] = reset
+
+        return Stream("stream", data={"stream": MessageStream(**_data)})
+
+    @staticmethod
+    def prompt_keyboard(prompt_keyboard: MessagePromptKeyboard) -> "PromptKeyboard":
+        return PromptKeyboard(
+            "prompt_keyboard", data={"prompt_keyboard": prompt_keyboard}
         )
 
     @override
