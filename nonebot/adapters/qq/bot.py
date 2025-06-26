@@ -1700,7 +1700,7 @@ class Bot(BaseBot):
         elif timestamp is None:
             timestamp = int(datetime.now(timezone.utc).timestamp())
 
-        json = exclude_none(
+        json_data = exclude_none(
             {
                 "msg_type": msg_type,
                 "content": content,
