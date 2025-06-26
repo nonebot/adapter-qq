@@ -176,6 +176,10 @@ class MessageSegment(BaseMessageSegment["Message"]):
             "prompt_keyboard", data={"prompt_keyboard": prompt_keyboard}
         )
 
+    @staticmethod
+    def action_button(action_button: MessageActionButton) -> "ActionButton":
+        return ActionButton("action_button", data={"action_button": action_button})
+
     @override
     def __add__(
         self, other: Union[str, "MessageSegment", Iterable["MessageSegment"]]

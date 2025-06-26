@@ -71,6 +71,7 @@ from .models import (
     MessageSetting,
     MessageStream,
     MessagePromptKeyboard,
+    MessageActionButton,
     PatchGuildRoleReturn,
     PinsMessage,
     PostC2CFilesReturn,
@@ -322,6 +323,8 @@ class Bot(BaseBot):
             kwargs["stream"] = stream[-1].data["stream"]
         if prompt_keyboard := (message["prompt_keyboard"] or None):
             kwargs["prompt_keyboard"] = prompt_keyboard[-1].data["prompt_keyboard"]
+        if action_button := (message["action_button"] or None):
+            kwargs["action_button"] = action_button[-1].data["action_button"]
         return kwargs
 
     @staticmethod
@@ -413,6 +416,7 @@ class Bot(BaseBot):
             or kwargs.get("stream")
             or kwargs.get("keyboard")
             or kwargs.get("prompt_keyboard")
+            or kwargs.get("action_button")
         ):
             msg_type = 2
         elif (
@@ -1681,6 +1685,7 @@ class Bot(BaseBot):
         message_reference: None = None,
         stream: Optional[MessageStream] = None,
         prompt_keyboard: Optional[MessagePromptKeyboard] = None,
+        action_button: Optional[MessageActionButton] = None,
         event_id: Optional[str] = None,
         msg_id: Optional[str] = None,
         msg_seq: Optional[int] = None,
@@ -1722,6 +1727,11 @@ class Bot(BaseBot):
                 "prompt_keyboard": (
                     prompt_keyboard.dict(exclude_none=True, exclude_unset=True)
                     if prompt_keyboard is not None
+                    else None
+                ),
+                "action_button": (
+                    action_button.dict(exclude_none=True)
+                    if action_button is not None
                     else None
                 ),
                 "event_id": event_id,

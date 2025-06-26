@@ -78,10 +78,10 @@ class PostGroupMembersReturn(BaseModel):
 
 
 class MessageActionButton(BaseModel):
-    template_id: Literal["1", "10"] = "1" # 待废弃字段！！！
+    template_id: Literal["1", "10"] = "1"  # 待废弃字段！！！
     callback_data: Optional[str] = None
     feedback: Optional[bool] = None  # 反馈按钮（赞踩按钮）
-    tts: Optional[bool] = None       # TTS语音播放按钮
+    tts: Optional[bool] = None  # TTS语音播放按钮
     re_generate: Optional[bool] = None  # 重新生成按钮
     stop_generate: Optional[bool] = None  # 停止生成按钮
 
@@ -94,8 +94,10 @@ class PromptRenderData(BaseModel):
     label: str
     style: Literal[2] = 2
 
+
 class PromptRenderData(BaseModel):
     label: str
+
 
 class PromptButton(BaseModel):
     render_data: PromptRenderData
@@ -119,10 +121,14 @@ class MessagePromptKeyboard(BaseModel):
 
 
 class MessageStream(BaseModel):
-    state: Literal[1, 10, 11, 20] # 1正文生成中，10：正文生成结束， 11：引志消息生成中， 20：引导消息生成结束。
+    state: Literal[
+        1, 10, 11, 20
+    ]  # 1正文生成中，10：正文生成结束， 11：引志消息生成中， 20：引导消息生成结束。
     id: Optional[str] = None  # 第一条不用填写，第二条需要填写第一个分片返回的msgID
-    index: int # 从1开始
-    reset: Optional[bool] = None # 此参数只能使用于流式消息分片还没有发送完成时，reset时Index需要从0开始，需要填写流式ID
+    index: int  # 从1开始
+    reset: Optional[bool] = (
+        None  # 此参数只能使用于流式消息分片还没有发送完成时，reset时Index需要从0开始，需要填写流式ID
+    )
 
 
 __all__ = [
