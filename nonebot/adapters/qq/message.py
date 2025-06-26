@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Optional, TypedDict, Union, overload, Literal
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict, Union, overload
 from typing_extensions import Self, override
 
 from nonebot.adapters import Message as BaseMessage
@@ -159,14 +159,14 @@ class MessageSegment(BaseMessageSegment["Message"]):
         reset: Optional[bool] = None,
     ) -> "Stream":
         _data = {
-            'state': state,
-            'index': index,
+            "state": state,
+            "index": index,
         }
         if _id is not None:
-            _data['id'] = _id
+            _data["id"] = _id
 
         if reset is not None:
-            _data['reset'] = reset
+            _data["reset"] = reset
 
         return Stream("stream", data={"stream": MessageStream(**_data)})
 

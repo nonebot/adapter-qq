@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional, NotRequired
+from typing import List, Literal, Optional
 from urllib.parse import urlparse
 
 from pydantic import BaseModel
@@ -136,7 +136,6 @@ __all__ = [
     "FriendAuthor",
     "GroupMember",
     "GroupMemberAuthor",
-    "PromptKeyboardModel",
     "Media",
     "MessageActionButton",
     "MessagePromptKeyboard",
@@ -149,6 +148,7 @@ __all__ = [
     "PromptAction",
     "PromptButton",
     "PromptContent",
+    "PromptKeyboardModel",
     "PromptRenderData",
     "PromptRow",
     "QQMessage",

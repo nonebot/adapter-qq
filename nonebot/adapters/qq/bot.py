@@ -67,11 +67,15 @@ from .models import (
     MessageEmbed,
     MessageKeyboard,
     MessageMarkdown,
+    MessagePromptKeyboard,
     MessageReference,
     MessageSetting,
     MessageStream,
+<<<<<<< HEAD
     MessagePromptKeyboard,
     MessageActionButton,
+=======
+>>>>>>> f33dd7f717b1035c61447680aa3f9330c66502c0
     PatchGuildRoleReturn,
     PinsMessage,
     PostC2CFilesReturn,
