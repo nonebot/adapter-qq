@@ -1743,7 +1743,7 @@ class Bot(BaseBot):
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("v2", "users", openid, "messages"),
-            json=json,
+            json=json_data,
         )
         return type_validate_python(PostC2CMessagesReturn, await self._request(request))
 
