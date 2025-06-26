@@ -81,7 +81,7 @@ class MessageActionButton(BaseModel):
     template_id: Literal["1", "10"] = "1"  # 待废弃字段！！！
     callback_data: Optional[str] = None
     feedback: Optional[bool] = None  # 反馈按钮（赞踩按钮）
-    tts: Optional[bool] = None  # TTS语音播放按钮
+    tts: Optional[bool] = None  # TTS 语音播放按钮
     re_generate: Optional[bool] = None  # 重新生成按钮
     stop_generate: Optional[bool] = None  # 停止生成按钮
 
