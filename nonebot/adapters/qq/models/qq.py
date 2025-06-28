@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 from urllib.parse import urlparse
 
 from pydantic import BaseModel
@@ -105,11 +105,11 @@ class PromptButton(BaseModel):
 
 
 class PromptRow(BaseModel):
-    buttons: List[PromptButton]
+    buttons: list[PromptButton]
 
 
 class PromptContent(BaseModel):
-    rows: List[PromptRow]
+    rows: list[PromptRow]
 
 
 class PromptKeyboardModel(BaseModel):
