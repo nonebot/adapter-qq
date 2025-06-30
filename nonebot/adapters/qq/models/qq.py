@@ -95,10 +95,6 @@ class PromptRenderData(BaseModel):
     style: Literal[2] = 2
 
 
-class PromptRenderData(BaseModel):
-    label: str
-
-
 class PromptButton(BaseModel):
     render_data: PromptRenderData
     action: PromptAction
