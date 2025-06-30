@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Optional, TypedDict, Union, overload
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict, Union, overload
 from typing_extensions import Self, override
 
 from nonebot.adapters import Message as BaseMessage
@@ -13,11 +13,14 @@ from nonebot.compat import type_validate_python
 from .models import Attachment as QQAttachment
 from .models import Message as GuildMessage
 from .models import (
+    MessageActionButton,
     MessageArk,
     MessageEmbed,
     MessageKeyboard,
     MessageMarkdown,
+    MessagePromptKeyboard,
     MessageReference,
+    MessageStream,
     QQMessage,
 )
 from .utils import escape, unescape
@@ -147,6 +150,35 @@ class MessageSegment(BaseMessageSegment["Message"]):
                 )
             },
         )
+
+    @staticmethod
+    def stream(
+        state: Literal[1, 10, 11, 20],
+        _id: Optional[str],
+        index: int,
+        reset: Optional[bool] = None,
+    ) -> "Stream":
+        _data = {
+            "state": state,
+            "index": index,
+        }
+        if _id is not None:
+            _data["id"] = _id
+
+        if reset is not None:
+            _data["reset"] = reset
+
+        return Stream("stream", data={"stream": MessageStream(**_data)})
+
+    @staticmethod
+    def prompt_keyboard(prompt_keyboard: MessagePromptKeyboard) -> "PromptKeyboard":
+        return PromptKeyboard(
+            "prompt_keyboard", data={"prompt_keyboard": prompt_keyboard}
+        )
+
+    @staticmethod
+    def action_button(action_button: MessageActionButton) -> "ActionButton":
+        return ActionButton("action_button", data={"action_button": action_button})
 
     @override
     def __add__(
@@ -443,6 +475,48 @@ SEGMENT_TYPE_MAP: dict[str, type[MessageSegment]] = {
     "keyboard": Keyboard,
     "reference": Reference,
 }
+
+
+class _ActionButtonData(TypedDict):
+    action_button: MessageActionButton
+
+
+@dataclass
+class ActionButton(MessageSegment):
+    if TYPE_CHECKING:
+        data: _ActionButtonData
+
+    @override
+    def __str__(self) -> str:
+        return f"<action_button:{self.data['action_button']!r}>"
+
+
+class _PromptKeyboardData(TypedDict):
+    prompt_keyboard: MessagePromptKeyboard
+
+
+@dataclass
+class PromptKeyboard(MessageSegment):
+    if TYPE_CHECKING:
+        data: _PromptKeyboardData
+
+    @override
+    def __str__(self) -> str:
+        return f"<prompt_keyboard:{self.data['prompt_keyboard']!r}>"
+
+
+class _StreamData(TypedDict):
+    stream: MessageStream
+
+
+@dataclass
+class Stream(MessageSegment):
+    if TYPE_CHECKING:
+        data: _StreamData
+
+    @override
+    def __str__(self) -> str:
+        return f"<stream:{self.data['stream']!r}>"
 
 
 class Message(BaseMessage[MessageSegment]):

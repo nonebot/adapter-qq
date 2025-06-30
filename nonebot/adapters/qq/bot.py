@@ -63,12 +63,15 @@ from .models import (
     Guild,
     Media,
     Member,
+    MessageActionButton,
     MessageArk,
     MessageEmbed,
     MessageKeyboard,
     MessageMarkdown,
+    MessagePromptKeyboard,
     MessageReference,
     MessageSetting,
+    MessageStream,
     PatchGuildRoleReturn,
     PinsMessage,
     PostC2CFilesReturn,
@@ -316,6 +319,12 @@ class Bot(BaseBot):
             kwargs["message_reference"] = reference[-1].data["reference"]
         if keyboard := (message["keyboard"] or None):
             kwargs["keyboard"] = keyboard[-1].data["keyboard"]
+        if stream := (message["stream"] or None):
+            kwargs["stream"] = stream[-1].data["stream"]
+        if prompt_keyboard := (message["prompt_keyboard"] or None):
+            kwargs["prompt_keyboard"] = prompt_keyboard[-1].data["prompt_keyboard"]
+        if action_button := (message["action_button"] or None):
+            kwargs["action_button"] = action_button[-1].data["action_button"]
         return kwargs
 
     @staticmethod
@@ -402,7 +411,13 @@ class Bot(BaseBot):
             msg_type = 4
         elif kwargs.get("ark"):
             msg_type = 3
-        elif kwargs.get("markdown") or kwargs.get("keyboard"):
+        elif (
+            kwargs.get("markdown")
+            or kwargs.get("stream")
+            or kwargs.get("keyboard")
+            or kwargs.get("prompt_keyboard")
+            or kwargs.get("action_button")
+        ):
             msg_type = 2
         elif (
             message["image"]
@@ -1668,6 +1683,9 @@ class Bot(BaseBot):
         embed: Optional[MessageEmbed] = None,
         image: None = None,
         message_reference: None = None,
+        stream: Optional[MessageStream] = None,
+        prompt_keyboard: Optional[MessagePromptKeyboard] = None,
+        action_button: Optional[MessageActionButton] = None,
         event_id: Optional[str] = None,
         msg_id: Optional[str] = None,
         msg_seq: Optional[int] = None,
@@ -1682,42 +1700,50 @@ class Bot(BaseBot):
         elif timestamp is None:
             timestamp = int(datetime.now(timezone.utc).timestamp())
 
+        json_data = exclude_none(
+            {
+                "msg_type": msg_type,
+                "content": content,
+                "markdown": (
+                    markdown.dict(exclude_none=True) if markdown is not None else None
+                ),
+                "keyboard": (
+                    keyboard.dict(exclude_none=True) if keyboard is not None else None
+                ),
+                "media": (media.dict(exclude_none=True) if media is not None else None),
+                "ark": ark.dict(exclude_none=True) if ark is not None else None,
+                "embed": (embed.dict(exclude_none=True) if embed is not None else None),
+                "image": image,
+                "message_reference": (
+                    message_reference.dict(exclude_none=True)
+                    if message_reference is not None
+                    else None
+                ),
+                "stream": (
+                    stream.dict(exclude_none=True, exclude_unset=True)
+                    if stream is not None
+                    else None
+                ),
+                "prompt_keyboard": (
+                    prompt_keyboard.dict(exclude_none=True, exclude_unset=True)
+                    if prompt_keyboard is not None
+                    else None
+                ),
+                "action_button": (
+                    action_button.dict(exclude_none=True)
+                    if action_button is not None
+                    else None
+                ),
+                "event_id": event_id,
+                "msg_id": msg_id,
+                "msg_seq": msg_seq,
+                "timestamp": timestamp,
+            }
+        )
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("v2", "users", openid, "messages"),
-            json=exclude_none(
-                {
-                    "msg_type": msg_type,
-                    "content": content,
-                    "markdown": (
-                        markdown.dict(exclude_none=True)
-                        if markdown is not None
-                        else None
-                    ),
-                    "keyboard": (
-                        keyboard.dict(exclude_none=True)
-                        if keyboard is not None
-                        else None
-                    ),
-                    "media": (
-                        media.dict(exclude_none=True) if media is not None else None
-                    ),
-                    "ark": ark.dict(exclude_none=True) if ark is not None else None,
-                    "embed": (
-                        embed.dict(exclude_none=True) if embed is not None else None
-                    ),
-                    "image": image,
-                    "message_reference": (
-                        message_reference.dict(exclude_none=True)
-                        if message_reference is not None
-                        else None
-                    ),
-                    "event_id": event_id,
-                    "msg_id": msg_id,
-                    "msg_seq": msg_seq,
-                    "timestamp": timestamp,
-                }
-            ),
+            json=json_data,
         )
         return type_validate_python(PostC2CMessagesReturn, await self._request(request))
 

@@ -356,7 +356,7 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
 
 
 class QQMessageEvent(MessageEvent, QQMessage):
-    _reply_seq: int = -1
+    _reply_seq: int = 0
 
     @override
     def get_message(self) -> Message:
