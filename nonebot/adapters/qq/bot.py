@@ -413,7 +413,7 @@ class Bot(BaseBot):
             msg_type = 3
         elif (
             kwargs.get("markdown")
-            or kwargs.get("stream")
+            # or kwargs.get("stream")
             or kwargs.get("keyboard")
             or kwargs.get("prompt_keyboard")
             or kwargs.get("action_button")
