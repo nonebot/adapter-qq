@@ -1,5 +1,5 @@
 import asyncio
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .event import MessageAuditEvent
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 class AuditResultStore:
     def __init__(self) -> None:
-        self._futures: Dict[str, asyncio.Future] = {}
+        self._futures: dict[str, asyncio.Future] = {}
 
     def add_result(self, result: "MessageAuditEvent"):
         audit_id = result.audit_id

@@ -8,7 +8,12 @@ from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
 from .api import Message as GuildMessage
-from .api import User, Guild, Member, Channel
+from .api import (
+    User,
+    Guild,
+    Member,
+    Channel,
+)
 from .api import (
     RichText,
     ForumPost,

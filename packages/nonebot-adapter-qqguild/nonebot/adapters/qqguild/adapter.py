@@ -221,9 +221,9 @@ class Adapter(BaseAdapter):
         """接收并处理服务器的 Hello 事件"""
         try:
             payload = await self.receive_payload(ws)
-            assert isinstance(
-                payload, Hello
-            ), f"Received unexpected payload: {payload!r}"
+            assert isinstance(payload, Hello), (
+                f"Received unexpected payload: {payload!r}"
+            )
             return payload.data.heartbeat_interval
         except Exception as e:
             log(
@@ -282,14 +282,14 @@ class Adapter(BaseAdapter):
             # https://bot.q.qq.com/wiki/develop/api/gateway/reference.html#_2-%E9%89%B4%E6%9D%83%E8%BF%9E%E6%8E%A5
             # 鉴权成功之后，后台会下发一个 Ready Event
             payload = await self.receive_payload(ws)
-            assert isinstance(
-                payload, Dispatch
-            ), f"Received unexpected payload: {payload!r}"
+            assert isinstance(payload, Dispatch), (
+                f"Received unexpected payload: {payload!r}"
+            )
             bot.sequence = payload.sequence
             ready_event = self.payload_to_event(payload)
-            assert isinstance(
-                ready_event, ReadyEvent
-            ), f"Received unexpected event: {ready_event!r}"
+            assert isinstance(ready_event, ReadyEvent), (
+                f"Received unexpected event: {ready_event!r}"
+            )
             bot.session_id = ready_event.session_id
             bot.self_info = ready_event.user
 

@@ -1,28 +1,33 @@
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Optional, TypeVar, cast
 from typing_extensions import override
-from typing import Dict, Type, Tuple, TypeVar, Optional, cast
-
-from nonebot.utils import escape_tag
 
 from nonebot.adapters import Event as BaseEvent
+from nonebot.utils import escape_tag
 
 from .message import Message
-from .models import Message as GuildMessage
-from .models import Post, User, Guild, Reply, Member, Thread, Channel
 from .models import (
-    RichText,
-    QQMessage,
     AudioAction,
-    FriendAuthor,
-    MessageDelete,
-    MessageAudited,
-    ForumSourceInfo,
-    MessageReaction,
-    ForumAuditResult,
     ButtonInteraction,
+    Channel,
+    ForumAuditResult,
+    ForumSourceInfo,
+    FriendAuthor,
     GroupMemberAuthor,
+    Guild,
+    Member,
+    MessageAudited,
+    MessageDelete,
+    MessageReaction,
+    Post,
+    QQMessage,
+    Reply,
+    RichText,
+    Thread,
+    User,
 )
+from .models import Message as GuildMessage
 
 E = TypeVar("E", bound="Event")
 
@@ -145,10 +150,10 @@ class Event(BaseEvent):
         return False
 
 
-EVENT_CLASSES: Dict[str, Type[Event]] = {}
+EVENT_CLASSES: dict[str, type[Event]] = {}
 
 
-def register_event_class(event_class: Type[E]) -> Type[E]:
+def register_event_class(event_class: type[E]) -> type[E]:
     EVENT_CLASSES[event_class.__type__.value] = event_class
     return event_class
 
@@ -166,7 +171,7 @@ class ReadyEvent(MetaEvent):
     version: int
     session_id: str
     user: User
-    shard: Tuple[int, int]
+    shard: tuple[int, int]
 
 
 @register_event_class
@@ -351,7 +356,7 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
 
 
 class QQMessageEvent(MessageEvent, QQMessage):
-    _reply_seq: int = -1
+    _reply_seq: int = 0
 
     @override
     def get_message(self) -> Message:
@@ -680,75 +685,75 @@ class GroupMsgReceiveEvent(GroupRobotEvent):
 
 __all__ = [
     "EVENT_CLASSES",
-    "EventType",
-    "Event",
-    "MetaEvent",
-    "ReadyEvent",
-    "ResumedEvent",
-    "NoticeEvent",
-    "GuildEvent",
-    "GuildCreateEvent",
-    "GuildUpdateEvent",
-    "GuildDeleteEvent",
-    "ChannelEvent",
-    "ChannelCreateEvent",
-    "ChannelUpdateEvent",
-    "ChannelDeleteEvent",
-    "GuildMemberEvent",
-    "GuildMemberAddEvent",
-    "GuildMemberUpdateEvent",
-    "GuildMemberRemoveEvent",
-    "MessageEvent",
-    "GuildMessageEvent",
-    "MessageCreateEvent",
-    "MessageDeleteEvent",
     "AtMessageCreateEvent",
-    "PublicMessageDeleteEvent",
+    "AudioEvent",
+    "AudioFinishEvent",
+    "AudioOffMicEvent",
+    "AudioOnMicEvent",
+    "AudioStartEvent",
+    "C2CMessageCreateEvent",
+    "C2CMsgReceiveEvent",
+    "C2CMsgRejectEvent",
+    "ChannelCreateEvent",
+    "ChannelDeleteEvent",
+    "ChannelEvent",
+    "ChannelUpdateEvent",
     "DirectMessageCreateEvent",
     "DirectMessageDeleteEvent",
-    "QQMessageEvent",
-    "C2CMessageCreateEvent",
+    "Event",
+    "EventType",
+    "ForumEvent",
+    "ForumPostCreateEvent",
+    "ForumPostDeleteEvent",
+    "ForumPostEvent",
+    "ForumPublishAuditResult",
+    "ForumReplyCreateEvent",
+    "ForumReplyDeleteEvent",
+    "ForumReplyEvent",
+    "ForumThreadCreateEvent",
+    "ForumThreadDeleteEvent",
+    "ForumThreadEvent",
+    "ForumThreadUpdateEvent",
+    "FriendAddEvent",
+    "FriendDelEvent",
+    "FriendRobotEvent",
+    "GroupAddRobotEvent",
     "GroupAtMessageCreateEvent",
+    "GroupDelRobotEvent",
+    "GroupMsgReceiveEvent",
+    "GroupMsgRejectEvent",
+    "GroupRobotEvent",
+    "GuildCreateEvent",
+    "GuildDeleteEvent",
+    "GuildEvent",
+    "GuildMemberAddEvent",
+    "GuildMemberEvent",
+    "GuildMemberRemoveEvent",
+    "GuildMemberUpdateEvent",
+    "GuildMessageEvent",
+    "GuildUpdateEvent",
     "InteractionCreateEvent",
     "MessageAuditEvent",
     "MessageAuditPassEvent",
     "MessageAuditRejectEvent",
-    "MessageReactionEvent",
+    "MessageCreateEvent",
+    "MessageDeleteEvent",
+    "MessageEvent",
     "MessageReactionAddEvent",
+    "MessageReactionEvent",
     "MessageReactionRemoveEvent",
-    "AudioEvent",
-    "AudioStartEvent",
-    "AudioFinishEvent",
-    "AudioOnMicEvent",
-    "AudioOffMicEvent",
-    "ForumEvent",
-    "ForumThreadEvent",
-    "ForumThreadCreateEvent",
-    "ForumThreadUpdateEvent",
-    "ForumThreadDeleteEvent",
-    "ForumPostEvent",
-    "ForumPostCreateEvent",
-    "ForumPostDeleteEvent",
-    "ForumReplyEvent",
-    "ForumReplyCreateEvent",
-    "ForumReplyDeleteEvent",
-    "ForumPublishAuditResult",
+    "MetaEvent",
+    "NoticeEvent",
     "OpenForumEvent",
-    "OpenForumThreadCreateEvent",
-    "OpenForumThreadUpdateEvent",
-    "OpenForumThreadDeleteEvent",
     "OpenForumPostCreateEvent",
     "OpenForumPostDeleteEvent",
     "OpenForumReplyCreateEvent",
     "OpenForumReplyDeleteEvent",
-    "FriendRobotEvent",
-    "FriendAddEvent",
-    "FriendDelEvent",
-    "C2CMsgRejectEvent",
-    "C2CMsgReceiveEvent",
-    "GroupRobotEvent",
-    "GroupAddRobotEvent",
-    "GroupDelRobotEvent",
-    "GroupMsgRejectEvent",
-    "GroupMsgReceiveEvent",
+    "OpenForumThreadCreateEvent",
+    "OpenForumThreadDeleteEvent",
+    "OpenForumThreadUpdateEvent",
+    "PublicMessageDeleteEvent",
+    "QQMessageEvent",
+    "ReadyEvent",
+    "ResumedEvent",
 ]

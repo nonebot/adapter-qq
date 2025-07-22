@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-adapter-qq"
-version = "1.5.1"
+version = "1.6.4"
 description = "QQ adapter for nonebot2"
 authors = ["yanyongyu <yyy@nonebot.dev>"]
 license = "MIT"
@@ -22,21 +22,14 @@ packages = [{ include = "nonebot" }]
 python = "^3.9"
 yarl = "^1.9.0"
 nonebot2 = "^2.2.1"
+cryptography = ">=43.0.3, <45.0.0"
 typing-extensions = ">=4.4.0, <5.0.0"
 pydantic = ">=1.10.0,<3.0.0,!=2.5.0,!=2.5.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.6.0"
-isort = "^5.10.1"
-black = "^24.0.0"
+ruff = "^0.11.0"
 nonemoji = "^0.1.3"
-pre-commit = "^3.3.0"
-
-[tool.black]
-line-length = 88
-include = '\.pyi?$'
-extend-exclude = '''
-'''
+pre-commit = "^4.0.0"
 
 [tool.isort]
 profile = "black"
@@ -48,16 +41,53 @@ extra_standard_library = ["typing_extensions"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "UP", "C", "T", "Q"]
-ignore = ["E402", "F403", "F405", "C901", "UP037"]
+select = [
+  "F",     # Pyflakes
+  "W",     # pycodestyle warnings
+  "E",     # pycodestyle errors
+  "I",     # isort
+  "UP",    # pyupgrade
+  "ASYNC", # flake8-async
+  "C4",    # flake8-comprehensions
+  "T10",   # flake8-debugger
+  "T20",   # flake8-print
+  "PYI",   # flake8-pyi
+  "PT",    # flake8-pytest-style
+  "Q",     # flake8-quotes
+  "RUF",   # Ruff-specific rules
+]
+ignore = [
+  "E402",   # module-import-not-at-top-of-file
+  "UP037",  # quoted-annotation
+  "RUF001", # ambiguous-unicode-character-string
+  "RUF002", # ambiguous-unicode-character-docstring
+  "RUF003", # ambiguous-unicode-character-comment
+]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+extra-standard-library = ["typing_extensions"]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
 
 [tool.pyright]
+pythonVersion = "3.9"
 pythonPlatform = "All"
-pythonVersion = "3.8"
 defineConstant = { PYDANTIC_V2 = true }
+
+typeCheckingMode = "standard"
+reportShadowedImports = false
+disableBytesTypePromotions = true
+reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = false
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

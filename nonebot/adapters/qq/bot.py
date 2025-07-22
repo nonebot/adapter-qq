@@ -1,91 +1,98 @@
-import json
 from base64 import b64encode
-from typing_extensions import Never, override
-from datetime import datetime, timezone, timedelta
+from contextlib import suppress
+from datetime import datetime, timedelta, timezone
+import json
 from typing import (
     IO,
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
-    Union,
     Literal,
     NoReturn,
     Optional,
+    Union,
     cast,
     overload,
 )
+from typing_extensions import Never, override
 
 from pydantic import BaseModel
-from nonebot.message import handle_event
-from nonebot.drivers import Request, Response
-from nonebot.compat import type_validate_python
 
 from nonebot.adapters import Bot as BaseBot
+from nonebot.compat import type_validate_python
+from nonebot.drivers import Request, Response
+from nonebot.message import handle_event
 
 from .config import BotInfo
-from .utils import API, log, exclude_none
-from .models import Message as GuildMessage
-from .message import Message, MessageSegment
-from .models import DMS, User, Guild, Media, Member, Channel
+from .event import (
+    C2CMessageCreateEvent,
+    DirectMessageCreateEvent,
+    Event,
+    GroupAtMessageCreateEvent,
+    GuildMessageEvent,
+    InteractionCreateEvent,
+    QQMessageEvent,
+    ReadyEvent,
+)
 from .exception import (
     ActionFailed,
-    NetworkError,
-    AuditException,
     ApiNotAvailable,
+    AuditException,
+    NetworkError,
     RateLimitException,
     UnauthorizedException,
 )
-from .event import (
-    Event,
-    ReadyEvent,
-    QQMessageEvent,
-    GuildMessageEvent,
-    C2CMessageCreateEvent,
-    InteractionCreateEvent,
-    DirectMessageCreateEvent,
-    GroupAtMessageCreateEvent,
-)
+from .message import Message, MessageSegment
 from .models import (
-    Dispatch,
-    RichText,
-    Schedule,
-    EmojiType,
-    MessageArk,
-    RemindType,
-    AudioStatus,
-    ChannelType,
-    PinsMessage,
-    PrivateType,
+    DMS,
+    APIPermissionDemand,
+    APIPermissionDemandIdentify,
     AudioControl,
-    MessageEmbed,
-    UrlGetReturn,
+    AudioStatus,
+    Channel,
+    ChannelPermissions,
     ChannelSubType,
-    MessageSetting,
+    ChannelType,
+    Dispatch,
+    EmojiType,
+    GetGuildAPIPermissionReturn,
+    GetGuildRolesReturn,
+    GetReactionUsersReturn,
+    GetRoleMembersReturn,
     GetThreadReturn,
+    GetThreadsListReturn,
+    Guild,
+    Media,
+    Member,
+    MessageActionButton,
+    MessageArk,
+    MessageEmbed,
     MessageKeyboard,
     MessageMarkdown,
-    PutThreadReturn,
-    SpeakPermission,
+    MessagePromptKeyboard,
     MessageReference,
-    RecommendChannel,
-    ShardUrlGetReturn,
-    ChannelPermissions,
-    PostC2CFilesReturn,
-    APIPermissionDemand,
-    GetGuildRolesReturn,
-    PostGuildRoleReturn,
-    GetRoleMembersReturn,
-    GetThreadsListReturn,
+    MessageSetting,
+    MessageStream,
     PatchGuildRoleReturn,
-    PostGroupFilesReturn,
+    PinsMessage,
+    PostC2CFilesReturn,
     PostC2CMessagesReturn,
-    GetReactionUsersReturn,
+    PostGroupFilesReturn,
     PostGroupMembersReturn,
     PostGroupMessagesReturn,
-    APIPermissionDemandIdentify,
-    GetGuildAPIPermissionReturn,
+    PostGuildRoleReturn,
+    PrivateType,
+    PutThreadReturn,
+    RecommendChannel,
+    RemindType,
+    RichText,
+    Schedule,
+    ShardUrlGetReturn,
+    SpeakPermission,
+    UrlGetReturn,
+    User,
 )
+from .models import Message as GuildMessage
+from .utils import API, exclude_none, log
 
 if TYPE_CHECKING:
     from .adapter import Adapter
@@ -111,7 +118,7 @@ async def _check_reply(
         if event.reply.author.id == bot.self_info.id:
             event.to_me = True
     except Exception as e:
-        log("WARNING", f"Error when getting message reply info: {repr(e)}", e)
+        log("WARNING", f"Error when getting message reply info: {e!r}", e)
 
 
 def _check_at_me(
@@ -202,6 +209,10 @@ class Bot(BaseBot):
             raise RuntimeError(f"Bot {self.bot_info} is not connected!")
         return self._self_info
 
+    @self_info.setter
+    def self_info(self, info: User):
+        self._self_info = info
+
     @property
     def ready(self) -> bool:
         """Bot 是否已经准备就绪"""
@@ -253,6 +264,15 @@ class Bot(BaseBot):
                     " Please check your config."
                 )
             data = json.loads(resp.content)
+            if (
+                not isinstance(data, dict)
+                or "access_token" not in data
+                or "expires_in" not in data
+            ):
+                raise NetworkError(
+                    f"Get authorization failed with invalid response {data!r}."
+                    " Please check your config."
+                )
             self._access_token = cast(str, data["access_token"])
             self._expires_in = datetime.now(timezone.utc) + timedelta(
                 seconds=int(data["expires_in"])
@@ -261,16 +281,14 @@ class Bot(BaseBot):
 
     async def _get_authorization_header(self) -> str:
         """获取当前 Bot 的鉴权信息"""
-        if self.bot_info.is_group_bot:
-            return f"QQBot {await self.get_access_token()}"
-        return f"Bot {self.bot_info.id}.{self.bot_info.token}"
+        return f"QQBot {await self.get_access_token()}"
 
-    async def get_authorization_header(self) -> Dict[str, str]:
+    async def get_authorization_header(self) -> dict[str, str]:
         """获取当前 Bot 的鉴权信息"""
-        headers = {"Authorization": await self._get_authorization_header()}
-        if self.bot_info.is_group_bot:
-            headers["X-Union-Appid"] = self.bot_info.id
-        return headers
+        return {
+            "Authorization": await self._get_authorization_header(),
+            "X-Union-Appid": self.bot_info.id,
+        }
 
     async def handle_event(self, event: Event) -> None:
         if isinstance(event, (GuildMessageEvent, QQMessageEvent)):
@@ -285,9 +303,11 @@ class Bot(BaseBot):
         return _message
 
     @staticmethod
-    def _extract_send_message(message: Message) -> Dict[str, Any]:
+    def _extract_send_message(
+        message: Message, escape_text: bool = True
+    ) -> dict[str, Any]:
         kwargs = {}
-        content = message.extract_content() or None
+        content = message.extract_content(escape_text) or None
         kwargs["content"] = content
         if embed := (message["embed"] or None):
             kwargs["embed"] = embed[-1].data["embed"]
@@ -299,10 +319,16 @@ class Bot(BaseBot):
             kwargs["message_reference"] = reference[-1].data["reference"]
         if keyboard := (message["keyboard"] or None):
             kwargs["keyboard"] = keyboard[-1].data["keyboard"]
+        if stream := (message["stream"] or None):
+            kwargs["stream"] = stream[-1].data["stream"]
+        if prompt_keyboard := (message["prompt_keyboard"] or None):
+            kwargs["prompt_keyboard"] = prompt_keyboard[-1].data["prompt_keyboard"]
+        if action_button := (message["action_button"] or None):
+            kwargs["action_button"] = action_button[-1].data["action_button"]
         return kwargs
 
     @staticmethod
-    def _extract_guild_image(message: Message) -> Dict[str, Any]:
+    def _extract_guild_image(message: Message) -> dict[str, Any]:
         kwargs = {}
         if image := (message["image"] or None):
             kwargs["image"] = image[-1].data["url"]
@@ -311,7 +337,7 @@ class Bot(BaseBot):
         return kwargs
 
     @staticmethod
-    def _extract_qq_media(message: Message) -> Dict[str, Any]:
+    def _extract_qq_media(message: Message) -> dict[str, Any]:
         kwargs = {}
         if image := message["image"]:
             kwargs["file_type"] = 1
@@ -351,7 +377,7 @@ class Bot(BaseBot):
             guild_id=guild_id,
             msg_id=msg_id,
             event_id=event_id,
-            **self._extract_send_message(message=message),
+            **self._extract_send_message(message=message, escape_text=True),
             **self._extract_guild_image(message=message),
         )
 
@@ -367,7 +393,7 @@ class Bot(BaseBot):
             channel_id=channel_id,
             msg_id=msg_id,
             event_id=event_id,
-            **self._extract_send_message(message=message),
+            **self._extract_send_message(message=message, escape_text=True),
             **self._extract_guild_image(message=message),
         )
 
@@ -380,12 +406,18 @@ class Bot(BaseBot):
         event_id: Optional[str] = None,
     ) -> Union[PostC2CMessagesReturn, PostC2CFilesReturn]:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message)
+        kwargs = self._extract_send_message(message=message, escape_text=False)
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
             msg_type = 3
-        elif kwargs.get("markdown"):
+        elif (
+            kwargs.get("markdown")
+            or kwargs.get("stream")
+            or kwargs.get("keyboard")
+            or kwargs.get("prompt_keyboard")
+            or kwargs.get("action_button")
+        ):
             msg_type = 2
         elif (
             message["image"]
@@ -429,7 +461,7 @@ class Bot(BaseBot):
         event_id: Optional[str] = None,
     ) -> Union[PostGroupMessagesReturn, PostGroupFilesReturn]:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message)
+        kwargs = self._extract_send_message(message=message, escape_text=False)
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
@@ -529,6 +561,23 @@ class Bot(BaseBot):
         raise RuntimeError("Event cannot be replied to!")
 
     # API request methods
+    def _handle_audit(self, response: Response) -> None:
+        if 200 <= response.status_code <= 202:
+            with suppress(json.JSONDecodeError):
+                if (
+                    response.content
+                    and (content := json.loads(response.content))
+                    and isinstance(content, dict)
+                    and (
+                        audit_id := (
+                            content.get("data", {})
+                            .get("message_audit", {})
+                            .get("audit_id", None)
+                        )
+                    )
+                ):
+                    raise AuditException(audit_id)
+
     def _handle_response(self, response: Response) -> Any:
         if trace_id := response.headers.get("X-Tps-trace-ID", None):
             log(
@@ -536,15 +585,10 @@ class Bot(BaseBot):
                 f"Called API {response.request and response.request.url} "
                 f"response {response.status_code} with trace id {trace_id}",
             )
+
+        self._handle_audit(response)
+
         if response.status_code == 201 or response.status_code == 202:
-            if response.content and (content := json.loads(response.content)):
-                audit_id = (
-                    content.get("data", {})
-                    .get("message_audit", {})
-                    .get("audit_id", None)
-                )
-                if audit_id:
-                    raise AuditException(audit_id)
             raise ActionFailed(response)
         elif 200 <= response.status_code < 300:
             return response.content and json.loads(response.content)
@@ -568,9 +612,6 @@ class Bot(BaseBot):
         try:
             return self._handle_response(response)
         except UnauthorizedException as e:
-            if not self.bot_info.is_group_bot:
-                raise
-
             log("DEBUG", "Access token expired, try to refresh it.")
 
             # try to refresh access token
@@ -607,13 +648,13 @@ class Bot(BaseBot):
         before: Optional[str] = None,
         after: Optional[str] = None,
         limit: Optional[float] = None,
-    ) -> List[Guild]:
+    ) -> list[Guild]:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath("users", "@me", "guilds"),
             params=exclude_none({"before": before, "after": after, "limit": limit}),
         )
-        return type_validate_python(List[Guild], await self._request(request))
+        return type_validate_python(list[Guild], await self._request(request))
 
     # Guild API
     @API
@@ -626,12 +667,12 @@ class Bot(BaseBot):
 
     # Channel API
     @API
-    async def get_channels(self, *, guild_id: str) -> List[Channel]:
+    async def get_channels(self, *, guild_id: str) -> list[Channel]:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
         )
-        return type_validate_python(List[Channel], await self._request(request))
+        return type_validate_python(list[Channel], await self._request(request))
 
     @API
     async def get_channel(self, *, channel_id: str) -> Channel:
@@ -652,10 +693,10 @@ class Bot(BaseBot):
         position: Optional[int] = None,
         parent_id: Optional[int] = None,
         private_type: Optional[Union[PrivateType, int]] = None,
-        private_user_ids: Optional[List[str]] = None,
+        private_user_ids: Optional[list[str]] = None,
         speak_permission: Optional[Union[SpeakPermission, int]] = None,
         application_id: Optional[str] = None,
-    ) -> List[Channel]:
+    ) -> list[Channel]:
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
@@ -673,7 +714,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return type_validate_python(List[Channel], await self._request(request))
+        return type_validate_python(list[Channel], await self._request(request))
 
     @API
     async def patch_channel(
@@ -723,13 +764,13 @@ class Bot(BaseBot):
         guild_id: str,
         after: Optional[str] = None,
         limit: Optional[float] = None,
-    ) -> List[Member]:
+    ) -> list[Member]:
         request = Request(
             "GET",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "members"),
             params=exclude_none({"after": after, "limit": limit}),
         )
-        return type_validate_python(List[Member], await self._request(request))
+        return type_validate_python(list[Member], await self._request(request))
 
     @API
     async def get_role_members(
@@ -958,7 +999,7 @@ class Bot(BaseBot):
         return type_validate_python(GuildMessage, result)
 
     @staticmethod
-    def _parse_send_message(data: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_send_message(data: dict[str, Any]) -> dict[str, Any]:
         data = exclude_none(data)
         data = {
             k: v.dict(exclude_none=True) if isinstance(v, BaseModel) else v
@@ -966,8 +1007,8 @@ class Bot(BaseBot):
         }
         if file_image := data.pop("file_image", None):
             # 使用 multipart/form-data
-            multipart_files: Dict[str, Any] = {"file_image": ("file_image", file_image)}
-            multipart_data: Dict[str, Any] = {}
+            multipart_files: dict[str, Any] = {"file_image": ("file_image", file_image)}
+            multipart_data: dict[str, Any] = {}
             for k, v in data.items():
                 if isinstance(v, (dict, list)):
                     # 当字段类型为对象或数组时需要将字段序列化为 JSON 字符串后进行调用
@@ -1172,10 +1213,10 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        user_ids: List[str],
+        user_ids: list[str],
         mute_end_timestamp: Optional[Union[int, datetime]] = None,
         mute_seconds: Optional[Union[int, timedelta]] = None,
-    ) -> List[int]:
+    ) -> list[int]:
         if isinstance(mute_end_timestamp, datetime):
             mute_end_timestamp = int(mute_end_timestamp.timestamp())
 
@@ -1193,7 +1234,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return type_validate_python(List[int], await self._request(request))
+        return type_validate_python(list[int], await self._request(request))
 
     # Announce API
     @API
@@ -1204,7 +1245,7 @@ class Bot(BaseBot):
         message_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         announces_type: Optional[int] = None,
-        recommend_channels: Optional[List[RecommendChannel]] = None,
+        recommend_channels: Optional[list[RecommendChannel]] = None,
     ) -> None:
         request = Request(
             "POST",
@@ -1269,7 +1310,7 @@ class Bot(BaseBot):
     @API
     async def get_schedules(
         self, *, channel_id: str, since: Optional[Union[int, datetime]] = None
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         if isinstance(since, datetime):
             since = int(since.timestamp() * 1000)
 
@@ -1278,7 +1319,7 @@ class Bot(BaseBot):
             self.adapter.get_api_base() / f"channels/{channel_id}/schedules",
             json=exclude_none({"since": since}),
         )
-        return type_validate_python(List[Schedule], await self._request(request))
+        return type_validate_python(list[Schedule], await self._request(request))
 
     @API
     async def get_schedule(self, *, channel_id: str, schedule_id: str) -> Schedule:
@@ -1460,7 +1501,7 @@ class Bot(BaseBot):
         audio_url: Optional[str] = None,
         text: Optional[str] = None,
         status: Union[AudioStatus, int],
-    ) -> Dict[Never, Never]:
+    ) -> dict[Never, Never]:
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("channels", channel_id, "audio"),
@@ -1471,7 +1512,7 @@ class Bot(BaseBot):
         return await self._request(request)
 
     @API
-    async def put_mic(self, *, channel_id: str) -> Dict[Never, Never]:
+    async def put_mic(self, *, channel_id: str) -> dict[Never, Never]:
         request = Request(
             "PUT",
             self.adapter.get_api_base().joinpath("channels", channel_id, "mic"),
@@ -1479,7 +1520,7 @@ class Bot(BaseBot):
         return await self._request(request)
 
     @API
-    async def delete_mic(self, *, channel_id: str) -> Dict[Never, Never]:
+    async def delete_mic(self, *, channel_id: str) -> dict[Never, Never]:
         request = Request(
             "DELETE",
             self.adapter.get_api_base().joinpath("channels", channel_id, "mic"),
@@ -1642,52 +1683,67 @@ class Bot(BaseBot):
         embed: Optional[MessageEmbed] = None,
         image: None = None,
         message_reference: None = None,
+        stream: Optional[MessageStream] = None,
+        prompt_keyboard: Optional[MessagePromptKeyboard] = None,
+        action_button: Optional[MessageActionButton] = None,
         event_id: Optional[str] = None,
         msg_id: Optional[str] = None,
         msg_seq: Optional[int] = None,
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostC2CMessagesReturn:
         # tmp fix. content must not be none if sending media
-        if media is not None and not content:
-            content = " "
+        # if media is not None and not content:
+        #    content = " "
 
         if isinstance(timestamp, datetime):
             timestamp = int(timestamp.timestamp())
         elif timestamp is None:
             timestamp = int(datetime.now(timezone.utc).timestamp())
 
+        json_data = exclude_none(
+            {
+                "msg_type": msg_type,
+                "content": content,
+                "markdown": (
+                    markdown.dict(exclude_none=True) if markdown is not None else None
+                ),
+                "keyboard": (
+                    keyboard.dict(exclude_none=True) if keyboard is not None else None
+                ),
+                "media": (media.dict(exclude_none=True) if media is not None else None),
+                "ark": ark.dict(exclude_none=True) if ark is not None else None,
+                "embed": (embed.dict(exclude_none=True) if embed is not None else None),
+                "image": image,
+                "message_reference": (
+                    message_reference.dict(exclude_none=True)
+                    if message_reference is not None
+                    else None
+                ),
+                "stream": (
+                    stream.dict(exclude_none=True, exclude_unset=True)
+                    if stream is not None
+                    else None
+                ),
+                "prompt_keyboard": (
+                    prompt_keyboard.dict(exclude_none=True, exclude_unset=True)
+                    if prompt_keyboard is not None
+                    else None
+                ),
+                "action_button": (
+                    action_button.dict(exclude_none=True)
+                    if action_button is not None
+                    else None
+                ),
+                "event_id": event_id,
+                "msg_id": msg_id,
+                "msg_seq": msg_seq,
+                "timestamp": timestamp,
+            }
+        )
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("v2", "users", openid, "messages"),
-            json=exclude_none(
-                {
-                    "msg_type": msg_type,
-                    "content": content,
-                    "markdown": (
-                        markdown.dict(exclude_none=True)
-                        if markdown is not None
-                        else None
-                    ),
-                    "keyboard": (
-                        keyboard.dict(exclude_none=True)
-                        if keyboard is not None
-                        else None
-                    ),
-                    "media": (
-                        media.dict(exclude_none=True) if media is not None else None
-                    ),
-                    "ark": ark.dict(exclude_none=True) if ark is not None else None,
-                    "embed": (
-                        embed.dict(exclude_none=True) if embed is not None else None
-                    ),
-                    "image": image,
-                    "message_reference": message_reference,
-                    "event_id": event_id,
-                    "msg_id": msg_id,
-                    "msg_seq": msg_seq,
-                    "timestamp": timestamp,
-                }
-            ),
+            json=json_data,
         )
         return type_validate_python(PostC2CMessagesReturn, await self._request(request))
 
@@ -1748,8 +1804,8 @@ class Bot(BaseBot):
         timestamp: Optional[Union[int, datetime]] = None,
     ) -> PostGroupMessagesReturn:
         # tmp fix. content must not be none if sending media
-        if media is not None and not content:
-            content = " "
+        # if media is not None and not content:
+        #    content = " "
 
         if isinstance(timestamp, datetime):
             timestamp = int(timestamp.timestamp())
@@ -1783,7 +1839,11 @@ class Bot(BaseBot):
                         embed.dict(exclude_none=True) if embed is not None else None
                     ),
                     "image": image,
-                    "message_reference": message_reference,
+                    "message_reference": (
+                        message_reference.dict(exclude_none=True)
+                        if message_reference is not None
+                        else None
+                    ),
                     "event_id": event_id,
                     "msg_id": msg_id,
                     "msg_seq": msg_seq,
