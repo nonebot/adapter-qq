@@ -27,12 +27,12 @@ from .event import (
     C2CMessageCreateEvent,
     DirectMessageCreateEvent,
     Event,
+    GroupAddRobotEvent,
     GroupAtMessageCreateEvent,
     GuildMessageEvent,
     InteractionCreateEvent,
     QQMessageEvent,
     ReadyEvent,
-    GroupAddRobotEvent
 )
 from .exception import (
     ActionFailed,
@@ -561,7 +561,7 @@ class Bot(BaseBot):
             return await self.send_to_group(
                 group_openid=event.group_openid,
                 message=message,
-                event_id=event.event_id
+                event_id=event.event_id,
             )
 
         raise RuntimeError("Event cannot be replied to!")
