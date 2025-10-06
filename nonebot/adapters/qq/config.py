@@ -1,8 +1,7 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field, HttpUrl
-
 from nonebot.compat import PYDANTIC_V2, ConfigDict
+from pydantic import BaseModel, Field, HttpUrl
 
 
 class Intents(BaseModel):

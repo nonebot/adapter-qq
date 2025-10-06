@@ -15,12 +15,12 @@ from typing import (
 )
 from typing_extensions import Never, override
 
-from pydantic import BaseModel
-
-from nonebot.adapters import Bot as BaseBot
 from nonebot.compat import type_validate_python
 from nonebot.drivers import Request, Response
 from nonebot.message import handle_event
+from pydantic import BaseModel
+
+from nonebot.adapters import Bot as BaseBot
 
 from .config import BotInfo
 from .event import (

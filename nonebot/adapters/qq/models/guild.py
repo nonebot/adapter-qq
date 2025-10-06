@@ -3,10 +3,10 @@ from enum import IntEnum
 import json
 from typing import Generic, Optional, TypeVar, Union
 
+from nonebot.compat import PYDANTIC_V2, model_fields, type_validate_python
 from pydantic import BaseModel
 
 from nonebot.adapters.qq.compat import field_validator, model_validator
-from nonebot.compat import PYDANTIC_V2, model_fields, type_validate_python
 
 from .common import MessageArk, MessageAttachment, MessageEmbed, MessageReference
 

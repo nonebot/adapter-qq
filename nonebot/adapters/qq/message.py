@@ -6,9 +6,10 @@ import re
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict, Union, overload
 from typing_extensions import Self, override
 
+from nonebot.compat import type_validate_python
+
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
-from nonebot.compat import type_validate_python
 
 from .models import Attachment as QQAttachment
 from .models import Message as GuildMessage

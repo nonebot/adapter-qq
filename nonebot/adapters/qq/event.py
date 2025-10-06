@@ -3,8 +3,9 @@ from enum import Enum
 from typing import Optional, TypeVar, cast
 from typing_extensions import override
 
-from nonebot.adapters import Event as BaseEvent
 from nonebot.utils import escape_tag
+
+from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
 from .models import (
