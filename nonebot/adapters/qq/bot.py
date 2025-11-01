@@ -702,7 +702,7 @@ class Bot(BaseBot):
         private_user_ids: Optional[list[str]] = None,
         speak_permission: Optional[Union[SpeakPermission, int]] = None,
         application_id: Optional[str] = None,
-    ) -> list[Channel]:
+    ) -> Channel:
         request = Request(
             "POST",
             self.adapter.get_api_base().joinpath("guilds", guild_id, "channels"),
@@ -720,7 +720,7 @@ class Bot(BaseBot):
                 }
             ),
         )
-        return type_validate_python(list[Channel], await self._request(request))
+        return type_validate_python(Channel, await self._request(request))
 
     @API
     async def patch_channel(
