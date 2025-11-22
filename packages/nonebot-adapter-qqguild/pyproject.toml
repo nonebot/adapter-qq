@@ -1,35 +1,51 @@
-[tool.poetry]
+[project]
 name = "nonebot-adapter-qqguild"
 version = "0.4.0"
 description = "QQ Guild adapter for nonebot2"
-authors = ["yanyongyu <yyy@nonebot.dev>"]
-license = "MIT"
+authors = [{ name = "yanyongyu", email = "yyy@nonebot.dev" }]
+requires-python = ">=3.8, <4.0"
 readme = "README.md"
-homepage = "https://github.com/nonebot/adapter-qq/tree/master/packages/nonebot-adapter-qqguild"
-repository = "https://github.com/nonebot/adapter-qq"
-documentation = "https://github.com/nonebot/adapter-qq#readme"
-keywords = ["bot", "qq", "qqbot", "qqguild"]
-classifiers = [
-  "Development Status :: 5 - Production/Stable",
-  "Framework :: Robot Framework",
-  "Framework :: Robot Framework :: Library",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3",
+license = "MIT"
+keywords = [
+    "bot",
+    "qq",
+    "qqbot",
+    "qqguild",
 ]
-packages = [{ include = "nonebot" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Robot Framework",
+    "Framework :: Robot Framework :: Library",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "pydantic >=1.9.0, <2.0.0",
+    "nonebot2 >=2.1.0, <3.0.0",
+    "typing-extensions >=4.4.0, <5.0.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-pydantic = "^1.9.0"
-nonebot2 = "^2.1.0"
-typing-extensions = ">=4.4.0, <5.0.0"
+[project.urls]
+Homepage = "https://github.com/nonebot/adapter-qq/tree/master/packages/nonebot-adapter-qqguild"
+Repository = "https://github.com/nonebot/adapter-qq"
+Documentation = "https://github.com/nonebot/adapter-qq#readme"
 
-[tool.poetry.group.dev.dependencies]
-isort = "^5.10.1"
-black = "^23.1.0"
-nonemoji = "^0.1.3"
-pre-commit = "^3.3.0"
-ruff = ">=0.0.282, <0.1.0"
+[dependency-groups]
+dev = [
+    "isort >=5.10.1, <6.0.0",
+    "black >=23.1.0, <24.0.0",
+    "nonemoji >=0.1.3, <0.2.0",
+    "pre-commit >=3.3.0, <4.0.0",
+    "ruff >=0.0.282, <0.1.0",
+]
+
+[tool.uv.build-backend]
+module-root = ""
+module-name = "nonebot.adapters.qqguild"
+
+[build-system]
+requires = ["uv_build >=0.9.0, <0.10.0"]
+build-backend = "uv_build"
 
 [tool.black]
 line-length = 88
@@ -47,7 +63,6 @@ extra_standard_library = ["typing_extensions"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "UP", "C", "T", "Q"]
@@ -56,7 +71,3 @@ ignore = ["E402", "F403", "F405", "C901", "UP037"]
 [tool.pyright]
 pythonPlatform = "All"
 pythonVersion = "3.8"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"

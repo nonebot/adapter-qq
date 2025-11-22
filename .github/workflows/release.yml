@@ -28,11 +28,10 @@ jobs:
         if: steps.version.outputs.VERSION != steps.version.outputs.TAG_VERSION
         run: exit 1
 
-      - name: Build Package
-        run: poetry build
-
-      - name: Publish Package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Build and publish Package
+        run: |
+          uv build
+          uv publish
 
       - name: Publish Package to GitHub
         run: |

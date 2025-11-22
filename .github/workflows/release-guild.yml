@@ -14,12 +14,8 @@ jobs:
       - name: Setup Python environment
         uses: ./.github/actions/setup-python
 
-      - name: Build Package
+      - name: Build and publish Package
         run: |
           cd packages/nonebot-adapter-qqguild
-          poetry build
-
-      - name: Publish Package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: packages/nonebot-adapter-qqguild/dist/
+          uv build
+          uv publish
