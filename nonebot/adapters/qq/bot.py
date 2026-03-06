@@ -27,13 +27,13 @@ from .event import (
     C2CMessageCreateEvent,
     DirectMessageCreateEvent,
     Event,
+    FriendAddEvent,
     GroupAddRobotEvent,
     GroupAtMessageCreateEvent,
     GuildMessageEvent,
     InteractionCreateEvent,
     QQMessageEvent,
     ReadyEvent,
-    FriendAddEvent,
 )
 from .exception import (
     ActionFailed,
@@ -566,9 +566,7 @@ class Bot(BaseBot):
             )
         elif isinstance(event, FriendAddEvent):
             return await self.send_to_c2c(
-                openid=event.get_user_id(),
-                event_id=event.event_id,
-                message=message
+                openid=event.get_user_id(), event_id=event.event_id, message=message
             )
 
         raise RuntimeError("Event cannot be replied to!")
