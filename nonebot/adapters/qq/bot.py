@@ -566,7 +566,7 @@ class Bot(BaseBot):
             )
         elif isinstance(event, FriendAddEvent):
             return await self.send_to_c2c(
-                openid=event.get_user_id(), event_id=event.event_id, message=message
+                openid=event.get_user_id(), message=message, event_id=event.event_id
             )
 
         raise RuntimeError("Event cannot be replied to!")
