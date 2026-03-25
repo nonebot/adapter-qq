@@ -396,6 +396,13 @@ class GroupAtMessageCreateEvent(QQMessageEvent):
     group_openid: str
     to_me: bool = True
 
+    def get_username(self) -> str:
+        return (
+            (self.author.username if getattr(self, "author", None) else None)
+            or (self.author.id if getattr(self, "author", None) else None)
+            or self.author.member_openid
+        )
+
     @override
     def get_message(self) -> Message:
         # tmp fix to remove space before text due to at not in content

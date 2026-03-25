@@ -11,12 +11,14 @@ class FriendAuthor(BaseModel):
     id: str
     user_openid: str
     union_openid: Optional[str] = None
+    username: Optional[str] = None
 
 
 class GroupMemberAuthor(BaseModel):
     id: str
     member_openid: str
     union_openid: Optional[str] = None
+    username: Optional[str] = None
 
 
 class Attachment(BaseModel):
