@@ -17,7 +17,8 @@ def test_resumed_payload_is_dispatch() -> None:
 
 def test_resumed_payload_calls_on_dispatch() -> None:
     class DummyBot:
-        dispatched_payload = None
+        def __init__(self) -> None:
+            self.dispatched_payload = None
 
         def on_dispatch(self, payload: Dispatch) -> None:
             self.dispatched_payload = payload
