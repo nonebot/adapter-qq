@@ -8,8 +8,6 @@ from typing import (
     Any,
     Literal,
     NoReturn,
-    Optional,
-    Union,
     cast,
     overload,
 )
@@ -102,7 +100,7 @@ if TYPE_CHECKING:
 
 async def _check_reply(
     bot: "Bot",
-    event: Union[GuildMessageEvent, QQMessageEvent],
+    event: GuildMessageEvent | QQMessageEvent,
 ) -> None:
     """检查消息中存在的回复，赋值 `event.reply`, `event.to_me`。
 
@@ -125,7 +123,7 @@ async def _check_reply(
 
 def _check_at_me(
     bot: "Bot",
-    event: Union[GuildMessageEvent, QQMessageEvent],
+    event: GuildMessageEvent | QQMessageEvent,
 ):
     if (
         isinstance(event, GuildMessageEvent)
@@ -188,15 +186,15 @@ class Bot(BaseBot):
         self.bot_info: BotInfo = bot_info
 
         # Bot 自身信息
-        self._self_info: Optional[User] = None
+        self._self_info: User | None = None
         # Bot 当前 session id，可用于 Resume 重连
-        self._session_id: Optional[str] = None
+        self._session_id: str | None = None
         # Bot 当前事件序号，可用于 Resume 重连
-        self._sequence: Optional[int] = None
+        self._sequence: int | None = None
 
         # 群聊机器人鉴权信息
-        self._access_token: Optional[str] = None
-        self._expires_in: Optional[datetime] = None
+        self._access_token: str | None = None
+        self._expires_in: datetime | None = None
 
     @override
     def __getattr__(self, name: str) -> NoReturn:
@@ -299,7 +297,7 @@ class Bot(BaseBot):
         await handle_event(self, event)
 
     @staticmethod
-    def _prepare_message(message: Union[str, Message, MessageSegment]) -> Message:
+    def _prepare_message(message: str | Message | MessageSegment) -> Message:
         _message = MessageSegment.text(message) if isinstance(message, str) else message
         _message = _message if isinstance(_message, Message) else Message(_message)
         return _message
@@ -370,9 +368,9 @@ class Bot(BaseBot):
     async def send_to_dms(
         self,
         guild_id: str,
-        message: Union[str, Message, MessageSegment],
-        msg_id: Optional[str] = None,
-        event_id: Optional[str] = None,
+        message: str | Message | MessageSegment,
+        msg_id: str | None = None,
+        event_id: str | None = None,
     ) -> GuildMessage:
         message = self._prepare_message(message)
         return await self.post_dms_messages(
@@ -386,9 +384,9 @@ class Bot(BaseBot):
     async def send_to_channel(
         self,
         channel_id: str,
-        message: Union[str, Message, MessageSegment],
-        msg_id: Optional[str] = None,
-        event_id: Optional[str] = None,
+        message: str | Message | MessageSegment,
+        msg_id: str | None = None,
+        event_id: str | None = None,
     ) -> GuildMessage:
         message = self._prepare_message(message)
         return await self.post_messages(
@@ -402,11 +400,11 @@ class Bot(BaseBot):
     async def send_to_c2c(
         self,
         openid: str,
-        message: Union[str, Message, MessageSegment],
-        msg_id: Optional[str] = None,
-        msg_seq: Optional[int] = None,
-        event_id: Optional[str] = None,
-    ) -> Union[PostC2CMessagesReturn, PostC2CFilesReturn]:
+        message: str | Message | MessageSegment,
+        msg_id: str | None = None,
+        msg_seq: int | None = None,
+        event_id: str | None = None,
+    ) -> PostC2CMessagesReturn | PostC2CFilesReturn:
         message = self._prepare_message(message)
         kwargs = self._extract_send_message(message=message, escape_text=False)
         if kwargs.get("embed"):
@@ -434,7 +432,7 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
-        media: Optional[Media] = None
+        media: Media | None = None
         if msg_type == 7:
             media_info = await self.post_c2c_files(
                 openid=openid, srv_send_msg=False, **self._extract_qq_media(message)
@@ -456,11 +454,11 @@ class Bot(BaseBot):
     async def send_to_group(
         self,
         group_openid: str,
-        message: Union[str, Message, MessageSegment],
-        msg_id: Optional[str] = None,
-        msg_seq: Optional[int] = None,
-        event_id: Optional[str] = None,
-    ) -> Union[PostGroupMessagesReturn, PostGroupFilesReturn]:
+        message: str | Message | MessageSegment,
+        msg_id: str | None = None,
+        msg_seq: int | None = None,
+        event_id: str | None = None,
+    ) -> PostGroupMessagesReturn | PostGroupFilesReturn:
         message = self._prepare_message(message)
         kwargs = self._extract_send_message(message=message, escape_text=False)
         if kwargs.get("embed"):
@@ -483,7 +481,7 @@ class Bot(BaseBot):
         else:
             msg_type = 0
 
-        media: Optional[Media] = None
+        media: Media | None = None
         if msg_type == 7:
             media_info = await self.post_group_files(
                 group_openid=group_openid,
@@ -508,7 +506,7 @@ class Bot(BaseBot):
     async def send(
         self,
         event: Event,
-        message: Union[str, Message, MessageSegment],
+        message: str | Message | MessageSegment,
         **kwargs,
     ) -> Any:
         if isinstance(event, DirectMessageCreateEvent):
@@ -656,9 +654,9 @@ class Bot(BaseBot):
     async def guilds(
         self,
         *,
-        before: Optional[str] = None,
-        after: Optional[str] = None,
-        limit: Optional[float] = None,
+        before: str | None = None,
+        after: str | None = None,
+        limit: float | None = None,
     ) -> list[Guild]:
         request = Request(
             "GET",
@@ -699,14 +697,14 @@ class Bot(BaseBot):
         *,
         guild_id: str,
         name: str,
-        type: Union[ChannelType, int],
-        sub_type: Union[ChannelSubType, int],
-        position: Optional[int] = None,
-        parent_id: Optional[int] = None,
-        private_type: Optional[Union[PrivateType, int]] = None,
-        private_user_ids: Optional[list[str]] = None,
-        speak_permission: Optional[Union[SpeakPermission, int]] = None,
-        application_id: Optional[str] = None,
+        type: ChannelType | int,
+        sub_type: ChannelSubType | int,
+        position: int | None = None,
+        parent_id: int | None = None,
+        private_type: PrivateType | int | None = None,
+        private_user_ids: list[str] | None = None,
+        speak_permission: SpeakPermission | int | None = None,
+        application_id: str | None = None,
     ) -> Channel:
         request = Request(
             "POST",
@@ -732,14 +730,14 @@ class Bot(BaseBot):
         self,
         *,
         channel_id: str,
-        name: Optional[str] = None,
-        type: Optional[Union[ChannelType, int]] = None,
-        sub_type: Optional[Union[ChannelSubType, int]] = None,
-        position: Optional[int] = None,
-        parent_id: Optional[int] = None,
-        private_type: Optional[int] = None,
-        speak_permission: Optional[Union[SpeakPermission, int]] = None,
-        application_id: Optional[str] = None,
+        name: str | None = None,
+        type: ChannelType | int | None = None,
+        sub_type: ChannelSubType | int | None = None,
+        position: int | None = None,
+        parent_id: int | None = None,
+        private_type: int | None = None,
+        speak_permission: SpeakPermission | int | None = None,
+        application_id: str | None = None,
     ) -> Channel:
         request = Request(
             "PATCH",
@@ -773,8 +771,8 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        after: Optional[str] = None,
-        limit: Optional[float] = None,
+        after: str | None = None,
+        limit: float | None = None,
     ) -> list[Member]:
         request = Request(
             "GET",
@@ -789,8 +787,8 @@ class Bot(BaseBot):
         *,
         guild_id: str,
         role_id: str,
-        start_index: Optional[str] = None,
-        limit: Optional[int] = None,
+        start_index: str | None = None,
+        limit: int | None = None,
     ) -> GetRoleMembersReturn:
         request = Request(
             "GET",
@@ -817,8 +815,8 @@ class Bot(BaseBot):
         *,
         guild_id: str,
         user_id: str,
-        add_blacklist: Optional[bool] = None,
-        delete_history_msg_days: Optional[Literal[-1, 0, 3, 7, 15, 30]] = None,
+        add_blacklist: bool | None = None,
+        delete_history_msg_days: Literal[-1, 0, 3, 7, 15, 30] | None = None,
     ) -> None:
         request = Request(
             "DELETE",
@@ -848,9 +846,9 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        name: Optional[str] = None,
-        color: Optional[float] = None,
-        hoist: Optional[bool] = None,
+        name: str | None = None,
+        color: float | None = None,
+        hoist: bool | None = None,
     ) -> PostGuildRoleReturn:
         request = Request(
             "POST",
@@ -871,9 +869,9 @@ class Bot(BaseBot):
         *,
         guild_id: str,
         role_id: str,
-        name: Optional[str] = None,
-        color: Optional[float] = None,
-        hoist: Optional[bool] = None,
+        name: str | None = None,
+        color: float | None = None,
+        hoist: bool | None = None,
     ) -> PatchGuildRoleReturn:
         request = Request(
             "PATCH",
@@ -903,7 +901,7 @@ class Bot(BaseBot):
         guild_id: str,
         role_id: str,
         user_id: str,
-        channel_id: Optional[str] = None,
+        channel_id: str | None = None,
     ) -> None:
         request = Request(
             "PUT",
@@ -921,7 +919,7 @@ class Bot(BaseBot):
         guild_id: str,
         role_id: str,
         user_id: str,
-        channel_id: Optional[str] = None,
+        channel_id: str | None = None,
     ) -> None:
         request = Request(
             "DELETE",
@@ -951,8 +949,8 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         user_id: str,
-        add: Optional[int] = None,
-        remove: Optional[int] = None,
+        add: int | None = None,
+        remove: int | None = None,
     ) -> None:
         request = Request(
             "PUT",
@@ -981,8 +979,8 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         role_id: str,
-        add: Optional[int] = None,
-        remove: Optional[int] = None,
+        add: int | None = None,
+        remove: int | None = None,
     ) -> None:
         request = Request(
             "PUT",
@@ -1041,16 +1039,16 @@ class Bot(BaseBot):
         self,
         *,
         channel_id: str,
-        content: Optional[str] = None,
-        embed: Optional[MessageEmbed] = None,
-        ark: Optional[MessageArk] = None,
-        message_reference: Optional[MessageReference] = None,
-        image: Optional[str] = None,
-        file_image: Optional[Union[bytes, IO[bytes]]] = None,
-        markdown: Optional[MessageMarkdown] = None,
-        msg_id: Optional[str] = None,
-        event_id: Optional[str] = None,
-        keyboard: Optional[MessageKeyboard] = None,
+        content: str | None = None,
+        embed: MessageEmbed | None = None,
+        ark: MessageArk | None = None,
+        message_reference: MessageReference | None = None,
+        image: str | None = None,
+        file_image: bytes | IO[bytes] | None = None,
+        markdown: MessageMarkdown | None = None,
+        msg_id: str | None = None,
+        event_id: str | None = None,
+        keyboard: MessageKeyboard | None = None,
     ) -> GuildMessage:
         params = self._parse_send_message(
             {
@@ -1079,7 +1077,7 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         message_id: str,
-        hidetip: Optional[bool] = None,
+        hidetip: bool | None = None,
     ) -> None:
         request = Request(
             "DELETE",
@@ -1118,16 +1116,16 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        content: Optional[str] = None,
-        embed: Optional[MessageEmbed] = None,
-        ark: Optional[MessageArk] = None,
-        message_reference: Optional[MessageReference] = None,
-        image: Optional[str] = None,
-        file_image: Optional[Union[bytes, IO[bytes]]] = None,
-        markdown: Optional[MessageMarkdown] = None,
-        msg_id: Optional[str] = None,
-        event_id: Optional[str] = None,
-        keyboard: Optional[MessageKeyboard] = None,
+        content: str | None = None,
+        embed: MessageEmbed | None = None,
+        ark: MessageArk | None = None,
+        message_reference: MessageReference | None = None,
+        image: str | None = None,
+        file_image: bytes | IO[bytes] | None = None,
+        markdown: MessageMarkdown | None = None,
+        msg_id: str | None = None,
+        event_id: str | None = None,
+        keyboard: MessageKeyboard | None = None,
     ) -> GuildMessage:
         params = self._parse_send_message(
             {
@@ -1152,7 +1150,7 @@ class Bot(BaseBot):
 
     @API
     async def delete_dms_message(
-        self, *, guild_id: str, message_id: str, hidetip: Optional[bool] = None
+        self, *, guild_id: str, message_id: str, hidetip: bool | None = None
     ) -> None:
         request = Request(
             "DELETE",
@@ -1169,8 +1167,8 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        mute_end_timestamp: Optional[Union[int, datetime]] = None,
-        mute_seconds: Optional[Union[int, timedelta]] = None,
+        mute_end_timestamp: int | datetime | None = None,
+        mute_seconds: int | timedelta | None = None,
     ) -> None:
         if isinstance(mute_end_timestamp, datetime):
             mute_end_timestamp = int(mute_end_timestamp.timestamp())
@@ -1196,8 +1194,8 @@ class Bot(BaseBot):
         *,
         guild_id: str,
         user_id: str,
-        mute_end_timestamp: Optional[Union[int, datetime]] = None,
-        mute_seconds: Optional[Union[int, timedelta]] = None,
+        mute_end_timestamp: int | datetime | None = None,
+        mute_seconds: int | timedelta | None = None,
     ) -> None:
         if isinstance(mute_end_timestamp, datetime):
             mute_end_timestamp = int(mute_end_timestamp.timestamp())
@@ -1225,8 +1223,8 @@ class Bot(BaseBot):
         *,
         guild_id: str,
         user_ids: list[str],
-        mute_end_timestamp: Optional[Union[int, datetime]] = None,
-        mute_seconds: Optional[Union[int, timedelta]] = None,
+        mute_end_timestamp: int | datetime | None = None,
+        mute_seconds: int | timedelta | None = None,
     ) -> list[int]:
         if isinstance(mute_end_timestamp, datetime):
             mute_end_timestamp = int(mute_end_timestamp.timestamp())
@@ -1253,10 +1251,10 @@ class Bot(BaseBot):
         self,
         *,
         guild_id: str,
-        message_id: Optional[str] = None,
-        channel_id: Optional[str] = None,
-        announces_type: Optional[int] = None,
-        recommend_channels: Optional[list[RecommendChannel]] = None,
+        message_id: str | None = None,
+        channel_id: str | None = None,
+        announces_type: int | None = None,
+        recommend_channels: list[RecommendChannel] | None = None,
     ) -> None:
         request = Request(
             "POST",
@@ -1320,7 +1318,7 @@ class Bot(BaseBot):
     # Schedule API
     @API
     async def get_schedules(
-        self, *, channel_id: str, since: Optional[Union[int, datetime]] = None
+        self, *, channel_id: str, since: int | datetime | None = None
     ) -> list[Schedule]:
         if isinstance(since, datetime):
             since = int(since.timestamp() * 1000)
@@ -1348,11 +1346,11 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         name: str,
-        description: Optional[str] = None,
-        start_timestamp: Union[int, datetime],
-        end_timestamp: Union[int, datetime],
-        jump_channel_id: Optional[str] = None,
-        remind_type: Union[RemindType, int],
+        description: str | None = None,
+        start_timestamp: int | datetime,
+        end_timestamp: int | datetime,
+        jump_channel_id: str | None = None,
+        remind_type: RemindType | int,
     ) -> Schedule:
         if isinstance(start_timestamp, datetime):
             start_timestamp = int(start_timestamp.timestamp() * 1000)
@@ -1390,12 +1388,12 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         schedule_id: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        start_timestamp: Optional[Union[int, datetime]] = None,
-        end_timestamp: Optional[Union[int, datetime]] = None,
-        jump_channel_id: Optional[int] = None,
-        remind_type: Optional[Union[RemindType, int]] = None,
+        name: str | None = None,
+        description: str | None = None,
+        start_timestamp: int | datetime | None = None,
+        end_timestamp: int | datetime | None = None,
+        jump_channel_id: int | None = None,
+        remind_type: RemindType | int | None = None,
     ) -> Schedule:
         if isinstance(start_timestamp, datetime):
             start_timestamp = int(start_timestamp.timestamp() * 1000)
@@ -1443,7 +1441,7 @@ class Bot(BaseBot):
 
     @API
     async def put_message_reaction(
-        self, *, channel_id: str, message_id: str, type: Union[EmojiType, int], id: str
+        self, *, channel_id: str, message_id: str, type: EmojiType | int, id: str
     ) -> None:
         request = Request(
             "PUT",
@@ -1461,7 +1459,7 @@ class Bot(BaseBot):
 
     @API
     async def delete_own_message_reaction(
-        self, *, channel_id: str, message_id: str, type: Union[EmojiType, int], id: str
+        self, *, channel_id: str, message_id: str, type: EmojiType | int, id: str
     ) -> None:
         request = Request(
             "DELETE",
@@ -1483,10 +1481,10 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         message_id: str,
-        type: Union[EmojiType, int],
+        type: EmojiType | int,
         id: str,
-        cookie: Optional[str] = None,
-        limit: Optional[int] = None,
+        cookie: str | None = None,
+        limit: int | None = None,
     ) -> GetReactionUsersReturn:
         request = Request(
             "GET",
@@ -1509,9 +1507,9 @@ class Bot(BaseBot):
         self,
         *,
         channel_id: str,
-        audio_url: Optional[str] = None,
-        text: Optional[str] = None,
-        status: Union[AudioStatus, int],
+        audio_url: str | None = None,
+        text: str | None = None,
+        status: AudioStatus | int,
     ) -> dict[Never, Never]:
         request = Request(
             "POST",
@@ -1583,7 +1581,7 @@ class Bot(BaseBot):
         *,
         channel_id: str,
         title: str,
-        content: Union[str, RichText],
+        content: str | RichText,
         format: Literal[1, 2, 3, 4],
     ) -> PutThreadReturn:
         request = Request(
@@ -1686,21 +1684,21 @@ class Bot(BaseBot):
         *,
         openid: str,
         msg_type: Literal[0, 1, 2, 3, 4, 7],
-        content: Optional[str] = None,
-        markdown: Optional[MessageMarkdown] = None,
-        keyboard: Optional[MessageKeyboard] = None,
-        media: Optional[Media] = None,
-        ark: Optional[MessageArk] = None,
-        embed: Optional[MessageEmbed] = None,
+        content: str | None = None,
+        markdown: MessageMarkdown | None = None,
+        keyboard: MessageKeyboard | None = None,
+        media: Media | None = None,
+        ark: MessageArk | None = None,
+        embed: MessageEmbed | None = None,
         image: None = None,
         message_reference: None = None,
-        stream: Optional[MessageStream] = None,
-        prompt_keyboard: Optional[MessagePromptKeyboard] = None,
-        action_button: Optional[MessageActionButton] = None,
-        event_id: Optional[str] = None,
-        msg_id: Optional[str] = None,
-        msg_seq: Optional[int] = None,
-        timestamp: Optional[Union[int, datetime]] = None,
+        stream: MessageStream | None = None,
+        prompt_keyboard: MessagePromptKeyboard | None = None,
+        action_button: MessageActionButton | None = None,
+        event_id: str | None = None,
+        msg_id: str | None = None,
+        msg_seq: int | None = None,
+        timestamp: int | datetime | None = None,
     ) -> PostC2CMessagesReturn:
         # tmp fix. content must not be none if sending media
         # if media is not None and not content:
@@ -1764,9 +1762,9 @@ class Bot(BaseBot):
         *,
         openid: str,
         file_type: Literal[1, 2, 3, 4],
-        url: Optional[str] = None,
+        url: str | None = None,
         srv_send_msg: bool = True,
-        file_data: Optional[Union[str, bytes]] = None,
+        file_data: str | bytes | None = None,
     ) -> PostC2CFilesReturn:
         if isinstance(file_data, bytes):
             file_data = b64encode(file_data).decode()
@@ -1801,18 +1799,18 @@ class Bot(BaseBot):
         *,
         group_openid: str,
         msg_type: Literal[0, 1, 2, 3, 4, 7],
-        content: Optional[str] = None,
-        markdown: Optional[MessageMarkdown] = None,
-        keyboard: Optional[MessageKeyboard] = None,
-        media: Optional[Media] = None,
-        ark: Optional[MessageArk] = None,
-        embed: Optional[MessageEmbed] = None,
+        content: str | None = None,
+        markdown: MessageMarkdown | None = None,
+        keyboard: MessageKeyboard | None = None,
+        media: Media | None = None,
+        ark: MessageArk | None = None,
+        embed: MessageEmbed | None = None,
         image: None = None,
         message_reference: None = None,
-        event_id: Optional[str] = None,
-        msg_id: Optional[str] = None,
-        msg_seq: Optional[int] = None,
-        timestamp: Optional[Union[int, datetime]] = None,
+        event_id: str | None = None,
+        msg_id: str | None = None,
+        msg_seq: int | None = None,
+        timestamp: int | datetime | None = None,
     ) -> PostGroupMessagesReturn:
         # tmp fix. content must not be none if sending media
         # if media is not None and not content:
@@ -1872,9 +1870,9 @@ class Bot(BaseBot):
         *,
         group_openid: str,
         file_type: Literal[1, 2, 3, 4],
-        url: Optional[str] = None,
+        url: str | None = None,
         srv_send_msg: bool = True,
-        file_data: Optional[Union[str, bytes]] = None,
+        file_data: str | bytes | None = None,
     ) -> PostGroupFilesReturn:
         if isinstance(file_data, bytes):
             file_data = b64encode(file_data).decode()
@@ -1907,8 +1905,8 @@ class Bot(BaseBot):
         self,
         *,
         group_id: str,
-        limit: Optional[int] = None,
-        start_index: Optional[int] = None,
+        limit: int | None = None,
+        start_index: int | None = None,
     ) -> PostGroupMembersReturn:
         request = Request(
             "POST",

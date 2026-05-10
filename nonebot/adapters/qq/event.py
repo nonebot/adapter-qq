@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional, TypeVar, cast
+from typing import TypeVar, cast
 from typing_extensions import override
 
 from nonebot.utils import escape_tag
@@ -124,7 +124,7 @@ class Event(BaseEvent):
     __type__: EventType
 
     # event id from payload id
-    event_id: Optional[str] = None
+    event_id: str | None = None
 
     @override
     def get_event_name(self) -> str:
@@ -277,7 +277,7 @@ class MessageEvent(Event):
 
 
 class GuildMessageEvent(MessageEvent, GuildMessage):
-    reply: Optional[GuildMessage] = None
+    reply: GuildMessage | None = None
     """
     :说明: 消息中提取的回复消息，内容为 ``get_message_of_id`` API 返回结果
 

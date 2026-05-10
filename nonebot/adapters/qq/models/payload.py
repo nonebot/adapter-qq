@@ -1,6 +1,5 @@
 from enum import IntEnum
-from typing import Annotated, Optional, Union
-from typing_extensions import Literal
+from typing import Annotated, Literal
 
 from nonebot.compat import PYDANTIC_V2, ConfigDict
 from pydantic import BaseModel, Field
@@ -41,10 +40,10 @@ class Payload(BaseModel):
 
 class Dispatch(Payload):
     opcode: Literal[Opcode.DISPATCH] = Field(Opcode.DISPATCH)
-    data: Union[dict, str]
-    sequence: Optional[int] = None
+    data: dict | str
+    sequence: int | None = None
     type: str
-    id: Optional[str] = None
+    id: str | None = None
 
 
 class Heartbeat(Payload):
@@ -139,10 +138,10 @@ class WebhookVerify(Payload):
     data: WebhookVerifyData
 
 
-PayloadType = Union[
+PayloadType = (
     Annotated[
-        Union[Dispatch, Reconnect, InvalidSession, Hello, HeartbeatAck, WebhookVerify],
+        Dispatch | Reconnect | InvalidSession | Hello | HeartbeatAck | WebhookVerify,
         Field(discriminator="opcode"),
-    ],
-    Payload,
-]
+    ]
+    | Payload
+)

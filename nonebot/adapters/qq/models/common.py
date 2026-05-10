@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 from urllib.parse import urlparse
 
+from nonebot.compat import field_validator
 from pydantic import BaseModel
-
-from nonebot.adapters.qq.compat import field_validator
 
 
 # Message Attachment
@@ -25,123 +24,123 @@ class MessageEmbedThumbnail(BaseModel):
 
 
 class MessageEmbedField(BaseModel):
-    name: Optional[str] = None
+    name: str | None = None
 
 
 class MessageEmbed(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
     prompt: str
-    thumbnail: Optional[MessageEmbedThumbnail] = None
-    fields: Optional[list[MessageEmbedField]] = None
+    thumbnail: MessageEmbedThumbnail | None = None
+    fields: list[MessageEmbedField] | None = None
 
 
 # Message Ark
 class MessageArkObjKv(BaseModel):
-    key: Optional[str] = None
-    value: Optional[str] = None
+    key: str | None = None
+    value: str | None = None
 
 
 class MessageArkObj(BaseModel):
-    obj_kv: Optional[list[MessageArkObjKv]] = None
+    obj_kv: list[MessageArkObjKv] | None = None
 
 
 class MessageArkKv(BaseModel):
-    key: Optional[str] = None
-    value: Optional[str] = None
-    obj: Optional[list[MessageArkObj]] = None
+    key: str | None = None
+    value: str | None = None
+    obj: list[MessageArkObj] | None = None
 
 
 class MessageArk(BaseModel):
-    template_id: Optional[int] = None
-    kv: Optional[list[MessageArkKv]] = None
+    template_id: int | None = None
+    kv: list[MessageArkKv] | None = None
 
 
 # Message Reference
 class MessageReference(BaseModel):
     message_id: str
-    ignore_get_message_error: Optional[bool] = None
+    ignore_get_message_error: bool | None = None
 
 
 # Message Markdown
 class MessageMarkdownParams(BaseModel):
-    key: Optional[str] = None
-    values: Optional[list[str]] = None
+    key: str | None = None
+    values: list[str] | None = None
 
 
 class MessageMarkdown(BaseModel):
-    template_id: Optional[int] = None
-    custom_template_id: Optional[str] = None
-    params: Optional[list[MessageMarkdownParams]] = None
-    content: Optional[str] = None
+    template_id: int | None = None
+    custom_template_id: str | None = None
+    params: list[MessageMarkdownParams] | None = None
+    content: str | None = None
 
 
 # Message Keyboard
 class Permission(BaseModel):
-    type: Optional[int] = None
-    specify_role_ids: Optional[list[str]] = None
-    specify_user_ids: Optional[list[str]] = None
+    type: int | None = None
+    specify_role_ids: list[str] | None = None
+    specify_user_ids: list[str] | None = None
 
 
 class Action(BaseModel):
-    type: Optional[int] = None
-    permission: Optional[Permission] = None
-    data: Optional[str] = None
-    reply: Optional[bool] = None
-    enter: Optional[bool] = None
-    anchor: Optional[int] = None
-    unsupport_tips: Optional[str] = None
-    click_limit: Optional[int] = None  # deprecated
-    at_bot_show_channel_list: Optional[bool] = None  # deprecated
+    type: int | None = None
+    permission: Permission | None = None
+    data: str | None = None
+    reply: bool | None = None
+    enter: bool | None = None
+    anchor: int | None = None
+    unsupport_tips: str | None = None
+    click_limit: int | None = None  # deprecated
+    at_bot_show_channel_list: bool | None = None  # deprecated
 
 
 class RenderData(BaseModel):
-    label: Optional[str] = None
-    visited_label: Optional[str] = None
-    style: Optional[int] = None
+    label: str | None = None
+    visited_label: str | None = None
+    style: int | None = None
 
 
 class Button(BaseModel):
-    id: Optional[str] = None
-    render_data: Optional[RenderData] = None
-    action: Optional[Action] = None
+    id: str | None = None
+    render_data: RenderData | None = None
+    action: Action | None = None
 
 
 class InlineKeyboardRow(BaseModel):
-    buttons: Optional[list[Button]] = None
+    buttons: list[Button] | None = None
 
 
 class InlineKeyboard(BaseModel):
-    rows: Optional[list[InlineKeyboardRow]] = None
+    rows: list[InlineKeyboardRow] | None = None
 
 
 class MessageKeyboard(BaseModel):
-    id: Optional[str] = None
-    content: Optional[InlineKeyboard] = None
+    id: str | None = None
+    content: InlineKeyboard | None = None
 
 
 # Message Audit Event
 class MessageAudited(BaseModel):
     audit_id: str
-    message_id: Optional[str] = None
-    user_openid: Optional[str] = None
-    group_openid: Optional[str] = None
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
+    message_id: str | None = None
+    user_openid: str | None = None
+    group_openid: str | None = None
+    guild_id: str | None = None
+    channel_id: str | None = None
     audit_time: datetime
-    create_time: Optional[datetime] = None
-    seq_in_channel: Optional[str] = None
+    create_time: datetime | None = None
+    seq_in_channel: str | None = None
 
 
 # Interaction Event
 class ButtonInteractionContent(BaseModel):
-    user_id: Optional[str] = None
-    message_id: Optional[str] = None
-    feature_id: Optional[str] = None
-    button_id: Optional[str] = None
-    button_data: Optional[str] = None
-    checked: Optional[int] = None
-    feedback_opt: Optional[str] = None
+    user_id: str | None = None
+    message_id: str | None = None
+    feature_id: str | None = None
+    button_id: str | None = None
+    button_data: str | None = None
+    checked: int | None = None
+    feedback_opt: str | None = None
 
 
 class ButtonInteractionData(BaseModel):
@@ -155,11 +154,11 @@ class ButtonInteraction(BaseModel):
     timestamp: str
     scene: str
     chat_type: int
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    user_openid: Optional[str] = None
-    group_openid: Optional[str] = None
-    group_member_openid: Optional[str] = None
+    guild_id: str | None = None
+    channel_id: str | None = None
+    user_openid: str | None = None
+    group_openid: str | None = None
+    group_member_openid: str | None = None
     application_id: str
     data: ButtonInteractionData
 

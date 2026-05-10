@@ -2,7 +2,7 @@ import asyncio
 import binascii
 import json
 import sys
-from typing import Any, Literal, Optional, Union, cast
+from typing import Any, Literal, cast
 from typing_extensions import override
 
 from cryptography.exceptions import InvalidSignature
@@ -193,7 +193,7 @@ class Adapter(BaseAdapter):
             timeout=30.0,
         )
 
-        heartbeat_task: Optional["asyncio.Task"] = None
+        heartbeat_task: "asyncio.Task | None" = None
 
         while True:
             try:
@@ -264,7 +264,7 @@ class Adapter(BaseAdapter):
 
             await asyncio.sleep(RECONNECT_INTERVAL)
 
-    async def _hello(self, bot: Bot, ws: WebSocket) -> Optional[int]:
+    async def _hello(self, bot: Bot, ws: WebSocket) -> int | None:
         """接收并处理服务器的 Hello 事件"""
         try:
             payload = await self.receive_payload(bot, ws)
@@ -285,7 +285,7 @@ class Adapter(BaseAdapter):
 
     async def _authenticate(
         self, bot: Bot, ws: WebSocket, shard: tuple[int, int]
-    ) -> Optional[Literal[True]]:
+    ) -> Literal[True] | None:
         """鉴权连接"""
         if not bot.ready:
             payload = type_validate_python(
@@ -506,7 +506,7 @@ class Adapter(BaseAdapter):
             ),
         )
 
-    def _check_signature(self, bot: Bot, request: Request) -> Optional[Response]:
+    def _check_signature(self, bot: Bot, request: Request) -> Response | None:
         signature = request.headers.get("X-Signature-Ed25519")
         timestamp = request.headers.get("X-Signature-Timestamp")
         if not signature or not timestamp:
@@ -553,7 +553,7 @@ class Adapter(BaseAdapter):
             return URL(str(self.qq_config.qq_api_base))
 
     @staticmethod
-    def data_to_payload(bot: Bot, data: Union[str, bytes]) -> Payload:
+    def data_to_payload(bot: Bot, data: str | bytes) -> Payload:
         payload = type_validate_json(PayloadType, data)
         if isinstance(payload, Dispatch):
             bot.on_dispatch(payload)
@@ -599,7 +599,7 @@ class Adapter(BaseAdapter):
     @override
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
         log("DEBUG", f"Bot {bot.bot_info.id} calling API <y>{api}</y>")
-        api_handler: Optional[API] = getattr(bot.__class__, api, None)
+        api_handler: API | None = getattr(bot.__class__, api, None)
         if api_handler is None:
             raise ApiNotAvailable
         return await api_handler(bot, **data)

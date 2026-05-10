@@ -1,21 +1,19 @@
-from typing import Union
-
 from nonebot.permission import Permission
 
 from .event import AtMessageCreateEvent, MessageCreateEvent
 
 
 async def _guild_channel_admin(
-    event: Union[AtMessageCreateEvent, MessageCreateEvent],
+    event: AtMessageCreateEvent | MessageCreateEvent,
 ) -> bool:
     return "5" in getattr(event.member, "roles", ())
 
 
-async def _guild_admin(event: Union[AtMessageCreateEvent, MessageCreateEvent]) -> bool:
+async def _guild_admin(event: AtMessageCreateEvent | MessageCreateEvent) -> bool:
     return "2" in getattr(event.member, "roles", ())
 
 
-async def _guild_owner(event: Union[AtMessageCreateEvent, MessageCreateEvent]) -> bool:
+async def _guild_owner(event: AtMessageCreateEvent | MessageCreateEvent) -> bool:
     return "4" in getattr(event.member, "roles", ())
 
 

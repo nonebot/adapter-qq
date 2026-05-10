@@ -1,33 +1,32 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 from urllib.parse import urlparse
 
+from nonebot.compat import field_validator
 from pydantic import BaseModel
-
-from nonebot.adapters.qq.compat import field_validator
 
 
 class FriendAuthor(BaseModel):
     id: str
     user_openid: str
-    union_openid: Optional[str] = None
-    username: Optional[str] = None
+    union_openid: str | None = None
+    username: str | None = None
 
 
 class GroupMemberAuthor(BaseModel):
     id: str
     member_openid: str
-    union_openid: Optional[str] = None
-    username: Optional[str] = None
+    union_openid: str | None = None
+    username: str | None = None
 
 
 class Attachment(BaseModel):
     content_type: str
-    filename: Optional[str] = None
-    height: Optional[int] = None
-    width: Optional[int] = None
-    size: Optional[int] = None
-    url: Optional[str] = None
+    filename: str | None = None
+    height: int | None = None
+    width: int | None = None
+    size: int | None = None
+    url: str | None = None
 
     @field_validator("url", mode="after")
     def check_url(cls, v: str):
@@ -44,29 +43,29 @@ class QQMessage(BaseModel):
     id: str
     content: str
     timestamp: str
-    attachments: Optional[list[Attachment]] = None
+    attachments: list[Attachment] | None = None
 
 
 class PostC2CMessagesReturn(BaseModel):
-    id: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    id: str | None = None
+    timestamp: datetime | None = None
 
 
 class PostGroupMessagesReturn(BaseModel):
-    id: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    id: str | None = None
+    timestamp: datetime | None = None
 
 
 class PostC2CFilesReturn(BaseModel):
-    file_uuid: Optional[str] = None
-    file_info: Optional[str] = None
-    ttl: Optional[int] = None
+    file_uuid: str | None = None
+    file_info: str | None = None
+    ttl: int | None = None
 
 
 class PostGroupFilesReturn(BaseModel):
-    file_uuid: Optional[str] = None
-    file_info: Optional[str] = None
-    ttl: Optional[int] = None
+    file_uuid: str | None = None
+    file_info: str | None = None
+    ttl: int | None = None
 
 
 class GroupMember(BaseModel):
@@ -76,16 +75,16 @@ class GroupMember(BaseModel):
 
 class PostGroupMembersReturn(BaseModel):
     members: list[GroupMember]
-    next_index: Optional[int] = None
+    next_index: int | None = None
 
 
 class MessageActionButton(BaseModel):
     template_id: Literal["1", "10"] = "1"  # 待废弃字段！！！
-    callback_data: Optional[str] = None
-    feedback: Optional[bool] = None  # 反馈按钮（赞踩按钮）
-    tts: Optional[bool] = None  # TTS 语音播放按钮
-    re_generate: Optional[bool] = None  # 重新生成按钮
-    stop_generate: Optional[bool] = None  # 停止生成按钮
+    callback_data: str | None = None
+    feedback: bool | None = None  # 反馈按钮（赞踩按钮）
+    tts: bool | None = None  # TTS 语音播放按钮
+    re_generate: bool | None = None  # 重新生成按钮
+    stop_generate: bool | None = None  # 停止生成按钮
 
 
 class PromptAction(BaseModel):
@@ -121,11 +120,11 @@ class MessagePromptKeyboard(BaseModel):
 class MessageStream(BaseModel):
     state: Literal[1, 10, 11, 20]
     """1: 正文生成中, 10: 正文生成结束, 11: 引志消息生成中, 20: 引导消息生成结束。"""
-    id: Optional[str] = None
+    id: str | None = None
     """第一条不用填写，第二条需要填写第一个分片返回的 msgID"""
     index: int
     """从 1 开始"""
-    reset: Optional[bool] = None
+    reset: bool | None = None
     """只能用于流式消息没有发送完成时，reset 时 index 需要从 0 开始，需要填写流式 id"""
 
 

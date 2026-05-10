@@ -1,5 +1,5 @@
 import asyncio
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .event import MessageAuditEvent
@@ -17,7 +17,7 @@ class AuditResultStore:
             future.set_result(result)
 
     async def fetch(
-        self, audit_id: str, timeout: Optional[float] = None
+        self, audit_id: str, timeout: float | None = None
     ) -> "MessageAuditEvent":
         future = asyncio.get_event_loop().create_future()
         self._futures[audit_id] = future

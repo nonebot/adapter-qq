@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Literal, Optional, TypedDict, Union, overload
+from typing import TYPE_CHECKING, Literal, TypedDict, Union, overload
 from typing_extensions import Self, override
 
 from nonebot.compat import type_validate_python
@@ -58,7 +58,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Attachment("image", data={"url": url})
 
     @staticmethod
-    def file_image(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+    def file_image(data: bytes | BytesIO | Path) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
@@ -70,7 +70,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Attachment("audio", data={"url": url})
 
     @staticmethod
-    def file_audio(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+    def file_audio(data: bytes | BytesIO | Path) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
@@ -82,7 +82,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Attachment("video", data={"url": url})
 
     @staticmethod
-    def file_video(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+    def file_video(data: bytes | BytesIO | Path) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
@@ -94,7 +94,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Attachment("file", data={"url": url})
 
     @staticmethod
-    def file_file(data: Union[bytes, BytesIO, Path]) -> "LocalAttachment":
+    def file_file(data: bytes | BytesIO | Path) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
@@ -110,7 +110,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Embed("embed", data={"embed": embed})
 
     @staticmethod
-    def markdown(markdown: Union[str, MessageMarkdown]) -> "Markdown":
+    def markdown(markdown: str | MessageMarkdown) -> "Markdown":
         return Markdown(
             "markdown",
             data={
@@ -132,13 +132,11 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @overload
     @staticmethod
-    def reference(
-        reference: str, ignore_error: Optional[bool] = None
-    ) -> "Reference": ...
+    def reference(reference: str, ignore_error: bool | None = None) -> "Reference": ...
 
     @staticmethod
     def reference(
-        reference: Union[str, MessageReference], ignore_error: Optional[bool] = None
+        reference: str | MessageReference, ignore_error: bool | None = None
     ) -> "Reference":
         if isinstance(reference, MessageReference):
             return Reference("reference", data={"reference": reference})
@@ -155,9 +153,9 @@ class MessageSegment(BaseMessageSegment["Message"]):
     @staticmethod
     def stream(
         state: Literal[1, 10, 11, 20],
-        _id: Optional[str],
+        _id: str | None,
         index: int,
-        reset: Optional[bool] = None,
+        reset: bool | None = None,
     ) -> "Stream":
         _data = {
             "state": state,
@@ -527,17 +525,13 @@ class Message(BaseMessage[MessageSegment]):
         return MessageSegment
 
     @override
-    def __add__(
-        self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
-    ) -> Self:
+    def __add__(self, other: str | MessageSegment | Iterable[MessageSegment]) -> Self:
         return super().__add__(
             MessageSegment.text(other) if isinstance(other, str) else other
         )
 
     @override
-    def __radd__(
-        self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
-    ) -> Self:
+    def __radd__(self, other: str | MessageSegment | Iterable[MessageSegment]) -> Self:
         return super().__radd__(
             MessageSegment.text(other) if isinstance(other, str) else other
         )

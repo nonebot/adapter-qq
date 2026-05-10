@@ -1,12 +1,16 @@
 from datetime import datetime
 from enum import IntEnum
 import json
-from typing import Generic, Optional, TypeVar, Union
+from typing import Generic, TypeVar
 
-from nonebot.compat import PYDANTIC_V2, model_fields, type_validate_python
+from nonebot.compat import (
+    PYDANTIC_V2,
+    field_validator,
+    model_fields,
+    model_validator,
+    type_validate_python,
+)
 from pydantic import BaseModel
-
-from nonebot.adapters.qq.compat import field_validator, model_validator
 
 from .common import MessageArk, MessageAttachment, MessageEmbed, MessageReference
 
@@ -34,11 +38,11 @@ class Guild(BaseModel):
 # User
 class User(BaseModel):
     id: str
-    username: Optional[str] = None
-    avatar: Optional[str] = None
-    bot: Optional[bool] = None
-    union_openid: Optional[str] = None
-    union_user_account: Optional[str] = None
+    username: str | None = None
+    avatar: str | None = None
+    bot: bool | None = None
+    union_openid: str | None = None
+    union_user_account: str | None = None
 
 
 # Channel
@@ -76,22 +80,22 @@ class Channel(BaseModel):
     id: str
     guild_id: str
     name: str
-    type: Union[ChannelType, int]
-    sub_type: Union[ChannelSubType, int]
+    type: ChannelType | int
+    sub_type: ChannelSubType | int
     position: int
-    parent_id: Optional[str] = None
-    owner_id: Optional[str] = None
-    private_type: Optional[Union[PrivateType, int]] = None
-    speak_permission: Optional[Union[SpeakPermission, int]] = None
-    application_id: Optional[str] = None
-    permissions: Optional[int] = None
+    parent_id: str | None = None
+    owner_id: str | None = None
+    private_type: PrivateType | int | None = None
+    speak_permission: SpeakPermission | int | None = None
+    application_id: str | None = None
+    permissions: int | None = None
 
 
 # Member
 class Member(BaseModel):
-    user: Optional[User] = None
-    nick: Optional[str] = None
-    roles: Optional[list[str]] = None
+    user: User | None = None
+    nick: str | None = None
+    roles: list[str] | None = None
     joined_at: datetime
 
 
@@ -130,8 +134,8 @@ class PatchGuildRoleReturn(BaseModel):
 # Channel Permission
 class ChannelPermissions(BaseModel):
     channel_id: str
-    user_id: Optional[str] = None
-    role_id: Optional[str] = None
+    user_id: str | None = None
+    role_id: str | None = None
     permissions: int
 
 
@@ -140,20 +144,20 @@ class Message(BaseModel):
     id: str
     channel_id: str
     guild_id: str
-    content: Optional[str] = None
-    timestamp: Optional[datetime] = None
-    edited_timestamp: Optional[datetime] = None
-    mention_everyone: Optional[bool] = None
+    content: str | None = None
+    timestamp: datetime | None = None
+    edited_timestamp: datetime | None = None
+    mention_everyone: bool | None = None
     author: User
-    attachments: Optional[list[MessageAttachment]] = None
-    embeds: Optional[list[MessageEmbed]] = None
-    mentions: Optional[list[User]] = None
-    member: Optional[Member] = None
-    ark: Optional[MessageArk] = None
-    seq: Optional[int] = None
-    seq_in_channel: Optional[str] = None
-    message_reference: Optional[MessageReference] = None
-    src_guild_id: Optional[str] = None
+    attachments: list[MessageAttachment] | None = None
+    embeds: list[MessageEmbed] | None = None
+    mentions: list[User] | None = None
+    member: Member | None = None
+    ark: MessageArk | None = None
+    seq: int | None = None
+    seq_in_channel: str | None = None
+    message_reference: MessageReference | None = None
+    src_guild_id: str | None = None
 
 
 # Message Delete Event
@@ -172,23 +176,23 @@ class MessageSetting(BaseModel):
 
 # DMS
 class DMS(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    create_time: Optional[datetime] = None
+    guild_id: str | None = None
+    channel_id: str | None = None
+    create_time: datetime | None = None
 
 
 # Announce
 class RecommendChannel(BaseModel):
-    channel_id: Optional[str] = None
-    introduce: Optional[str] = None
+    channel_id: str | None = None
+    introduce: str | None = None
 
 
 class Announces(BaseModel):
-    guild_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    message_id: Optional[str] = None
-    announces_type: Optional[int] = None
-    recommend_channels: Optional[list[RecommendChannel]] = None
+    guild_id: str | None = None
+    channel_id: str | None = None
+    message_id: str | None = None
+    announces_type: int | None = None
+    recommend_channels: list[RecommendChannel] | None = None
 
 
 # Pins
@@ -211,12 +215,12 @@ class RemindType(IntEnum):
 class Schedule(BaseModel):
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     start_timestamp: datetime
     end_timestamp: datetime
-    creator: Optional[Member] = None
-    jump_channel_id: Optional[str] = None
-    remind_type: Optional[Union[RemindType, int]] = None
+    creator: Member | None = None
+    jump_channel_id: str | None = None
+    remind_type: RemindType | int | None = None
 
 
 # Emoji Reaction
@@ -239,7 +243,7 @@ class ReactionTargetType(IntEnum):
 
 class ReactionTarget(BaseModel):
     id: str
-    type: Union[ReactionTargetType, str]
+    type: ReactionTargetType | str
 
 
 class MessageReaction(BaseModel):
@@ -265,16 +269,16 @@ class AudioStatus(IntEnum):
 
 
 class AudioControl(BaseModel):
-    audio_url: Optional[str] = None
-    text: Optional[str] = None
-    status: Union[AudioStatus, int]
+    audio_url: str | None = None
+    text: str | None = None
+    status: AudioStatus | int
 
 
 class AudioAction(BaseModel):
     guild_id: str
     channel_id: str
-    audio_url: Optional[str] = None
-    text: Optional[str] = None
+    audio_url: str | None = None
+    text: str | None = None
 
 
 # Forum
@@ -287,27 +291,27 @@ class ElemType(IntEnum):
 
 
 class TextProps(BaseModel):
-    font_bold: Optional[bool] = None
-    italic: Optional[bool] = None
-    underline: Optional[bool] = None
+    font_bold: bool | None = None
+    italic: bool | None = None
+    underline: bool | None = None
 
 
 class TextElem(BaseModel):
     text: str
-    props: Optional[TextProps] = None
+    props: TextProps | None = None
 
 
 class PlatImage(BaseModel):
-    url: Optional[str] = None
-    width: Optional[int] = None
-    height: Optional[int] = None
-    image_id: Optional[str] = None
+    url: str | None = None
+    width: int | None = None
+    height: int | None = None
+    image_id: str | None = None
 
 
 class ImageElem(BaseModel):
-    plat_image: Optional[PlatImage] = None
-    third_url: Optional[str] = None
-    width_percent: Optional[float] = None
+    plat_image: PlatImage | None = None
+    third_url: str | None = None
+    width_percent: float | None = None
 
 
 class VideoElem(BaseModel):
@@ -316,15 +320,15 @@ class VideoElem(BaseModel):
 
 class URLElem(BaseModel):
     url: str
-    desc: Optional[str] = None
+    desc: str | None = None
 
 
 class Elem(BaseModel):
     type: ElemType
-    text: Optional[TextElem] = None
-    image: Optional[ImageElem] = None
-    video: Optional[VideoElem] = None
-    url: Optional[URLElem] = None
+    text: TextElem | None = None
+    image: ImageElem | None = None
+    video: VideoElem | None = None
+    url: URLElem | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -354,16 +358,16 @@ class Alignment(IntEnum):
 
 
 class ParagraphProps(BaseModel):
-    alignment: Optional[Alignment] = None
+    alignment: Alignment | None = None
 
 
 class Paragraph(BaseModel):
     elems: list[Elem]
-    props: Optional[ParagraphProps] = None
+    props: ParagraphProps | None = None
 
 
 class RichText(BaseModel):
-    paragraphs: Optional[list[Paragraph]] = None
+    paragraphs: list[Paragraph] | None = None
 
 
 class ThreadObjectInfo(BaseModel):
@@ -436,8 +440,8 @@ class ForumAuditResult(ForumSourceInfo):
     post_id: str
     reply_id: str
     type: ForumAuditType
-    result: Optional[int] = None
-    err_msg: Optional[str] = None
+    result: int | None = None
+    err_msg: str | None = None
 
 
 class GetThreadsListReturn(BaseModel):
@@ -458,13 +462,13 @@ class PutThreadReturn(BaseModel):
 class APIPermission(BaseModel):
     path: str
     method: str
-    desc: Optional[str] = None
+    desc: str | None = None
     auth_status: bool
 
 
 class APIPermissionDemandIdentify(BaseModel):
-    path: Optional[str] = None
-    method: Optional[str] = None
+    path: str | None = None
+    method: str | None = None
 
 
 class APIPermissionDemand(BaseModel):

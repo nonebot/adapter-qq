@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 from nonebot.drivers import Response
 from nonebot.exception import ActionFailed as BaseActionFailed
@@ -24,7 +23,7 @@ class ActionFailed(BaseActionFailed, QQAdapterException):
     def __init__(self, response: Response):
         self.response = response
 
-        self.body: Optional[dict] = None
+        self.body: dict | None = None
         if response.content:
             try:
                 self.body = json.loads(response.content)
@@ -36,19 +35,19 @@ class ActionFailed(BaseActionFailed, QQAdapterException):
         return self.response.status_code
 
     @property
-    def code(self) -> Optional[int]:
+    def code(self) -> int | None:
         return None if self.body is None else self.body.get("code", None)
 
     @property
-    def message(self) -> Optional[str]:
+    def message(self) -> str | None:
         return None if self.body is None else self.body.get("message", None)
 
     @property
-    def data(self) -> Optional[dict]:
+    def data(self) -> dict | None:
         return None if self.body is None else self.body.get("data", None)
 
     @property
-    def trace_id(self) -> Optional[str]:
+    def trace_id(self) -> str | None:
         return self.response.headers.get("X-Tps-trace-ID", None)
 
     def __repr__(self) -> str:
@@ -72,9 +71,9 @@ class RateLimitException(ActionFailed):
 
 
 class NetworkError(BaseNetworkError, QQAdapterException):
-    def __init__(self, msg: Optional[str] = None):
+    def __init__(self, msg: str | None = None):
         super().__init__()
-        self.msg: Optional[str] = msg
+        self.msg: str | None = msg
         """错误原因"""
 
     def __repr__(self):
@@ -95,6 +94,6 @@ class AuditException(QQAdapterException):
         super().__init__()
         self.audit_id = audit_id
 
-    async def get_audit_result(self, timeout: Optional[float] = None):
+    async def get_audit_result(self, timeout: float | None = None):
         """获取审核结果"""
         return await audit_result.fetch(self.audit_id, timeout)

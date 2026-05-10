@@ -1,5 +1,3 @@
-from typing import Optional
-
 from nonebot.compat import PYDANTIC_V2, ConfigDict
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -48,7 +46,7 @@ class BotInfo(BaseModel):
     id: str = Field(alias="id")
     token: str = Field(alias="token")
     secret: str = Field(alias="secret")
-    shard: Optional[tuple[int, int]] = None
+    shard: tuple[int, int] | None = None
     intent: Intents = Field(default_factory=Intents)
     use_websocket: bool = True
 
