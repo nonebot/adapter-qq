@@ -1,6 +1,8 @@
+import asyncio
 from base64 import b64encode
-from contextlib import suppress
+from contextlib import nullcontext, suppress
 from datetime import datetime, timedelta, timezone
+import hashlib
 import json
 from typing import (
     IO,
@@ -74,8 +76,10 @@ from .models import (
     MessageStream,
     PatchGuildRoleReturn,
     PinsMessage,
+    PostC2CFilesPrepareReturn,
     PostC2CFilesReturn,
     PostC2CMessagesReturn,
+    PostGroupFilesPrepareReturn,
     PostGroupFilesReturn,
     PostGroupMembersReturn,
     PostGroupMessagesReturn,
@@ -1761,26 +1765,149 @@ class Bot(BaseBot):
         self,
         *,
         openid: str,
-        file_type: Literal[1, 2, 3, 4],
+        file_type: Literal[1, 2, 3, 4] | None = None,
         url: str | None = None,
         srv_send_msg: bool = True,
         file_data: str | bytes | None = None,
+        upload_id: str | None = None,
     ) -> PostC2CFilesReturn:
         if isinstance(file_data, bytes):
             file_data = b64encode(file_data).decode()
-        request = Request(
-            "POST",
-            self.adapter.get_api_base().joinpath("v2", "users", openid, "files"),
-            json=exclude_none(
+
+        if upload_id is not None:
+            data = {"upload_id": upload_id}
+        elif file_type is None:
+            raise ValueError("file_type must be provided if upload_id is not provided")
+        else:
+            data = exclude_none(
                 {
                     "file_type": file_type,
                     "url": url,
                     "srv_send_msg": srv_send_msg,
                     "file_data": file_data,
                 }
-            ),
+            )
+
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "users", openid, "files"),
+            json=data,
         )
         return type_validate_python(PostC2CFilesReturn, await self._request(request))
+
+    async def post_c2c_upload(
+        self,
+        openid: str,
+        file_type: Literal[1, 2, 3, 4],
+        file_name: str,
+        file_data: bytes,
+        srv_send_msg: bool = True,
+    ) -> PostC2CFilesReturn:
+        prepare = await self.post_c2c_upload_prepare(
+            openid=openid,
+            file_type=file_type,
+            file_name=file_name,
+            file_size=len(file_data),
+            md5=hashlib.md5(file_data).hexdigest(),
+            sha1=hashlib.sha1(file_data).hexdigest(),
+            md5_10m=hashlib.md5(file_data[: 10 * 1024 * 1024]).hexdigest(),
+        )
+        semaphore = asyncio.Semaphore(prepare.concurrency)
+        tasks = [
+            asyncio.create_task(
+                self._c2c_upload_part(
+                    openid,
+                    prepare.upload_id,
+                    part.index,
+                    part.presigned_url,
+                    file_data[i * prepare.block_size : (i + 1) * prepare.block_size],
+                    semaphore,
+                )
+            )
+            for i, part in enumerate(prepare.parts)
+        ]
+        try:
+            await asyncio.gather(*tasks)
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+
+        return await self.post_c2c_files(
+            openid=openid, srv_send_msg=srv_send_msg, upload_id=prepare.upload_id
+        )
+
+    async def _c2c_upload_part(
+        self,
+        openid: str,
+        upload_id: str,
+        index: int,
+        presigned_url: str,
+        data: bytes,
+        semaphore: asyncio.Semaphore | None = None,
+    ) -> None:
+        async with semaphore or nullcontext():
+            await self.put_upload_part(presigned_url=presigned_url, data=data)
+            await self.post_c2c_upload_part_finish(
+                openid=openid,
+                upload_id=upload_id,
+                part_index=index,
+                block_size=len(data),
+                md5=hashlib.md5(data).hexdigest(),
+            )
+
+    @API
+    async def post_c2c_upload_prepare(
+        self,
+        *,
+        openid: str,
+        file_type: Literal[1, 2, 3, 4],
+        file_name: str,
+        file_size: int,
+        md5: str,
+        sha1: str,
+        md5_10m: str,
+    ) -> PostC2CFilesPrepareReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "users", openid, "upload_prepare"
+            ),
+            json={
+                "file_type": file_type,
+                "file_name": file_name,
+                "file_size": file_size,
+                "md5": md5,
+                "sha1": sha1,
+                "md5_10m": md5_10m,
+            },
+        )
+        return type_validate_python(
+            PostC2CFilesPrepareReturn, await self._request(request)
+        )
+
+    @API
+    async def put_upload_part(self, *, presigned_url: str, data: bytes) -> None:
+        request = Request("PUT", presigned_url, content=data)
+        return await self._request(request)
+
+    @API
+    async def post_c2c_upload_part_finish(
+        self, *, openid: str, upload_id: str, part_index: int, block_size: int, md5: str
+    ) -> None:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "users", openid, "upload_part_finish"
+            ),
+            json={
+                "upload_id": upload_id,
+                "part_index": part_index,
+                "block_size": block_size,
+                "md5": md5,
+            },
+        )
+        return await self._request(request)
 
     @API
     async def delete_c2c_message(self, *, openid: str, message_id: str) -> None:
@@ -1869,26 +1996,149 @@ class Bot(BaseBot):
         self,
         *,
         group_openid: str,
-        file_type: Literal[1, 2, 3, 4],
+        file_type: Literal[1, 2, 3, 4] | None = None,
         url: str | None = None,
         srv_send_msg: bool = True,
         file_data: str | bytes | None = None,
+        upload_id: str | None = None,
     ) -> PostGroupFilesReturn:
         if isinstance(file_data, bytes):
             file_data = b64encode(file_data).decode()
-        request = Request(
-            "POST",
-            self.adapter.get_api_base().joinpath("v2", "groups", group_openid, "files"),
-            json=exclude_none(
+
+        if upload_id is not None:
+            data = {"upload_id": upload_id}
+        elif file_type is None:
+            raise ValueError("file_type must be provided if upload_id is not provided")
+        else:
+            data = exclude_none(
                 {
                     "file_type": file_type,
                     "url": url,
                     "srv_send_msg": srv_send_msg,
                     "file_data": file_data,
                 }
-            ),
+            )
+
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_openid, "files"),
+            json=data,
         )
         return type_validate_python(PostGroupFilesReturn, await self._request(request))
+
+    async def post_group_upload(
+        self,
+        group_openid: str,
+        file_type: Literal[1, 2, 3, 4],
+        file_name: str,
+        file_data: bytes,
+        srv_send_msg: bool = True,
+    ) -> PostGroupFilesReturn:
+        prepare = await self.post_group_upload_prepare(
+            group_openid=group_openid,
+            file_type=file_type,
+            file_name=file_name,
+            file_size=len(file_data),
+            md5=hashlib.md5(file_data).hexdigest(),
+            sha1=hashlib.sha1(file_data).hexdigest(),
+            md5_10m=hashlib.md5(file_data[: 10 * 1024 * 1024]).hexdigest(),
+        )
+        semaphore = asyncio.Semaphore(prepare.concurrency)
+        tasks = [
+            asyncio.create_task(
+                self._group_upload_part(
+                    group_openid,
+                    prepare.upload_id,
+                    part.index,
+                    part.presigned_url,
+                    file_data[i * prepare.block_size : (i + 1) * prepare.block_size],
+                    semaphore,
+                )
+            )
+            for i, part in enumerate(prepare.parts)
+        ]
+        try:
+            await asyncio.gather(*tasks)
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+
+        return await self.post_group_files(
+            group_openid=group_openid, upload_id=prepare.upload_id
+        )
+
+    async def _group_upload_part(
+        self,
+        group_openid: str,
+        upload_id: str,
+        index: int,
+        presigned_url: str,
+        data: bytes,
+        semaphore: asyncio.Semaphore | None = None,
+    ) -> None:
+        async with semaphore or nullcontext():
+            await self.put_upload_part(presigned_url=presigned_url, data=data)
+            await self.post_group_upload_part_finish(
+                group_openid=group_openid,
+                upload_id=upload_id,
+                part_index=index,
+                block_size=len(data),
+                md5=hashlib.md5(data).hexdigest(),
+            )
+
+    @API
+    async def post_group_upload_prepare(
+        self,
+        *,
+        group_openid: str,
+        file_type: Literal[1, 2, 3, 4],
+        file_name: str,
+        file_size: int,
+        md5: str,
+        sha1: str,
+        md5_10m: str,
+    ) -> PostGroupFilesPrepareReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "upload_prepare"
+            ),
+            json={
+                "file_type": file_type,
+                "file_name": file_name,
+                "file_size": file_size,
+                "md5": md5,
+                "sha1": sha1,
+                "md5_10m": md5_10m,
+            },
+        )
+        return type_validate_python(
+            PostGroupFilesPrepareReturn, await self._request(request)
+        )
+
+    @API
+    async def post_group_upload_part_finish(
+        self,
+        group_openid: str,
+        upload_id: str,
+        part_index: int,
+        block_size: int,
+        md5: str,
+    ) -> None:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "upload_part_finish"
+            ),
+            json={
+                "upload_id": upload_id,
+                "part_index": part_index,
+                "block_size": block_size,
+                "md5": md5,
+            },
+        )
+        return await self._request(request)
 
     @API
     async def delete_group_message(self, *, group_openid: str, message_id: str) -> None:
