@@ -1812,7 +1812,7 @@ class Bot(BaseBot):
             sha1=hashlib.sha1(file_data).hexdigest(),
             md5_10m=hashlib.md5(file_data[: 10 * 1024 * 1024]).hexdigest(),
         )
-        semaphore = asyncio.Semaphore(prepare.concurrency)
+        semaphore = asyncio.Semaphore(prepare.upload_config.concurrency)
         tasks = [
             asyncio.create_task(
                 self._c2c_upload_part(
@@ -2043,7 +2043,7 @@ class Bot(BaseBot):
             sha1=hashlib.sha1(file_data).hexdigest(),
             md5_10m=hashlib.md5(file_data[: 10 * 1024 * 1024]).hexdigest(),
         )
-        semaphore = asyncio.Semaphore(prepare.concurrency)
+        semaphore = asyncio.Semaphore(prepare.upload_config.concurrency)
         tasks = [
             asyncio.create_task(
                 self._group_upload_part(

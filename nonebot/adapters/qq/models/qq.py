@@ -67,12 +67,17 @@ class UploadPartItem(BaseModel):
     presigned_url: str
 
 
+class UploadConfig(BaseModel):
+    concurrency: int
+    retry_timeout: int
+    retry_delay: int
+
+
 class PostC2CFilesPrepareReturn(BaseModel):
     upload_id: str
     block_size: int
     parts: list[UploadPartItem]
-    concurrency: int
-    retry_timeout: int
+    upload_config: UploadConfig
 
 
 class PostGroupFilesReturn(BaseModel):
@@ -85,8 +90,7 @@ class PostGroupFilesPrepareReturn(BaseModel):
     upload_id: str
     block_size: int
     parts: list[UploadPartItem]
-    concurrency: int
-    retry_timeout: int
+    upload_config: UploadConfig
 
 
 class GroupMember(BaseModel):
