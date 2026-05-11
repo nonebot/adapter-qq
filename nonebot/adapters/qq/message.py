@@ -26,8 +26,6 @@ from .models import (
 )
 from .utils import escape, unescape
 
-DEFAULT_FILENAME = ""
-
 
 class MessageSegment(BaseMessageSegment["Message"]):
     @classmethod
