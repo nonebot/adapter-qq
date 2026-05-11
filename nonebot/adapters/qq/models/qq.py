@@ -62,10 +62,35 @@ class PostC2CFilesReturn(BaseModel):
     ttl: int | None = None
 
 
+class UploadPartItem(BaseModel):
+    index: int
+    presigned_url: str
+
+
+class UploadConfig(BaseModel):
+    concurrency: int
+    retry_timeout: int
+    retry_delay: int
+
+
+class PostC2CFilesPrepareReturn(BaseModel):
+    upload_id: str
+    block_size: int
+    parts: list[UploadPartItem]
+    upload_config: UploadConfig
+
+
 class PostGroupFilesReturn(BaseModel):
     file_uuid: str | None = None
     file_info: str | None = None
     ttl: int | None = None
+
+
+class PostGroupFilesPrepareReturn(BaseModel):
+    upload_id: str
+    block_size: int
+    parts: list[UploadPartItem]
+    upload_config: UploadConfig
 
 
 class GroupMember(BaseModel):
@@ -137,8 +162,10 @@ __all__ = [
     "MessageActionButton",
     "MessagePromptKeyboard",
     "MessageStream",
+    "PostC2CFilesPrepareReturn",
     "PostC2CFilesReturn",
     "PostC2CMessagesReturn",
+    "PostGroupFilesPrepareReturn",
     "PostGroupFilesReturn",
     "PostGroupMembersReturn",
     "PostGroupMessagesReturn",
