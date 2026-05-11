@@ -26,6 +26,8 @@ from .models import (
 )
 from .utils import escape, unescape
 
+DEFAULT_FILENAME = ""
+
 
 class MessageSegment(BaseMessageSegment["Message"]):
     @classmethod
@@ -58,48 +60,76 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return Attachment("image", data={"url": url})
 
     @staticmethod
-    def file_image(data: bytes | BytesIO | Path) -> "LocalAttachment":
+    def file_image(
+        data: bytes | BytesIO | Path, file_name: str | None = None
+    ) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
+            if file_name is None:
+                file_name = data.name
             data = data.read_bytes()
-        return LocalAttachment("file_image", data={"content": data})
+        return LocalAttachment(
+            "file_image",
+            data={"content": data, "file_name": file_name},
+        )
 
     @staticmethod
     def audio(url: str) -> "Attachment":
         return Attachment("audio", data={"url": url})
 
     @staticmethod
-    def file_audio(data: bytes | BytesIO | Path) -> "LocalAttachment":
+    def file_audio(
+        data: bytes | BytesIO | Path, file_name: str | None = None
+    ) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
+            if file_name is None:
+                file_name = data.name
             data = data.read_bytes()
-        return LocalAttachment("file_audio", data={"content": data})
+        return LocalAttachment(
+            "file_audio",
+            data={"content": data, "file_name": file_name},
+        )
 
     @staticmethod
     def video(url: str) -> "Attachment":
         return Attachment("video", data={"url": url})
 
     @staticmethod
-    def file_video(data: bytes | BytesIO | Path) -> "LocalAttachment":
+    def file_video(
+        data: bytes | BytesIO | Path, file_name: str | None = None
+    ) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
+            if file_name is None:
+                file_name = data.name
             data = data.read_bytes()
-        return LocalAttachment("file_video", data={"content": data})
+        return LocalAttachment(
+            "file_video",
+            data={"content": data, "file_name": file_name},
+        )
 
     @staticmethod
     def file(url: str) -> "Attachment":
         return Attachment("file", data={"url": url})
 
     @staticmethod
-    def file_file(data: bytes | BytesIO | Path) -> "LocalAttachment":
+    def file_file(
+        data: bytes | BytesIO | Path, file_name: str | None = None
+    ) -> "LocalAttachment":
         if isinstance(data, BytesIO):
             data = data.getvalue()
         elif isinstance(data, Path):
+            if file_name is None:
+                file_name = data.name
             data = data.read_bytes()
-        return LocalAttachment("file_file", data={"content": data})
+        return LocalAttachment(
+            "file_file",
+            data={"content": data, "file_name": file_name},
+        )
 
     @staticmethod
     def ark(ark: MessageArk) -> "Ark":
@@ -312,6 +342,7 @@ class Attachment(MessageSegment):
 
 class _LocalAttachmentData(TypedDict):
     content: bytes
+    file_name: str | None
 
 
 @dataclass

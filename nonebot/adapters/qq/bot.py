@@ -343,6 +343,7 @@ class Bot(BaseBot):
     @staticmethod
     def _extract_qq_media(message: Message) -> dict[str, Any]:
         kwargs = {}
+        file_segment = None
         if image := message["image"]:
             kwargs["file_type"] = 1
             kwargs["url"] = image[-1].data["url"]
@@ -357,16 +358,25 @@ class Bot(BaseBot):
             kwargs["url"] = file[-1].data["url"]
         elif file_image := message["file_image"]:
             kwargs["file_type"] = 1
-            kwargs["file_data"] = file_image[-1].data["content"]
+            file_segment = file_image[-1]
         elif file_video := message["file_video"]:
             kwargs["file_type"] = 2
-            kwargs["file_data"] = file_video[-1].data["content"]
+            file_segment = file_video[-1]
         elif file_audio := message["file_audio"]:
             kwargs["file_type"] = 3
-            kwargs["file_data"] = file_audio[-1].data["content"]
+            file_segment = file_audio[-1]
         elif file_file := message["file_file"]:
             kwargs["file_type"] = 4
-            kwargs["file_data"] = file_file[-1].data["content"]
+            file_segment = file_file[-1]
+
+        if file_segment is not None:
+            kwargs["file_data"] = data = file_segment.data["content"]
+            if isinstance(data, bytes) and len(data) > 10 * 1024 * 1024:
+                kwargs["file_name"] = (
+                    ""
+                    if (file_name := file_segment.data["file_name"]) is None
+                    else file_name
+                )
         return kwargs
 
     async def send_to_dms(
@@ -438,9 +448,15 @@ class Bot(BaseBot):
 
         media: Media | None = None
         if msg_type == 7:
-            media_info = await self.post_c2c_files(
-                openid=openid, srv_send_msg=False, **self._extract_qq_media(message)
-            )
+            kwargs = self._extract_qq_media(message)
+            if "file_name" in kwargs:
+                media_info = await self.post_c2c_upload(
+                    openid=openid, srv_send_msg=False, **kwargs
+                )
+            else:
+                media_info = await self.post_c2c_files(
+                    openid=openid, srv_send_msg=False, **kwargs
+                )
             media = (
                 Media(file_info=media_info.file_info) if media_info.file_info else None
             )
@@ -487,11 +503,15 @@ class Bot(BaseBot):
 
         media: Media | None = None
         if msg_type == 7:
-            media_info = await self.post_group_files(
-                group_openid=group_openid,
-                srv_send_msg=False,
-                **self._extract_qq_media(message),
-            )
+            kwargs = self._extract_qq_media(message)
+            if "file_name" in kwargs:
+                media_info = await self.post_group_upload(
+                    group_openid=group_openid, srv_send_msg=False, **kwargs
+                )
+            else:
+                media_info = await self.post_group_files(
+                    group_openid=group_openid, srv_send_msg=False, **kwargs
+                )
             media = (
                 Media(file_info=media_info.file_info) if media_info.file_info else None
             )
