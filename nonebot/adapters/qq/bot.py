@@ -102,6 +102,9 @@ if TYPE_CHECKING:
     from .adapter import Adapter
 
 
+DEFAULT_FILENAME = "default"
+
+
 async def _check_reply(
     bot: "Bot",
     event: GuildMessageEvent | QQMessageEvent,
@@ -373,7 +376,7 @@ class Bot(BaseBot):
             kwargs["file_data"] = data = file_segment.data["content"]
             if isinstance(data, bytes) and len(data) > 10 * 1024 * 1024:
                 kwargs["file_name"] = (
-                    ""
+                    DEFAULT_FILENAME
                     if (file_name := file_segment.data["file_name"]) is None
                     else file_name
                 )
@@ -448,14 +451,14 @@ class Bot(BaseBot):
 
         media: Media | None = None
         if msg_type == 7:
-            kwargs = self._extract_qq_media(message)
-            if "file_name" in kwargs:
+            media_kwargs = self._extract_qq_media(message)
+            if "file_name" in media_kwargs:
                 media_info = await self.post_c2c_upload(
-                    openid=openid, srv_send_msg=False, **kwargs
+                    openid=openid, srv_send_msg=False, **media_kwargs
                 )
             else:
                 media_info = await self.post_c2c_files(
-                    openid=openid, srv_send_msg=False, **kwargs
+                    openid=openid, srv_send_msg=False, **media_kwargs
                 )
             media = (
                 Media(file_info=media_info.file_info) if media_info.file_info else None
@@ -503,14 +506,14 @@ class Bot(BaseBot):
 
         media: Media | None = None
         if msg_type == 7:
-            kwargs = self._extract_qq_media(message)
-            if "file_name" in kwargs:
+            media_kwargs = self._extract_qq_media(message)
+            if "file_name" in media_kwargs:
                 media_info = await self.post_group_upload(
-                    group_openid=group_openid, srv_send_msg=False, **kwargs
+                    group_openid=group_openid, srv_send_msg=False, **media_kwargs
                 )
             else:
                 media_info = await self.post_group_files(
-                    group_openid=group_openid, srv_send_msg=False, **kwargs
+                    group_openid=group_openid, srv_send_msg=False, **media_kwargs
                 )
             media = (
                 Media(file_info=media_info.file_info) if media_info.file_info else None
