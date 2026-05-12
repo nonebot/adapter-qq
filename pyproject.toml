@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-adapter-qq"
-version = "1.6.7"
+version = "1.7.0"
 description = "QQ adapter for nonebot2"
 authors = [{ name = "yanyongyu", email = "yyy@nonebot.dev" }]
 requires-python = ">=3.10, <4"
@@ -17,7 +17,7 @@ classifiers = [
 dependencies = [
   "yarl >=1.9.0, <2",
   "nonebot2 >=2.5.0, <3",
-  "cryptography >=43.0.3, <47.0.0",
+  "cryptography >=43.0.3, <49.0.0",
   "typing-extensions >=4.4.0, <5.0.0",
   "pydantic >=1.10.0, <3.0.0, !=2.5.0, !=2.5.1",
 ]
