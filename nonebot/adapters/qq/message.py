@@ -281,6 +281,7 @@ class Emoji(MessageSegment):
     def __str__(self) -> str:
         return f"<emoji:{self.data['id']}>"
 
+
 class _GroupMentionUserData(TypedDict):
     bot: bool
     id: str
@@ -289,6 +290,7 @@ class _GroupMentionUserData(TypedDict):
     scope: str
     username: str
 
+
 @dataclass
 class GroupMentionUser(MessageSegment):
     if TYPE_CHECKING:
@@ -296,7 +298,7 @@ class GroupMentionUser(MessageSegment):
 
     @override
     def __str__(self) -> str:
-        return f'<@{self.data["id"]}>'
+        return f"<@{self.data['id']}>"
 
     @classmethod
     @override
