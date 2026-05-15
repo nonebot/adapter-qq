@@ -20,6 +20,15 @@ class GroupMemberAuthor(BaseModel):
     username: str | None = None
 
 
+class GroupMentionUser(BaseModel):
+    bot: bool
+    id: str
+    is_you: bool
+    member_openid: str
+    scope: str
+    username: str
+
+
 class Attachment(BaseModel):
     content_type: str
     filename: str | None = None
@@ -43,6 +52,7 @@ class QQMessage(BaseModel):
     id: str
     content: str
     timestamp: str
+    mentions: list[GroupMentionUser] | None = None
     attachments: list[Attachment] | None = None
 
 

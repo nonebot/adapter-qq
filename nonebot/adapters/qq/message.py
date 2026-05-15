@@ -281,6 +281,38 @@ class Emoji(MessageSegment):
     def __str__(self) -> str:
         return f"<emoji:{self.data['id']}>"
 
+class _GroupMentionUserData(TypedDict):
+    bot: bool
+    id: str
+    is_you: bool
+    member_openid: str
+    scope: str
+    username: str
+
+@dataclass
+class GroupMentionUser(MessageSegment):
+    if TYPE_CHECKING:
+        data: _GroupMentionUserData
+
+    @override
+    def __str__(self) -> str:
+        return f'<@{self.data["id"]}>'
+
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        if not isinstance(data := instance.data, dict):
+            instance.data = {
+                "bot": data.bot,
+                "id": data.id,
+                "is_you": data.is_you,
+                "member_openid": data.member_openid,
+                "scope": data.scope,
+                "username": data.username,
+            }
+        return instance
+
 
 class _MentionUserData(TypedDict):
     user_id: str
@@ -611,6 +643,21 @@ class Message(BaseMessage[MessageSegment]):
         msg = cls()
         if message.content:
             msg.extend(Message(message.content))
+        if message.mentions:
+            msg.extend(
+                GroupMentionUser(
+                    "group_mention_user",
+                    data={
+                        "bot": mention.bot,
+                        "id": mention.id,
+                        "is_you": mention.is_you,
+                        "member_openid": mention.member_openid,
+                        "scope": mention.scope,
+                        "username": mention.username,
+                    },
+                )
+                for mention in message.mentions
+            )
         if message.attachments:
 
             def content_type(seg: QQAttachment):
