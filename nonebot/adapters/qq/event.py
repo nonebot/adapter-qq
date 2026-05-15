@@ -390,6 +390,7 @@ class C2CMessageCreateEvent(QQMessageEvent):
             f"Message {self.id} from {self.author.id}: {self.get_message()!r}"
         )
 
+
 @register_event_class
 class GroupMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.GROUP_MESSAGE_CREATE
@@ -423,6 +424,7 @@ class GroupMessageCreateEvent(QQMessageEvent):
             f"{self.author.member_openid}@[Group:{self.group_openid}]: "
             f"{self.get_message()!r}"
         )
+
 
 @register_event_class
 class GroupAtMessageCreateEvent(GroupMessageCreateEvent):
