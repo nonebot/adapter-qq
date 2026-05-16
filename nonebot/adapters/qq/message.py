@@ -12,6 +12,7 @@ from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
 from .models import Attachment as QQAttachment
+from .models import GroupMentionUser as QQGroupMentionUser
 from .models import Message as GuildMessage
 from .models import (
     MessageActionButton,
@@ -304,15 +305,15 @@ class GroupMentionUser(MessageSegment):
     @override
     def _validate(cls, value) -> Self:
         instance = super()._validate(value)
-        if not isinstance(data := instance.data, dict):
-            instance.data = {
-                "bot": data.bot,
-                "id": data.id,
-                "is_you": data.is_you,
-                "member_openid": data.member_openid,
-                "scope": data.scope,
-                "username": data.username,
-            }
+        mention_user = type_validate_python(QQGroupMentionUser, instance.data)
+        instance.data = {
+            "bot": mention_user.bot,
+            "id": mention_user.id,
+            "is_you": mention_user.is_you,
+            "member_openid": mention_user.member_openid,
+            "scope": mention_user.scope,
+            "username": mention_user.username,
+        }
         return instance
 
 
@@ -523,6 +524,7 @@ SEGMENT_TYPE_MAP: dict[str, type[MessageSegment]] = {
     "mention_user": MentionUser,
     "mention_channel": MentionChannel,
     "mention_everyone": MentionEveryone,
+    "group_mention_user": GroupMentionUser,
     "image": Attachment,
     "file_image": LocalAttachment,
     "audio": Attachment,
@@ -645,21 +647,6 @@ class Message(BaseMessage[MessageSegment]):
         msg = cls()
         if message.content:
             msg.extend(Message(message.content))
-        if message.mentions:
-            msg.extend(
-                GroupMentionUser(
-                    "group_mention_user",
-                    data={
-                        "bot": mention.bot,
-                        "id": mention.id,
-                        "is_you": mention.is_you,
-                        "member_openid": mention.member_openid,
-                        "scope": mention.scope,
-                        "username": mention.username,
-                    },
-                )
-                for mention in message.mentions
-            )
         if message.attachments:
 
             def content_type(seg: QQAttachment):
@@ -675,6 +662,21 @@ class Message(BaseMessage[MessageSegment]):
                 )
                 for seg in message.attachments
                 if seg.url
+            )
+        if message.mentions:
+            msg.extend(
+                GroupMentionUser(
+                    "group_mention_user",
+                    data={
+                        "bot": mention.bot,
+                        "id": mention.id,
+                        "is_you": mention.is_you,
+                        "member_openid": mention.member_openid,
+                        "scope": mention.scope,
+                        "username": mention.username,
+                    },
+                )
+                for mention in message.mentions
             )
         return msg
 

@@ -168,6 +168,7 @@ __all__ = [
     "FriendAuthor",
     "GroupMember",
     "GroupMemberAuthor",
+    "GroupMentionUser",
     "Media",
     "MessageActionButton",
     "MessagePromptKeyboard",
