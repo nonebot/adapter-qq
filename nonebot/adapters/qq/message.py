@@ -12,6 +12,7 @@ from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
 
 from .models import Attachment as QQAttachment
+from .models import GroupMentionUser as QQGroupMentionUser
 from .models import Message as GuildMessage
 from .models import (
     MessageActionButton,
@@ -282,6 +283,40 @@ class Emoji(MessageSegment):
         return f"<emoji:{self.data['id']}>"
 
 
+class _GroupMentionUserData(TypedDict):
+    bot: bool
+    id: str
+    is_you: bool
+    member_openid: str
+    scope: str
+    username: str
+
+
+@dataclass
+class GroupMentionUser(MessageSegment):
+    if TYPE_CHECKING:
+        data: _GroupMentionUserData
+
+    @override
+    def __str__(self) -> str:
+        return f"<@{self.data['id']}>"
+
+    @classmethod
+    @override
+    def _validate(cls, value) -> Self:
+        instance = super()._validate(value)
+        mention_user = type_validate_python(QQGroupMentionUser, instance.data)
+        instance.data = {
+            "bot": mention_user.bot,
+            "id": mention_user.id,
+            "is_you": mention_user.is_you,
+            "member_openid": mention_user.member_openid,
+            "scope": mention_user.scope,
+            "username": mention_user.username,
+        }
+        return instance
+
+
 class _MentionUserData(TypedDict):
     user_id: str
 
@@ -489,6 +524,7 @@ SEGMENT_TYPE_MAP: dict[str, type[MessageSegment]] = {
     "mention_user": MentionUser,
     "mention_channel": MentionChannel,
     "mention_everyone": MentionEveryone,
+    "group_mention_user": GroupMentionUser,
     "image": Attachment,
     "file_image": LocalAttachment,
     "audio": Attachment,
@@ -626,6 +662,21 @@ class Message(BaseMessage[MessageSegment]):
                 )
                 for seg in message.attachments
                 if seg.url
+            )
+        if message.mentions:
+            msg.extend(
+                GroupMentionUser(
+                    "group_mention_user",
+                    data={
+                        "bot": mention.bot,
+                        "id": mention.id,
+                        "is_you": mention.is_you,
+                        "member_openid": mention.member_openid,
+                        "scope": mention.scope,
+                        "username": mention.username,
+                    },
+                )
+                for mention in message.mentions
             )
         return msg
 

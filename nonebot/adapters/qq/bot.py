@@ -139,11 +139,19 @@ def _check_at_me(
     ):
         event.to_me = True
 
+    if (
+        isinstance(event, QQMessageEvent)
+        and event.mentions is not None
+        and any(user.is_you for user in event.mentions)
+    ):
+        event.to_me = True
+
     def _is_at_me_seg(segment: MessageSegment) -> bool:
-        return (
-            segment.type == "mention_user"
-            and segment.data.get("user_id") == bot.self_info.id
-        )
+        if segment.type == "mention_user":
+            return segment.data.get("user_id") == bot.self_info.id
+        if segment.type == "group_mention_user":
+            return segment.data.get("is_you", False)
+        return False
 
     message = event.get_message()
 
