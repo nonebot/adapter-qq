@@ -29,7 +29,7 @@ from .event import (
     Event,
     FriendAddEvent,
     GroupAddRobotEvent,
-    GroupAtMessageCreateEvent,
+    GroupMessageCreateEvent,
     GuildMessageEvent,
     InteractionCreateEvent,
     QQMessageEvent,
@@ -566,7 +566,7 @@ class Bot(BaseBot):
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
             )
-        elif isinstance(event, GroupAtMessageCreateEvent):
+        elif isinstance(event, GroupMessageCreateEvent):
             event._reply_seq += 1
             return await self.send_to_group(
                 group_openid=event.group_openid,
