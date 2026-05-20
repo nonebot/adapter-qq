@@ -579,7 +579,7 @@ class Message(BaseMessage[MessageSegment]):
         msg = msg.replace("@everyone", "")
         msg = re.sub(r"\<qqbot-at-everyone\s/\>", "", msg)
         for embed in re.finditer(
-            r"\<(?P<type>(?:@|#|emoji:))!?(?P<id>\w+?)\>|\<(?P<type1>qqbot-at-user) id=\"(?P<id1>\w+)\"\s/\>",  # noqa: E501
+            r"\<(?P<type>(?:@|#|emoji:))!?(?P<id>\w+?)\>|\<(?P<type1>qqbot-at-user) id=\"(?P<id1>\w+)\"\s/\>|\<faceType=(?P<faceType>\d+),faceId=\"(?P<faceId>\d+)\",ext=\"[\w\=]+\"\>",  # noqa: E501
             msg,
         ):
             content = msg[text_begin : embed.pos + embed.start()]
@@ -599,6 +599,8 @@ class Message(BaseMessage[MessageSegment]):
                 yield Emoji("emoji", {"id": embed.group("id")})
             elif embed.group("type1") == "qqbot-at-user":
                 yield MentionUser("mention_user", {"user_id": embed.group("id1")})
+            elif embed.group("faceType") and embed.group("faceId") != "0":
+                yield Emoji("emoji", {"id": embed["faceId"]})
         content = msg[text_begin:]
         if content:
             yield Text("text", {"text": unescape(msg[text_begin:])})

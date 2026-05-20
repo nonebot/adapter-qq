@@ -342,7 +342,9 @@ class Bot(BaseBot):
 
     @staticmethod
     def _extract_send_message(
-        message: Message, escape_text: bool = True
+        message: Message,
+        msg_ref_id: str | None = None,
+        escape_text: bool = True,
     ) -> dict[str, Any]:
         kwargs = {}
         content = message.extract_content(escape_text) or None
@@ -355,6 +357,10 @@ class Bot(BaseBot):
             kwargs["markdown"] = markdown[-1].data["markdown"]
         if reference := (message["reference"] or None):
             kwargs["message_reference"] = reference[-1].data["reference"]
+            if msg_ref_id and not reference[-1].data["reference"].message_id.startswith(
+                "REFIDX"
+            ):
+                kwargs["message_reference"] = MessageReference(message_id=msg_ref_id)
         if keyboard := (message["keyboard"] or None):
             kwargs["keyboard"] = keyboard[-1].data["keyboard"]
         if stream := (message["stream"] or None):
@@ -452,9 +458,12 @@ class Bot(BaseBot):
         msg_id: str | None = None,
         msg_seq: int | None = None,
         event_id: str | None = None,
+        msg_ref_id: str | None = None,
     ) -> PostC2CMessagesReturn | PostC2CFilesReturn:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message, escape_text=False)
+        kwargs = self._extract_send_message(
+            message=message, msg_ref_id=msg_ref_id, escape_text=False
+        )
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
@@ -512,9 +521,12 @@ class Bot(BaseBot):
         msg_id: str | None = None,
         msg_seq: int | None = None,
         event_id: str | None = None,
+        msg_ref_id: str | None = None,
     ) -> PostGroupMessagesReturn | PostGroupFilesReturn:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message, escape_text=False)
+        kwargs = self._extract_send_message(
+            message=message, msg_ref_id=msg_ref_id, escape_text=False
+        )
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
@@ -583,19 +595,41 @@ class Bot(BaseBot):
             )
         elif isinstance(event, C2CMessageCreateEvent):
             event._reply_seq += 1
+            ref_idx = None
+            if event.message_scene:
+                ref_idx = next(
+                    (
+                        ext.partition("=")[-1]
+                        for ext in event.message_scene.ext
+                        if ext.startswith("msg_idx=")
+                    ),
+                    "",
+                )
             return await self.send_to_c2c(
                 openid=event.author.id,
                 message=message,
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
+                msg_ref_id=ref_idx,
             )
         elif isinstance(event, GroupMessageCreateEvent):
             event._reply_seq += 1
+            ref_idx = None
+            if event.message_scene:
+                ref_idx = next(
+                    (
+                        ext.partition("=")[-1]
+                        for ext in event.message_scene.ext
+                        if ext.startswith("msg_idx=")
+                    ),
+                    "",
+                )
             return await self.send_to_group(
                 group_openid=event.group_openid,
                 message=message,
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
+                msg_ref_id=ref_idx,
             )
         elif isinstance(event, InteractionCreateEvent):
             if gid := event.group_openid:
@@ -1749,7 +1783,7 @@ class Bot(BaseBot):
         ark: MessageArk | None = None,
         embed: MessageEmbed | None = None,
         image: None = None,
-        message_reference: None = None,
+        message_reference: MessageReference | None = None,
         stream: MessageStream | None = None,
         prompt_keyboard: MessagePromptKeyboard | None = None,
         action_button: MessageActionButton | None = None,
@@ -1987,7 +2021,7 @@ class Bot(BaseBot):
         ark: MessageArk | None = None,
         embed: MessageEmbed | None = None,
         image: None = None,
-        message_reference: None = None,
+        message_reference: MessageReference | None = None,
         event_id: str | None = None,
         msg_id: str | None = None,
         msg_seq: int | None = None,
