@@ -29,6 +29,7 @@ from .event import (
     Event,
     FriendAddEvent,
     GroupAddRobotEvent,
+    GroupAtMessageCreateEvent,
     GroupMessageCreateEvent,
     GuildMessageEvent,
     InteractionCreateEvent,
@@ -115,23 +116,45 @@ async def _check_reply(
         bot: Bot 对象
         event: MessageEvent 对象
     """
-    if not isinstance(event, GuildMessageEvent) or event.message_reference is None:
-        return
-    try:
-        event.reply = await bot.get_message_of_id(
-            channel_id=event.channel_id,
-            message_id=event.message_reference.message_id,
-        )
-        if event.reply.author.id == bot.self_info.id:
+    if isinstance(event, GuildMessageEvent):
+        if event.message_reference is None:
+            return
+        try:
+            event.reply = await bot.get_message_of_id(
+                channel_id=event.channel_id,
+                message_id=event.message_reference.message_id,
+            )
+            if event.reply.author.id == bot.self_info.id:
+                event.to_me = True
+        except Exception as e:
+            log("WARNING", f"Error when getting message reply info: {e!r}", e)
+    else:
+        if not event.msg_elements:
+            return
+        event.reply = event.msg_elements[0]
+        if (
+            event.reply.author
+            and event.reply.author.bot
+            and event.reply.author.username == bot.self_info.username
+        ):
             event.to_me = True
-    except Exception as e:
-        log("WARNING", f"Error when getting message reply info: {e!r}", e)
 
 
 def _check_at_me(
     bot: "Bot",
     event: GuildMessageEvent | QQMessageEvent,
 ):
+    message = event.get_message()
+    if not message:
+        message.append(MessageSegment.text(""))
+    if isinstance(event, GroupAtMessageCreateEvent):
+        event.original_message = message.copy()
+        event.original_message.insert(0, MessageSegment.mention_user(bot.self_info.id))
+        if message and message[0].type == "text":
+            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
+            if not message[0].data["text"]:
+                del message[0]
+        return
     if (
         isinstance(event, GuildMessageEvent)
         and event.mentions is not None
@@ -139,12 +162,12 @@ def _check_at_me(
     ):
         event.to_me = True
 
-    if (
-        isinstance(event, QQMessageEvent)
-        and event.mentions is not None
-        and any(user.is_you for user in event.mentions)
-    ):
-        event.to_me = True
+    if isinstance(event, GroupMessageCreateEvent):
+        for seg in message:
+            if seg.type == "mention_user" and seg.data.get("is_bot", False):
+                seg.data["user_id"] = bot.self_info.id
+
+    event.original_message = message.copy()
 
     def _is_at_me_seg(segment: MessageSegment) -> bool:
         if segment.type == "mention_user":

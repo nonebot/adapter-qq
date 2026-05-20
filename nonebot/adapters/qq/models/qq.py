@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, TypeAlias
 from urllib.parse import urlparse
 
 from nonebot.compat import field_validator
@@ -15,18 +15,28 @@ class FriendAuthor(BaseModel):
 
 class GroupMemberAuthor(BaseModel):
     id: str
+    bot: bool
     member_openid: str
     union_openid: str | None = None
     username: str | None = None
 
 
 class GroupMentionUser(BaseModel):
+    scope: Literal["single"]
     bot: bool
     id: str
     is_you: bool
     member_openid: str
-    scope: str
     username: str
+
+
+class GroupMentionEveryone(BaseModel):
+    scope: Literal["all"]
+    is_you: Literal[True]
+    username: str
+
+
+GroupMention: TypeAlias = GroupMentionUser | GroupMentionEveryone
 
 
 class Attachment(BaseModel):
@@ -48,12 +58,42 @@ class Media(BaseModel):
     file_info: str
 
 
+class _QQMessageScene(BaseModel):
+    ext: list[str]
+    source: str
+
+
+class _ReplyAuthor(BaseModel):
+    bot: bool
+    username: str
+
+
+class QQReplyMessage(BaseModel):
+    content: str
+    attachments: list[Attachment] | None = None
+    message_type: int
+    msg_idx: str
+    author: _ReplyAuthor | None = None
+
+
 class QQMessage(BaseModel):
     id: str
     content: str
     timestamp: str
-    mentions: list[GroupMentionUser] | None = None
+    mentions: list[GroupMention] | None = None
     attachments: list[Attachment] | None = None
+    message_scene: _QQMessageScene | None = None
+    message_type: int | None = None
+    msg_idx: str | None = None
+    msg_elements: list[QQReplyMessage] | None = None
+
+
+class UserQQMessage(QQMessage):
+    author: FriendAuthor
+
+
+class GroupQQMessage(QQMessage):
+    author: GroupMemberAuthor
 
 
 class PostC2CMessagesReturn(BaseModel):
@@ -168,7 +208,10 @@ __all__ = [
     "FriendAuthor",
     "GroupMember",
     "GroupMemberAuthor",
+    "GroupMention",
+    "GroupMentionEveryone",
     "GroupMentionUser",
+    "GroupQQMessage",
     "Media",
     "MessageActionButton",
     "MessagePromptKeyboard",
@@ -187,4 +230,6 @@ __all__ = [
     "PromptRenderData",
     "PromptRow",
     "QQMessage",
+    "QQReplyMessage",
+    "UserQQMessage",
 ]
