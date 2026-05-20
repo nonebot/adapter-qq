@@ -80,9 +80,6 @@ class EventType(str, Enum):
     C2C_MESSAGE_CREATE = "C2C_MESSAGE_CREATE"
     GROUP_AT_MESSAGE_CREATE = "GROUP_AT_MESSAGE_CREATE"
 
-    # C2C_GROUP_MESSAGE
-    GROUP_MESSAGE_CREATE = "GROUP_MESSAGE_CREATE"
-
     # INTERACTION
     INTERACTION_CREATE = "INTERACTION_CREATE"
 
@@ -392,12 +389,12 @@ class C2CMessageCreateEvent(QQMessageEvent):
 
 
 @register_event_class
-class GroupMessageCreateEvent(QQMessageEvent):
-    __type__ = EventType.GROUP_MESSAGE_CREATE
+class GroupAtMessageCreateEvent(QQMessageEvent):
+    __type__ = EventType.GROUP_AT_MESSAGE_CREATE
 
     author: GroupMemberAuthor
     group_openid: str
-    group_id: str
+    to_me: bool = True
 
     @override
     def get_message(self) -> Message:
@@ -424,13 +421,6 @@ class GroupMessageCreateEvent(QQMessageEvent):
             f"{self.author.member_openid}@[Group:{self.group_openid}]: "
             f"{self.get_message()!r}"
         )
-
-
-@register_event_class
-class GroupAtMessageCreateEvent(GroupMessageCreateEvent):
-    __type__ = EventType.GROUP_AT_MESSAGE_CREATE
-
-    to_me: bool = True
 
 
 @register_event_class
