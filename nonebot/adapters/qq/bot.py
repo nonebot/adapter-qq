@@ -29,6 +29,7 @@ from .event import (
     Event,
     FriendAddEvent,
     GroupAddRobotEvent,
+    GroupAtMessageCreateEvent,
     GroupMessageCreateEvent,
     GuildMessageEvent,
     InteractionCreateEvent,
@@ -115,23 +116,45 @@ async def _check_reply(
         bot: Bot 对象
         event: MessageEvent 对象
     """
-    if not isinstance(event, GuildMessageEvent) or event.message_reference is None:
-        return
-    try:
-        event.reply = await bot.get_message_of_id(
-            channel_id=event.channel_id,
-            message_id=event.message_reference.message_id,
-        )
-        if event.reply.author.id == bot.self_info.id:
+    if isinstance(event, GuildMessageEvent):
+        if event.message_reference is None:
+            return
+        try:
+            event.reply = await bot.get_message_of_id(
+                channel_id=event.channel_id,
+                message_id=event.message_reference.message_id,
+            )
+            if event.reply.author.id == bot.self_info.id:
+                event.to_me = True
+        except Exception as e:
+            log("WARNING", f"Error when getting message reply info: {e!r}", e)
+    else:
+        if not event.msg_elements:
+            return
+        event.reply = event.msg_elements[0]
+        if (
+            event.reply.author
+            and event.reply.author.bot
+            and event.reply.author.username == bot.self_info.username
+        ):
             event.to_me = True
-    except Exception as e:
-        log("WARNING", f"Error when getting message reply info: {e!r}", e)
 
 
 def _check_at_me(
     bot: "Bot",
     event: GuildMessageEvent | QQMessageEvent,
 ):
+    message = event.get_message()
+    if not message:
+        message.append(MessageSegment.text(""))
+    if isinstance(event, GroupAtMessageCreateEvent):
+        event.original_message = message.copy()
+        event.original_message.insert(0, MessageSegment.mention_user(bot.self_info.id))
+        if message and message[0].type == "text":
+            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
+            if not message[0].data["text"]:
+                del message[0]
+        return
     if (
         isinstance(event, GuildMessageEvent)
         and event.mentions is not None
@@ -139,12 +162,12 @@ def _check_at_me(
     ):
         event.to_me = True
 
-    if (
-        isinstance(event, QQMessageEvent)
-        and event.mentions is not None
-        and any(user.is_you for user in event.mentions)
-    ):
-        event.to_me = True
+    if isinstance(event, GroupMessageCreateEvent):
+        for seg in message:
+            if seg.type == "mention_user" and seg.data.get("is_bot", False):
+                seg.data["user_id"] = bot.self_info.id
+
+    event.original_message = message.copy()
 
     def _is_at_me_seg(segment: MessageSegment) -> bool:
         if segment.type == "mention_user":
@@ -319,7 +342,9 @@ class Bot(BaseBot):
 
     @staticmethod
     def _extract_send_message(
-        message: Message, escape_text: bool = True
+        message: Message,
+        msg_ref_id: str | None = None,
+        escape_text: bool = True,
     ) -> dict[str, Any]:
         kwargs = {}
         content = message.extract_content(escape_text) or None
@@ -332,6 +357,10 @@ class Bot(BaseBot):
             kwargs["markdown"] = markdown[-1].data["markdown"]
         if reference := (message["reference"] or None):
             kwargs["message_reference"] = reference[-1].data["reference"]
+            if msg_ref_id and not reference[-1].data["reference"].message_id.startswith(
+                "REFIDX"
+            ):
+                kwargs["message_reference"] = MessageReference(message_id=msg_ref_id)
         if keyboard := (message["keyboard"] or None):
             kwargs["keyboard"] = keyboard[-1].data["keyboard"]
         if stream := (message["stream"] or None):
@@ -429,9 +458,12 @@ class Bot(BaseBot):
         msg_id: str | None = None,
         msg_seq: int | None = None,
         event_id: str | None = None,
+        msg_ref_id: str | None = None,
     ) -> PostC2CMessagesReturn | PostC2CFilesReturn:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message, escape_text=False)
+        kwargs = self._extract_send_message(
+            message=message, msg_ref_id=msg_ref_id, escape_text=False
+        )
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
@@ -489,9 +521,12 @@ class Bot(BaseBot):
         msg_id: str | None = None,
         msg_seq: int | None = None,
         event_id: str | None = None,
+        msg_ref_id: str | None = None,
     ) -> PostGroupMessagesReturn | PostGroupFilesReturn:
         message = self._prepare_message(message)
-        kwargs = self._extract_send_message(message=message, escape_text=False)
+        kwargs = self._extract_send_message(
+            message=message, msg_ref_id=msg_ref_id, escape_text=False
+        )
         if kwargs.get("embed"):
             msg_type = 4
         elif kwargs.get("ark"):
@@ -560,19 +595,41 @@ class Bot(BaseBot):
             )
         elif isinstance(event, C2CMessageCreateEvent):
             event._reply_seq += 1
+            ref_idx = None
+            if event.message_scene:
+                ref_idx = next(
+                    (
+                        ext.partition("=")[-1]
+                        for ext in event.message_scene.ext
+                        if ext.startswith("msg_idx=")
+                    ),
+                    "",
+                )
             return await self.send_to_c2c(
                 openid=event.author.id,
                 message=message,
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
+                msg_ref_id=ref_idx,
             )
         elif isinstance(event, GroupMessageCreateEvent):
             event._reply_seq += 1
+            ref_idx = None
+            if event.message_scene:
+                ref_idx = next(
+                    (
+                        ext.partition("=")[-1]
+                        for ext in event.message_scene.ext
+                        if ext.startswith("msg_idx=")
+                    ),
+                    "",
+                )
             return await self.send_to_group(
                 group_openid=event.group_openid,
                 message=message,
                 msg_id=event.id,
                 msg_seq=event._reply_seq,
+                msg_ref_id=ref_idx,
             )
         elif isinstance(event, InteractionCreateEvent):
             if gid := event.group_openid:
@@ -1726,7 +1783,7 @@ class Bot(BaseBot):
         ark: MessageArk | None = None,
         embed: MessageEmbed | None = None,
         image: None = None,
-        message_reference: None = None,
+        message_reference: MessageReference | None = None,
         stream: MessageStream | None = None,
         prompt_keyboard: MessagePromptKeyboard | None = None,
         action_button: MessageActionButton | None = None,
@@ -1964,7 +2021,7 @@ class Bot(BaseBot):
         ark: MessageArk | None = None,
         embed: MessageEmbed | None = None,
         image: None = None,
-        message_reference: None = None,
+        message_reference: MessageReference | None = None,
         event_id: str | None = None,
         msg_id: str | None = None,
         msg_seq: int | None = None,

@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 from typing_extensions import override
 
 from nonebot.utils import escape_tag
@@ -23,6 +23,7 @@ from .models import (
     MessageReaction,
     Post,
     QQMessage,
+    QQReplyMessage,
     Reply,
     RichText,
     Thread,
@@ -270,6 +271,10 @@ class GuildMemberRemoveEvent(GuildMemberEvent):
 class MessageEvent(Event):
     to_me: bool = False
 
+    if TYPE_CHECKING:
+        message: Message
+        original_message: Message
+
     @override
     def get_type(self) -> str:
         return "message"
@@ -306,9 +311,9 @@ class GuildMessageEvent(MessageEvent, GuildMessage):
 
     @override
     def get_message(self) -> Message:
-        if not hasattr(self, "_message"):
-            setattr(self, "_message", Message.from_guild_message(self))
-        return getattr(self, "_message")
+        if not hasattr(self, "message"):
+            self.message = Message.from_guild_message(self)
+        return self.message
 
 
 @register_event_class
@@ -360,13 +365,18 @@ class DirectMessageDeleteEvent(MessageDeleteEvent):
 
 
 class QQMessageEvent(MessageEvent, QQMessage):
+    reply: QQReplyMessage | None = None
     _reply_seq: int = 0
 
     @override
     def get_message(self) -> Message:
-        if not hasattr(self, "_message"):
-            setattr(self, "_message", Message.from_qq_message(self))
-        return getattr(self, "_message")
+        if not hasattr(self, "message"):
+            self.message = Message.from_qq_message(self)
+        return self.message
+
+    def get_reply_message(self) -> Message | None:
+        if self.reply:
+            return Message.from_qq_message(self.reply)
 
 
 @register_event_class
@@ -396,8 +406,8 @@ class GroupMessageCreateEvent(QQMessageEvent):
     __type__ = EventType.GROUP_MESSAGE_CREATE
 
     author: GroupMemberAuthor
-    group_openid: str
     group_id: str
+    group_openid: str
 
     @override
     def get_message(self) -> Message:
@@ -405,9 +415,9 @@ class GroupMessageCreateEvent(QQMessageEvent):
         msg = Message.from_qq_message(self)
         if msg and msg[0].type == "text":
             msg[0].data["text"] = msg[0].data["text"].lstrip()
-        if not hasattr(self, "_message"):
-            setattr(self, "_message", msg)
-        return getattr(self, "_message")
+        if not hasattr(self, "message"):
+            self.message = msg
+        return self.message
 
     @override
     def get_user_id(self) -> str:
@@ -731,6 +741,7 @@ __all__ = [
     "GroupAddRobotEvent",
     "GroupAtMessageCreateEvent",
     "GroupDelRobotEvent",
+    "GroupMessageCreateEvent",
     "GroupMsgReceiveEvent",
     "GroupMsgRejectEvent",
     "GroupRobotEvent",
