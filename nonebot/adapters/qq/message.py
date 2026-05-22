@@ -650,11 +650,14 @@ class Message(BaseMessage[MessageSegment]):
                 for seg in message.attachments
                 if seg.url
             )
-        mentions = {
-            m.id: m
-            for m in getattr(message, "mentions", [])
-            if isinstance(m, GroupMentionUser)
-        }
+
+        if isinstance(message, QQMessage) and message.mentions:
+            mentions = {
+                m.id: m for m in message.mentions if isinstance(m, GroupMentionUser)
+            }
+        else:
+            mentions = {}
+
         ats = msg["mention_user"]
         if not ats:
             for mention in mentions.values():
