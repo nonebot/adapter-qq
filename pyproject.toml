@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-adapter-qq"
-version = "1.7.0"
+version = "1.7.1"
 description = "QQ adapter for nonebot2"
 authors = [{ name = "yanyongyu", email = "yyy@nonebot.dev" }]
 requires-python = ">=3.10, <4"
