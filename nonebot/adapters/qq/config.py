@@ -1,3 +1,5 @@
+from typing import Any
+
 from nonebot.compat import PYDANTIC_V2, ConfigDict, field_validator
 from pydantic import BaseModel, Field, HttpUrl
 from yarl import URL
@@ -64,10 +66,12 @@ class Config(BaseModel):
 
     @field_validator("qq_custom_gateway_url", mode="before")
     @classmethod
-    def validate_gateway_url(cls, v: str | URL | None) -> URL | None:
+    def validate_gateway_url(cls, v: Any) -> URL | None:
         if v is None:
             return v
         url = URL(v) if isinstance(v, str) else v
+        if not isinstance(url, URL):
+            raise TypeError(f"Invalid gateway url type")
         if url.scheme not in ("ws", "wss"):
             raise ValueError(
                 f"Gateway URL scheme must be ws:// or wss://, got {url.scheme}://"
