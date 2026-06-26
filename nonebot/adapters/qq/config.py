@@ -1,5 +1,5 @@
 from nonebot.compat import PYDANTIC_V2, ConfigDict
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 
 class Intents(BaseModel):
@@ -60,3 +60,19 @@ class Config(BaseModel):
     qq_bots: list[BotInfo] = Field(default_factory=list)
 
     qq_custom_gateway_url: str | None = None
+
+    @field_validator("qq_custom_gateway_url")
+    @classmethod
+    def validate_gateway_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        from yarl import URL
+
+        url = URL(v)
+        if url.scheme not in ("ws", "wss"):
+            raise ValueError(
+                f"Gateway URL scheme must be ws:// or wss://, got {url.scheme}://"
+            )
+        if not url.host:
+            raise ValueError("Gateway URL must have a valid host")
+        return v
