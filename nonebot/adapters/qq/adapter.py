@@ -153,7 +153,7 @@ class Adapter(BaseAdapter):
             gateway_info = await bot.shard_url_get()
             ws_url = URL(gateway_info.url)
             if self.qq_config.qq_custom_gateway_url:
-                ws_url = URL(self.qq_config.qq_custom_gateway_url)
+                ws_url = self.qq_config.qq_custom_gateway_url
         except Exception as e:
             log(
                 "ERROR",
