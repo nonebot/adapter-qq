@@ -35,6 +35,7 @@ from .event import (
     InteractionCreateEvent,
     QQMessageEvent,
     ReadyEvent,
+    GroupMemberAddEvent,
 )
 from .exception import (
     ActionFailed,
@@ -657,6 +658,12 @@ class Bot(BaseBot):
         elif isinstance(event, FriendAddEvent):
             return await self.send_to_c2c(
                 openid=event.get_user_id(), message=message, event_id=event.event_id
+            )
+        elif isinstance(event, GroupMemberAddEvent):
+            return await self.send_to_group(
+                group_openid=event.group_openid,
+                message=message,
+                event_id=event.event_id,
             )
 
         raise RuntimeError("Event cannot be replied to!")
