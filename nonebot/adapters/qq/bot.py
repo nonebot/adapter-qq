@@ -30,12 +30,12 @@ from .event import (
     FriendAddEvent,
     GroupAddRobotEvent,
     GroupAtMessageCreateEvent,
+    GroupMemberAddEvent,
     GroupMessageCreateEvent,
     GuildMessageEvent,
     InteractionCreateEvent,
     QQMessageEvent,
     ReadyEvent,
-    GroupMemberAddEvent,
 )
 from .exception import (
     ActionFailed,
