@@ -17,6 +17,7 @@ class GroupMemberAuthor(BaseModel):
     id: str
     bot: bool
     member_openid: str
+    member_role: Literal["member", "admin", "owner"]
     union_openid: str | None = None
     username: str | None = None
 
