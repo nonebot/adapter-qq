@@ -49,20 +49,35 @@ QQ_IS_SANDBOX=true
 
 Intent 仅对 WebSocket 连接方式生效。以下为所有 Intent 配置项以及默认值：
 
-```json
+```jsonc
 {
+  // 频道事件
   "guilds": true,
+  // 频道成员事件
   "guild_members": true,
+  // 频道消息事件
   "guild_messages": false,
+  // 频道消息表态事件
   "guild_message_reactions": true,
+  // 频道私信事件
   "direct_message": false,
+  // 频道公域论坛事件
   "open_forum_event": false,
+  // 频道音频或直播成员事件
   "audio_live_member": false,
+  // 群成员变更事件
+  "group_members": false,
+  // 私聊与群聊消息事件
   "c2c_group_at_messages": false,
+  // 互动事件
   "interaction": false,
+  // 频道消息审核事件
   "message_audit": true,
+  // 频道私域论坛事件
   "forum_event": false,
+  // 频道音频操作事件
   "audio_action": false,
+  // 频道@机器人消息事件
   "at_messages": true
 }
 ```
@@ -98,7 +113,8 @@ QQ_BOTS='
     "token": "xxx",
     "secret": "xxx",
     "intent": {
-      "c2c_group_at_messages": true
+      "c2c_group_at_messages": true,
+      "group_members": true
     },
     "use_websocket": false
   }
