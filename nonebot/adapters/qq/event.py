@@ -123,6 +123,10 @@ class EventType(str, Enum):
     GROUP_MSG_REJECT = "GROUP_MSG_REJECT"
     GROUP_MSG_RECEIVE = "GROUP_MSG_RECEIVE"
 
+    # GROUP_MEMBER_EVENT
+    GROUP_MEMBER_ADD = "GROUP_MEMBER_ADD"
+    GROUP_MEMBER_REMOVE = "GROUP_MEMBER_REMOVE"
+
 
 class Event(BaseEvent):
     __type__: EventType
@@ -704,6 +708,31 @@ class GroupMsgReceiveEvent(GroupRobotEvent):
     __type__ = EventType.GROUP_MSG_RECEIVE
 
 
+# Group Member Event
+class GroupMemberEvent(NoticeEvent):
+    timestamp: datetime
+    group_openid: str
+    member_openid: str
+
+    @override
+    def get_user_id(self) -> str:
+        return self.member_openid
+
+    @override
+    def get_session_id(self) -> str:
+        return f"group_{self.group_openid}_{self.member_openid}"
+
+
+@register_event_class
+class GroupMemberAddEvent(GroupMemberEvent):
+    __type__ = EventType.GROUP_MEMBER_ADD
+
+
+@register_event_class
+class GroupMemberRemoveEvent(GroupMemberEvent):
+    __type__ = EventType.GROUP_MEMBER_REMOVE
+
+
 __all__ = [
     "EVENT_CLASSES",
     "AtMessageCreateEvent",
@@ -741,6 +770,9 @@ __all__ = [
     "GroupAddRobotEvent",
     "GroupAtMessageCreateEvent",
     "GroupDelRobotEvent",
+    "GroupMemberAddEvent",
+    "GroupMemberEvent",
+    "GroupMemberRemoveEvent",
     "GroupMessageCreateEvent",
     "GroupMsgReceiveEvent",
     "GroupMsgRejectEvent",
