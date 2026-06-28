@@ -114,7 +114,7 @@ QQ_BOTS='
     "secret": "xxx",
     "intent": {
       "c2c_group_at_messages": true,
-      "group_members": false
+      "group_members": true
     },
     "use_websocket": false
   }
