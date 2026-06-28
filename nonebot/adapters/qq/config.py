@@ -13,6 +13,7 @@ class Intents(BaseModel):
     direct_message: bool = False
     open_forum_event: bool = False
     audio_live_member: bool = False
+    group_members: bool = True
     c2c_group_at_messages: bool = False
     interaction: bool = False
     message_audit: bool = True
@@ -36,6 +37,7 @@ class Intents(BaseModel):
             | self.direct_message << 12
             | self.open_forum_event << 18
             | self.audio_live_member << 19
+            | self.group_members << 24
             | self.c2c_group_at_messages << 25
             | self.interaction << 26
             | self.message_audit << 27

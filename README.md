@@ -58,6 +58,7 @@ Intent 仅对 WebSocket 连接方式生效。以下为所有 Intent 配置项以
   "direct_message": false,
   "open_forum_event": false,
   "audio_live_member": false,
+  "group_members": true,
   "c2c_group_at_messages": false,
   "interaction": false,
   "message_audit": true,
