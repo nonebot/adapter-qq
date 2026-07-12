@@ -155,6 +155,8 @@ def _check_at_me(
             message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
             if not message[0].data["text"]:
                 del message[0]
+        if not message:
+            message.append(MessageSegment.text(""))
         return
     if (
         isinstance(event, GuildMessageEvent)
