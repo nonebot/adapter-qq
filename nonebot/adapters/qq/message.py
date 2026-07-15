@@ -50,6 +50,25 @@ class MessageSegment(BaseMessageSegment["Message"]):
             data["username"] = username
         return MentionUser("mention_user", data)
 
+    @classmethod
+    def merge_consecutive_mentions(cls, segments: list["MessageSegment"]) -> list["MessageSegment"]:
+        """Merge consecutive MentionUser segments with identical user_id into one."""
+        merged: list["MessageSegment"] = []
+        i = 0
+        while i < len(segments):
+            seg = segments[i]
+            if seg.type == "mention_user" and i + 1 < len(segments) and segments[i+1].type == "mention_user":
+                # check if same user_id
+                if seg.data.get("user_id") == segments[i+1].data.get("user_id"):
+                    # take the non-empty text data if any, prefer the later one
+                    merged_seg = segments[i+1]
+                    merged.append(merged_seg)
+                    i += 2
+                    continue
+            merged.append(seg)
+            i += 1
+        return merged
+
     @staticmethod
     def mention_channel(channel_id: str) -> "MentionChannel":
         return MentionChannel("mention_channel", {"channel_id": str(channel_id)})
