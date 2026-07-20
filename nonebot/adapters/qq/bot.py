@@ -132,6 +132,9 @@ async def _check_reply(
     else:
         if not event.msg_elements:
             return
+        # Only handle if the first element is actually a reply/quote segment
+        if not hasattr(event.msg_elements[0], 'type') or event.msg_elements[0].type != 'reply':
+            return
         event.reply = event.msg_elements[0]
         if (
             event.reply.author
