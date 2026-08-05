@@ -65,8 +65,13 @@ class _QQMessageScene(BaseModel):
 
 
 class _ReplyAuthor(BaseModel):
-    bot: bool
-    username: str
+    id: str | None = None
+    bot: bool = False
+    username: str | None = None
+    union_openid: str | None = None
+    union_user_account: str | None = None
+    user_openid: str | None = None
+    member_openid: str | None = None
 
 
 class QQReplyMessage(BaseModel):

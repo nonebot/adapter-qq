@@ -130,21 +130,87 @@ async def _check_reply(
         except Exception as e:
             log("WARNING", f"Error when getting message reply info: {e!r}", e)
     else:
-        if not event.msg_elements:
+        if event.message_type != 103 or not event.msg_elements:
             return
-        # Only handle if the first element is actually a reply/quote segment
-        if (
-            not hasattr(event.msg_elements[0], "type")
-            or event.msg_elements[0].type != "reply"
-        ):
+        prefix = "ref_msg_idx="
+        ref_msg_idx = (
+            next(
+                (
+                    value.removeprefix(prefix)
+                    for value in event.message_scene.ext
+                    if value.startswith(prefix)
+                ),
+                None,
+            )
+            if event.message_scene
+            else None
+        )
+        if not ref_msg_idx:
             return
-        event.reply = event.msg_elements[0]
+        event.reply = next(
+            (
+                element
+                for element in event.msg_elements
+                if element.msg_idx == ref_msg_idx
+            ),
+            None,
+        )
+        if not event.reply:
+            return
         if (
             event.reply.author
             and event.reply.author.bot
             and event.reply.author.username == bot.self_info.username
         ):
             event.to_me = True
+
+        if not isinstance(event, GroupMessageCreateEvent):
+            return
+        message = event.get_message()
+        mention_index = 0
+        while (
+            mention_index < len(message)
+            and message[mention_index].type == "text"
+            and not message[mention_index].data["text"].strip()
+        ):
+            mention_index += 1
+        if (
+            mention_index >= len(message)
+            or message[mention_index].type != "mention_user"
+        ):
+            return
+
+        mention = message[mention_index]
+        mention_id = mention.data.get("user_id")
+        author = event.reply.author
+        author_ids = (
+            {
+                value
+                for value in (author.id, author.user_openid, author.member_openid)
+                if value
+            }
+            if author
+            else set()
+        )
+        if author_ids and mention_id not in author_ids:
+            return
+
+        # 当前 QQ 群引用消息可能不下发 MsgElement.author；这种情况下，引用消息
+        # 正文开头的首个用户提及是 QQ 客户端自动添加的回复对象。
+        if not author_ids and mention_id not in {
+            getattr(user, "id", None) for user in event.mentions or []
+        }:
+            return
+
+        if mention.data.get("is_bot", False):
+            event.to_me = True
+        del message[: mention_index + 1]
+        if message and message[0].type == "text":
+            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
+            if not message[0].data["text"]:
+                del message[0]
+        if not message:
+            message.append(MessageSegment.text(""))
 
 
 def _check_at_me(

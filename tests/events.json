@@ -1,0 +1,54 @@
+{
+  "op": 0,
+  "d": {
+    "id": "message-id",
+    "content": " <@REPLIED_USER> zssm",
+    "timestamp": "2026-08-05T12:51:27+08:00",
+    "author": {
+      "id": "SENDER",
+      "username": "sender",
+      "bot": false,
+      "member_openid": "SENDER",
+      "member_role": "admin"
+    },
+    "mentions": [
+      {
+        "id": "REPLIED_USER",
+        "username": "target",
+        "bot": false,
+        "member_openid": "REPLIED_USER",
+        "member_role": "member",
+        "scope": "single",
+        "is_you": false
+      }
+    ],
+    "group_id": "GROUP",
+    "group_openid": "GROUP",
+    "message_scene": {
+      "source": "default",
+      "ext": [
+        "ref_msg_idx=REFIDX_REPLY=",
+        "msg_idx=REFIDX_CURRENT=",
+        "auth_token=test"
+      ]
+    },
+    "message_type": 103,
+    "parallel_message": {
+      "msg_nodes": [
+        {
+          "message_type": 0,
+          "content": "都登不上"
+        }
+      ]
+    },
+    "msg_elements": [
+      {
+        "msg_idx": "REFIDX_REPLY=",
+        "message_type": 103,
+        "content": "都登不上"
+      }
+    ]
+  },
+  "t": "GROUP_MESSAGE_CREATE",
+  "id": "GROUP_MESSAGE_CREATE:test"
+}
