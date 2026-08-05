@@ -206,7 +206,7 @@ async def _check_reply(
             event.to_me = True
         del message[: mention_index + 1]
         if message and message[0].type == "text":
-            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
+            message[0].data["text"] = message[0].data["text"].lstrip()
             if not message[0].data["text"]:
                 del message[0]
         if not message:
@@ -224,7 +224,7 @@ def _check_at_me(
         event.original_message = message.copy()
         event.original_message.insert(0, MessageSegment.mention_user(bot.self_info.id))
         if message and message[0].type == "text":
-            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
+            message[0].data["text"] = message[0].data["text"].lstrip()
             if not message[0].data["text"]:
                 del message[0]
         if not message:
@@ -263,7 +263,7 @@ def _check_at_me(
         deleted = True
         event.to_me = True
         if message and message[0].type == "text":
-            message[0].data["text"] = message[0].data["text"].lstrip("\xa0").lstrip()
+            message[0].data["text"] = message[0].data["text"].lstrip()
             if not message[0].data["text"]:
                 del message[0]
 
