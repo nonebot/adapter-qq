@@ -92,14 +92,7 @@ class Adapter(BaseAdapter):
         self.driver.on_shutdown(self.shutdown)
 
     async def startup(self) -> None:
-        log("DEBUG", f"QQ run in sandbox mode: <y>{self.qq_config.qq_is_sandbox}</y>")
-
-        try:
-            api_base = self.get_api_base()
-        except Exception as e:
-            log("ERROR", "Failed to parse QQ api base url", e)
-            raise
-
+        api_base = self.get_api_base()
         log("DEBUG", f"QQ api base url: <y>{escape_tag(str(api_base))}</y>")
 
         if isinstance(self.driver, ASGIMixin):
@@ -549,10 +542,7 @@ class Adapter(BaseAdapter):
         return URL(str(self.qq_config.qq_auth_base))
 
     def get_api_base(self) -> URL:
-        if self.qq_config.qq_is_sandbox:
-            return URL(str(self.qq_config.qq_sandbox_api_base))
-        else:
-            return URL(str(self.qq_config.qq_api_base))
+        return URL(str(self.qq_config.qq_api_base))
 
     @staticmethod
     def data_to_payload(bot: Bot, data: str | bytes) -> Payload:
