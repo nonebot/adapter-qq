@@ -49,7 +49,6 @@ class Intents(BaseModel):
 
 class BotInfo(BaseModel):
     id: str = Field(alias="id")
-    token: str | None = Field(default=None, alias="token")
     secret: str = Field(alias="secret")
     shard: tuple[int, int] | None = None
     intent: Intents = Field(default_factory=Intents)
