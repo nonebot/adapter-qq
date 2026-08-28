@@ -55,9 +55,7 @@ class RequestCapturingAdapter(Adapter):
 
     @override
     @asynccontextmanager
-    async def websocket(
-        self, setup: Request
-    ) -> AsyncGenerator[WebSocket, None]:
+    async def websocket(self, setup: Request) -> AsyncGenerator[WebSocket, None]:
         self.request_received.set_result(setup)
         yield BlockingWebSocket(request=setup)
 
