@@ -16,6 +16,7 @@ from nonebot.drivers import (
     HTTPServerSetup,
     Request,
     Response,
+    Timeout,
     WebSocket,
     WebSocketClientMixin,
 )
@@ -185,7 +186,7 @@ class Adapter(BaseAdapter):
         request = Request(
             "GET",
             ws_url,
-            timeout=30.0,
+            timeout=Timeout(connect=30.0, read=None, close=30.0),
         )
 
         heartbeat_task: "asyncio.Task | None" = None
