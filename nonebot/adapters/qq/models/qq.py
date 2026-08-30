@@ -233,26 +233,30 @@ class ReviewQA(BaseModel):
 
 class VerifyInfo(BaseModel):
     method: str
-    verify_message: str | None
-    review_qa_list: list[ReviewQA] | None
+    verify_message: str | None = None
+    review_qa_list: list[ReviewQA] | None = None
 
 
 class JoinRequest(BaseModel):
     join_request_id: str
-    risk_tips: str
-    union_openid: str
+    risk_tips: str | None = None
+    union_openid: str | None = None
     member_openid: str
     username: str
     apply_at: datetime
     apply_source: Literal["self_apply", "invited"]
-    invited_by: str | None
-    bot: bool
-    verify_info: VerifyInfo | None
+    invited_by: str | None = None
+    bot: bool = False
+    verify_info: VerifyInfo | None = None
 
 
 class JoinRequestListReturn(BaseModel):
     list: list[JoinRequest]
     next_cursor: str
+
+
+class AutoApproved(BaseModel):
+    strategy_id: str
 
 
 class MessageActionButton(BaseModel):
@@ -307,6 +311,7 @@ class MessageStream(BaseModel):
 
 __all__ = [
     "Attachment",
+    "AutoApproved",
     "FriendAuthor",
     "GlobalMuteRule",
     "GroupBotStateReturn",
