@@ -131,6 +131,7 @@ class EventType(str, Enum):
 
     GROUP_JOIN_REQUEST = "GROUP_JOIN_REQUEST"
 
+
 class Event(BaseEvent):
     __type__: EventType
 
