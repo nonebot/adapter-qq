@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time, timedelta, timezone
 from typing import Literal, TypeAlias
 from urllib.parse import urlparse
 
@@ -159,6 +159,102 @@ class PostGroupMembersReturn(BaseModel):
     next_index: int | None = None
 
 
+class GroupInfoReturn(BaseModel):
+    group_openid: str
+    group_name: str
+    group_finger_memo: str
+    group_class_text: str
+    group_tags: list[str]
+    group_member_num: int
+
+
+class GroupBotStateReturn(BaseModel):
+    member_openid: str
+    joined_at: datetime
+    allow_proactive_msg: bool
+    recv_msg_setting: Literal["all", "only_mention", "mention_and_context"]
+    member_role: Literal["member", "owner", "admin"]
+
+
+class MemberMuteState(BaseModel):
+    member_openid: str
+    mute_expire_at: datetime
+    username: str
+    union_openid: str
+
+
+class MuteScheduleRule(BaseModel):
+    task_id: str
+    start_at: datetime
+    end_at: datetime
+    enabled: bool
+
+
+class MuteRecurringRule(BaseModel):
+    task_id: str
+    weekdays: list[int]
+    start_time: time
+    end_time: time
+    enabled: bool
+
+
+class GlobalMuteRule(BaseModel):
+    mode: Literal["none", "always", "schedule"]
+    schedule_rules: list[MuteScheduleRule]
+    recurring_rules: list[MuteRecurringRule]
+
+
+class GroupRestrictChatSettingReturn(BaseModel):
+    global_rule: GlobalMuteRule
+    members: list[MemberMuteState]
+
+
+class SetMemberMuteState(BaseModel):
+    op: Literal["add", "update", "del"]
+    member_openid: str
+    mute_expire_at: str | datetime | timedelta | None = None
+
+    @field_validator("mute_expire_at", mode="before")
+    @classmethod
+    def normalize_expire(cls, v):
+        if isinstance(v, timedelta):
+            return (datetime.now(timezone.utc) + v).astimezone().isoformat()
+        if isinstance(v, datetime):
+            if v.tzinfo is None:
+                v = v.astimezone()
+            return v.isoformat()
+        return v
+
+
+class ReviewQA(BaseModel):
+    question: str
+    answer: str
+
+
+class VerifyInfo(BaseModel):
+    method: str
+    verify_message: str | None
+    review_qa_list: list[ReviewQA] | None
+
+
+class JoinRequest(BaseModel):
+    join_request_id: str
+    risk_tips: str
+    union_openid: str
+    member_openid: str
+    username: str
+    apply_at: datetime
+    apply_source: Literal["self_apply", "invited"]
+    invited_by: str | None
+    bot: bool
+    verify_info: VerifyInfo | None
+
+
+class JoinRequestListReturn(BaseModel):
+    list: list[JoinRequest]
+    next_cursor: str
+
+
 class MessageActionButton(BaseModel):
     template_id: Literal["1", "10"] = "1"  # 待废弃字段！！！
     callback_data: str | None = None
@@ -212,16 +308,25 @@ class MessageStream(BaseModel):
 __all__ = [
     "Attachment",
     "FriendAuthor",
+    "GlobalMuteRule",
+    "GroupBotStateReturn",
+    "GroupInfoReturn",
     "GroupMember",
     "GroupMemberAuthor",
     "GroupMention",
     "GroupMentionEveryone",
     "GroupMentionUser",
     "GroupQQMessage",
+    "GroupRestrictChatSettingReturn",
+    "JoinRequest",
+    "JoinRequestListReturn",
     "Media",
+    "MemberMuteState",
     "MessageActionButton",
     "MessagePromptKeyboard",
     "MessageStream",
+    "MuteRecurringRule",
+    "MuteScheduleRule",
     "PostC2CFilesPrepareReturn",
     "PostC2CFilesReturn",
     "PostC2CMessagesReturn",
@@ -237,5 +342,8 @@ __all__ = [
     "PromptRow",
     "QQMessage",
     "QQReplyMessage",
+    "ReviewQA",
+    "SetMemberMuteState",
     "UserQQMessage",
+    "VerifyInfo",
 ]

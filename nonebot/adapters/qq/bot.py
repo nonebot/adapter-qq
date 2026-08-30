@@ -64,7 +64,11 @@ from .models import (
     GetRoleMembersReturn,
     GetThreadReturn,
     GetThreadsListReturn,
+    GroupBotStateReturn,
+    GroupInfoReturn,
+    GroupRestrictChatSettingReturn,
     Guild,
+    JoinRequestListReturn,
     Media,
     Member,
     MessageActionButton,
@@ -92,6 +96,7 @@ from .models import (
     RemindType,
     RichText,
     Schedule,
+    SetMemberMuteState,
     ShardUrlGetReturn,
     SpeakPermission,
     UrlGetReturn,
@@ -2335,3 +2340,100 @@ class Bot(BaseBot):
         return type_validate_python(
             PostGroupMembersReturn, await self._request(request)
         )
+
+    @API
+    async def get_group_info(
+        self,
+        *,
+        group_id: str,
+    ) -> GroupInfoReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "info"),
+        )
+        return type_validate_python(GroupInfoReturn, await self._request(request))
+
+    @API
+    async def get_group_bot_state(
+        self,
+        *,
+        group_id: str,
+    ) -> GroupBotStateReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "bot_state"),
+        )
+        return type_validate_python(GroupBotStateReturn, await self._request(request))
+
+    @API
+    async def get_group_mute_setting(
+        self,
+        *,
+        group_id: str,
+    ) -> GroupRestrictChatSettingReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "restrict_chat_setting"
+            ),
+        )
+        return type_validate_python(
+            GroupRestrictChatSettingReturn, await self._request(request)
+        )
+
+    @API
+    async def set_group_members_mute(
+        self, *, group_id: str, members: list[SetMemberMuteState]
+    ) -> None:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "restrict_chat_setting"
+            ),
+            json={"members": [m.dict(exclude_none=True) for m in members]},
+        )
+        return await self._request(request)
+
+    @API
+    async def get_group_join_request_list(
+        self,
+        *,
+        group_id: str,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> JoinRequestListReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "join_request_list"
+            ),
+            params=exclude_none({"cursor": cursor, "limit": limit}),
+        )
+        return type_validate_python(JoinRequestListReturn, await self._request(request))
+
+    @API
+    async def approval_join_request(
+        self,
+        *,
+        group_id: str,
+        member_openid: str,
+        op: Literal["approve", "decline"],
+        join_request_id: str | None = None,
+        reject_reason: str | None = None,
+        add_to_member_blacklist: bool | None = None,
+    ) -> None:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "approval_join_request", member_openid
+            ),
+            json=exclude_none(
+                {
+                    "op": op,
+                    "join_request_id": join_request_id,
+                    "reject_reason": reject_reason,
+                    "add_to_member_blacklist": add_to_member_blacklist,
+                }
+            ),
+        )
+        return await self._request(request)
