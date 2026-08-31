@@ -180,7 +180,7 @@ class MemberMuteState(BaseModel):
     member_openid: str
     mute_expire_at: datetime
     username: str
-    union_openid: str
+    union_openid: str | None = None
 
 
 class MuteScheduleRule(BaseModel):
