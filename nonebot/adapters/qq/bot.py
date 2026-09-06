@@ -52,6 +52,7 @@ from .models import (
     APIPermissionDemandIdentify,
     AudioControl,
     AudioStatus,
+    BatchRemoveMembersReturn,
     Channel,
     ChannelPermissions,
     ChannelSubType,
@@ -66,11 +67,15 @@ from .models import (
     GetThreadsListReturn,
     GroupBotStateReturn,
     GroupInfoReturn,
+    GroupMemberBlacklistReturn,
+    GroupMemberInfo,
+    GroupMembersReturn,
     GroupRestrictChatSettingReturn,
     Guild,
     JoinRequestListReturn,
     Media,
     Member,
+    MemberBlacklistOpReturn,
     MessageActionButton,
     MessageArk,
     MessageEmbed,
@@ -2437,3 +2442,96 @@ class Bot(BaseBot):
             ),
         )
         return await self._request(request)
+
+    @API
+    async def get_group_members(
+        self,
+        *,
+        group_openid: str,
+        cursor: str | None = None,
+    ) -> GroupMembersReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "members"
+            ),
+            params=exclude_none({"cursor": cursor}),
+        )
+        return type_validate_python(GroupMembersReturn, await self._request(request))
+
+    @API
+    async def get_group_member(
+        self,
+        *,
+        group_openid: str,
+        member_openid: str,
+    ) -> GroupMemberInfo:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "members", member_openid
+            ),
+        )
+        return type_validate_python(GroupMemberInfo, await self._request(request))
+
+    @API
+    async def batch_remove_group_members(
+        self,
+        *,
+        group_openid: str,
+        member_openids: list[str],
+        add_to_member_blacklist: bool | None = None,
+    ) -> BatchRemoveMembersReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "batch_remove_members"
+            ),
+            json=exclude_none(
+                {
+                    "member_openids": member_openids,
+                    "add_to_member_blacklist": add_to_member_blacklist,
+                }
+            ),
+        )
+        return type_validate_python(
+            BatchRemoveMembersReturn, await self._request(request)
+        )
+
+    @API
+    async def get_group_member_blacklist(
+        self,
+        *,
+        group_openid: str,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> GroupMemberBlacklistReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "member_blacklist"
+            ),
+            params=exclude_none({"cursor": cursor, "limit": limit}),
+        )
+        return type_validate_python(
+            GroupMemberBlacklistReturn, await self._request(request)
+        )
+
+    @API
+    async def post_group_member_blacklist(
+        self,
+        *,
+        group_openid: str,
+        op: Literal["add", "del"],
+        member_openids: list[str],
+    ) -> MemberBlacklistOpReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "member_blacklist"
+            ),
+            json=exclude_none({"op": op, "member_openids": member_openids}),
+        )
+        return type_validate_python(
+            MemberBlacklistOpReturn, await self._request(request)
+        )

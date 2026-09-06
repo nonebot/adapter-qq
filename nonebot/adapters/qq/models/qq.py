@@ -309,15 +309,56 @@ class MessageStream(BaseModel):
     """只能用于流式消息没有发送完成时，reset 时 index 需要从 0 开始，需要填写流式 id"""
 
 
+class GroupMemberInfo(BaseModel):
+    member_openid: str
+    username: str | None = None
+    member_role: Literal["member", "owner", "admin"] | None = None
+    bot: bool
+    joined_at: datetime | None = None
+    union_openid: str | None = None
+
+
+class GroupMembersReturn(BaseModel):
+    members: list[GroupMemberInfo]
+    next_cursor: str | None = None
+
+
+class BatchRemoveMembersReturn(BaseModel):
+    remove_members_result: str | None = None
+    add_to_member_blacklist_fail_openids: list[str] = []
+
+
+class BlacklistUser(BaseModel):
+    union_openid: str | None = None
+    member_openid: str
+    username: str | None = None
+    banned_at: datetime | None = None
+    bot: bool
+
+
+class GroupMemberBlacklistReturn(BaseModel):
+    users: list[BlacklistUser]
+    next_cursor: str | None = None
+
+
+class MemberBlacklistOpReturn(BaseModel):
+    fail_openids: list[str] = []
+
+
 __all__ = [
     "Attachment",
     "AutoApproved",
+    "BatchRemoveMembersReturn",
+    "BlacklistUser",
     "FriendAuthor",
     "GlobalMuteRule",
     "GroupBotStateReturn",
     "GroupInfoReturn",
     "GroupMember",
     "GroupMemberAuthor",
+    "GroupMemberBlacklistReturn",
+    "GroupMemberInfo",
+    "GroupMembersReturn",
     "GroupMention",
     "GroupMentionEveryone",
     "GroupMentionUser",
@@ -326,6 +367,7 @@ __all__ = [
     "JoinRequest",
     "JoinRequestListReturn",
     "Media",
+    "MemberBlacklistOpReturn",
     "MemberMuteState",
     "MessageActionButton",
     "MessagePromptKeyboard",
