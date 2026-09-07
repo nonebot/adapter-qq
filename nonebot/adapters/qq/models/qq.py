@@ -3,7 +3,7 @@ from typing import Literal, TypeAlias
 from urllib.parse import urlparse
 
 from nonebot.compat import field_validator
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class FriendAuthor(BaseModel):
@@ -325,7 +325,7 @@ class GroupMembersReturn(BaseModel):
 
 class BatchRemoveMembersReturn(BaseModel):
     remove_members_result: str | None = None
-    add_to_member_blacklist_fail_openids: list[str] = []
+    add_to_member_blacklist_fail_openids: list[str] = Field(default_factory=list)
 
 
 class BlacklistUser(BaseModel):
@@ -342,7 +342,7 @@ class GroupMemberBlacklistReturn(BaseModel):
 
 
 class MemberBlacklistOpReturn(BaseModel):
-    fail_openids: list[str] = []
+    fail_openids: list[str] = Field(default_factory=list)
 
 
 __all__ = [
