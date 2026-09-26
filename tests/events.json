@@ -2,7 +2,7 @@
   "op": 0,
   "d": {
     "id": "message-id",
-    "content": " <@REPLIED_USER> zssm",
+    "content": " <qqbot-at-user id=\"REPLIED_USER\" /> zssm",
     "timestamp": "2026-08-05T12:51:27+08:00",
     "author": {
       "id": "SENDER",
