@@ -82,6 +82,12 @@ class Permission(BaseModel):
     specify_user_ids: list[str] | None = None
 
 
+class Modal(BaseModel):
+    content: str | None = None
+    confirm_text: str | None = None
+    cancel_text: str | None = None
+
+
 class Action(BaseModel):
     type: int | None = None
     permission: Permission | None = None
@@ -89,6 +95,7 @@ class Action(BaseModel):
     reply: bool | None = None
     enter: bool | None = None
     anchor: int | None = None
+    modal: Modal | None = None
     unsupport_tips: str | None = None
     click_limit: int | None = None  # deprecated
     at_bot_show_channel_list: bool | None = None  # deprecated
@@ -102,6 +109,7 @@ class RenderData(BaseModel):
 
 class Button(BaseModel):
     id: str | None = None
+    group_id: str | None = None
     render_data: RenderData | None = None
     action: Action | None = None
 
@@ -184,6 +192,7 @@ __all__ = [
     "MessageMarkdown",
     "MessageMarkdownParams",
     "MessageReference",
+    "Modal",
     "Permission",
     "RenderData",
 ]
