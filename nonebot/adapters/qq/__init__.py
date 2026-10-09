@@ -4,6 +4,7 @@ from .event import *  # noqa: F403
 from .exception import ActionFailed as ActionFailed
 from .exception import ApiNotAvailable as ApiNotAvailable
 from .exception import AuditException as AuditException
+from .exception import MessageSegmentConflict as MessageSegmentConflict
 from .exception import NetworkError as NetworkError
 from .exception import NoLogException as NoLogException
 from .exception import QQAdapterException as QQAdapterException
