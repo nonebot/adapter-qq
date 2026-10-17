@@ -1,3 +1,5 @@
+from nonebot.compat import model_dump
+
 from nonebot.adapters.qq.models import (
     Action,
     Button,
@@ -33,7 +35,7 @@ def test_keyboard_button_modal_serialization():
         )
     )
 
-    assert keyboard.model_dump(exclude_none=True) == {
+    assert model_dump(keyboard, exclude_none=True) == {
         "content": {
             "rows": [
                 {

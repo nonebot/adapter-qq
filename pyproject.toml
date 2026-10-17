@@ -36,6 +36,12 @@ dev = [
   "pytest-asyncio >=0.24.0, <2.0.0",
   "pytest-cov >=5.0.0, <8.0.0",
 ]
+pydantic-v1 = ["pydantic >=1.10.0, <2.0.0"]
+pydantic-v2 = ["pydantic >=2.0.0, <3.0.0, !=2.5.0, !=2.5.1"]
+
+[tool.uv]
+default-groups = ["dev", "pydantic-v2"]
+conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
 
 [tool.uv.build-backend]
 module-root = ""
