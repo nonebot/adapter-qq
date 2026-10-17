@@ -113,6 +113,8 @@ from .utils import API, exclude_none, log
 if TYPE_CHECKING:
     from .adapter import Adapter
 
+# 分片转存 BDH 通道异常，请重试
+FILE_BDH_ERROR_CODE = 40093001
 
 DEFAULT_FILENAME = "default"
 
@@ -2024,16 +2026,29 @@ class Bot(BaseBot):
         presigned_url: str,
         data: bytes,
         semaphore: asyncio.Semaphore | None = None,
+        max_attempts: int = 3,
     ) -> None:
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+
         async with semaphore or nullcontext():
             await self.put_upload_part(presigned_url=presigned_url, data=data)
-            await self.post_c2c_upload_part_finish(
-                openid=openid,
-                upload_id=upload_id,
-                part_index=index,
-                block_size=len(data),
-                md5=hashlib.md5(data).hexdigest(),
-            )
+            md5 = hashlib.md5(data).hexdigest()
+            for attempt in range(max_attempts):
+                try:
+                    await self.post_c2c_upload_part_finish(
+                        openid=openid,
+                        upload_id=upload_id,
+                        part_index=index,
+                        block_size=len(data),
+                        md5=md5,
+                    )
+                except ActionFailed as e:
+                    if e.code != FILE_BDH_ERROR_CODE or attempt == max_attempts - 1:
+                        raise
+                    await asyncio.sleep(5)
+                else:
+                    break
 
     @API
     async def post_c2c_upload_prepare(
@@ -2255,16 +2270,29 @@ class Bot(BaseBot):
         presigned_url: str,
         data: bytes,
         semaphore: asyncio.Semaphore | None = None,
+        max_attempts: int = 3,
     ) -> None:
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+
         async with semaphore or nullcontext():
             await self.put_upload_part(presigned_url=presigned_url, data=data)
-            await self.post_group_upload_part_finish(
-                group_openid=group_openid,
-                upload_id=upload_id,
-                part_index=index,
-                block_size=len(data),
-                md5=hashlib.md5(data).hexdigest(),
-            )
+            md5 = hashlib.md5(data).hexdigest()
+            for attempt in range(max_attempts):
+                try:
+                    await self.post_group_upload_part_finish(
+                        group_openid=group_openid,
+                        upload_id=upload_id,
+                        part_index=index,
+                        block_size=len(data),
+                        md5=md5,
+                    )
+                except ActionFailed as e:
+                    if e.code != FILE_BDH_ERROR_CODE or attempt == max_attempts - 1:
+                        raise
+                    await asyncio.sleep(5)
+                else:
+                    break
 
     @API
     async def post_group_upload_prepare(
