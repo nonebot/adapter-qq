@@ -13,12 +13,13 @@ on:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }}
+    name: Python ${{ matrix.python-version }} / ${{ matrix.pydantic }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.14"]
+        pydantic: ["pydantic-v1", "pydantic-v2"]
     steps:
       - uses: actions/checkout@v7
 
@@ -28,4 +29,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Run tests
-        run: uv run pytest
+        run: uv run --no-default-groups --group dev --group ${{ matrix.pydantic }} pytest
