@@ -22,7 +22,9 @@ def create_event(
         payload_data = json.load(file)
 
     data = payload_data["d"]
-    data["content"] = f" <@{mention_id}> zssm" if content is None else content
+    data["content"] = (
+        f' <qqbot-at-user id="{mention_id}" /> zssm' if content is None else content
+    )
     data["mentions"][0]["id"] = mention_id
     data["mentions"][0]["member_openid"] = mention_id
     data["mentions"][0]["is_you"] = mention_is_you
