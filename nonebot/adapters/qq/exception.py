@@ -97,3 +97,22 @@ class AuditException(QQAdapterException):
     async def get_audit_result(self, timeout: float | None = None):
         """获取审核结果"""
         return await audit_result.fetch(self.audit_id, timeout)
+
+
+class MessageSegmentConflict(QQAdapterException):
+    """消息中包含互斥的消息段组合，无法构造出合法的发送请求。
+
+    在真正发起网络请求前于本地校验并抛出，避免构造出会被 QQ 官方 API
+    拒绝、或字段被静默丢弃/覆盖的非法请求。
+    """
+
+    def __init__(self, msg: str):
+        super().__init__()
+        self.msg = msg
+        """冲突原因"""
+
+    def __repr__(self) -> str:
+        return f"<MessageSegmentConflict: {self.msg}>"
+
+    def __str__(self) -> str:
+        return self.__repr__()
