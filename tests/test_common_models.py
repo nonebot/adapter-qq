@@ -1,4 +1,4 @@
-from nonebot.compat import model_dump
+from nonebot.compat import model_dump, type_validate_python
 
 from nonebot.adapters.qq.models import (
     Action,
@@ -7,6 +7,8 @@ from nonebot.adapters.qq.models import (
     InlineKeyboardRow,
     MessageKeyboard,
     Modal,
+    PostC2CMessagesReturn,
+    PostGroupMessagesReturn,
 )
 
 
@@ -58,3 +60,19 @@ def test_keyboard_button_modal_serialization():
             ]
         }
     }
+
+
+def test_post_messages_return_ext_info():
+    data = {
+        "id": "ROBOT1.0_MESSAGE",
+        "timestamp": "2026-11-03T12:43:27+08:00",
+        "ext_info": {"ref_idx": "REFIDX_SENT=="},
+    }
+
+    for model in (PostGroupMessagesReturn, PostC2CMessagesReturn):
+        result = type_validate_python(model, data)
+        assert result.ext_info is not None
+        assert result.ext_info.ref_idx == "REFIDX_SENT=="
+
+        legacy = type_validate_python(model, {"id": "ROBOT1.0_MESSAGE"})
+        assert legacy.ext_info is None

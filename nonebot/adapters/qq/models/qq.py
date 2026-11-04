@@ -102,14 +102,21 @@ class GroupQQMessage(QQMessage):
     author: GroupMemberAuthor
 
 
+class MessageExtInfo(BaseModel):
+    ref_idx: str | None = None
+    """引用消息索引，对应消息事件 `message_scene.ext` 中的 `msg_idx` 与 `ref_msg_idx`"""
+
+
 class PostC2CMessagesReturn(BaseModel):
     id: str | None = None
     timestamp: datetime | None = None
+    ext_info: MessageExtInfo | None = None
 
 
 class PostGroupMessagesReturn(BaseModel):
     id: str | None = None
     timestamp: datetime | None = None
+    ext_info: MessageExtInfo | None = None
 
 
 class PostC2CFilesReturn(BaseModel):
@@ -370,6 +377,7 @@ __all__ = [
     "MemberBlacklistOpReturn",
     "MemberMuteState",
     "MessageActionButton",
+    "MessageExtInfo",
     "MessagePromptKeyboard",
     "MessageStream",
     "MuteRecurringRule",
