@@ -39,7 +39,7 @@ QQ_IS_SANDBOX=true
 
 ### QQ_BOTS
 
-配置机器人帐号 `id` `token` `secret`，intent 需要根据机器人类型以及需要的事件进行配置。
+配置机器人帐号 `id` `secret`，intent 需要根据机器人类型以及需要的事件进行配置。
 
 #### Webhook / WebSocket
 
@@ -91,7 +91,6 @@ QQ_BOTS='
 [
   {
     "id": "xxx",
-    "token": "xxx",
     "secret": "xxx",
     "intent": {
       "guild_messages": true,
@@ -110,7 +109,6 @@ QQ_BOTS='
 [
   {
     "id": "xxx",
-    "token": "xxx",
     "secret": "xxx",
     "intent": {
       "c2c_group_at_messages": true,

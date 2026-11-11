@@ -49,7 +49,6 @@ class Intents(BaseModel):
 
 class BotInfo(BaseModel):
     id: str = Field(alias="id")
-    token: str = Field(alias="token")
     secret: str = Field(alias="secret")
     shard: tuple[int, int] | None = None
     intent: Intents = Field(default_factory=Intents)
@@ -57,14 +56,19 @@ class BotInfo(BaseModel):
 
 
 class Config(BaseModel):
-    qq_is_sandbox: bool = False
-    qq_api_base: HttpUrl = Field("https://api.sgroup.qq.com/")  # type: ignore
-    qq_sandbox_api_base: HttpUrl = Field("https://sandbox.api.sgroup.qq.com")  # type: ignore
-    qq_auth_base: HttpUrl = Field("https://bots.qq.com/app/getAppAccessToken")  # type: ignore
+    qq_api_base: HttpUrl = Field("https://api.bot.qq.com/")  # type: ignore
+    qq_auth_base: HttpUrl = Field("https://api.bot.qq.com/app/getAppAccessToken")  # type: ignore
     qq_verify_webhook: bool = True
     qq_bots: list[BotInfo] = Field(default_factory=list)
 
     qq_custom_gateway_url: URL | None = None
+
+    if PYDANTIC_V2:
+        model_config: ConfigDict = ConfigDict(arbitrary_types_allowed=True)
+    else:
+
+        class Config:
+            arbitrary_types_allowed = True
 
     @field_validator("qq_custom_gateway_url", mode="before")
     @classmethod

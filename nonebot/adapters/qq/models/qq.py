@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, time, timedelta, timezone
 from typing import Literal, TypeAlias
 from urllib.parse import urlparse
 
 from nonebot.compat import field_validator
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class FriendAuthor(BaseModel):
@@ -77,8 +77,8 @@ class _ReplyAuthor(BaseModel):
 class QQReplyMessage(BaseModel):
     content: str
     attachments: list[Attachment] | None = None
-    message_type: int
-    msg_idx: str
+    message_type: int | None = None
+    msg_idx: str | None = None
     author: _ReplyAuthor | None = None
 
 
@@ -102,14 +102,21 @@ class GroupQQMessage(QQMessage):
     author: GroupMemberAuthor
 
 
+class MessageExtInfo(BaseModel):
+    ref_idx: str | None = None
+    """引用消息索引，对应消息事件 `message_scene.ext` 中的 `msg_idx` 与 `ref_msg_idx`"""
+
+
 class PostC2CMessagesReturn(BaseModel):
     id: str | None = None
     timestamp: datetime | None = None
+    ext_info: MessageExtInfo | None = None
 
 
 class PostGroupMessagesReturn(BaseModel):
     id: str | None = None
     timestamp: datetime | None = None
+    ext_info: MessageExtInfo | None = None
 
 
 class PostC2CFilesReturn(BaseModel):
@@ -157,6 +164,106 @@ class GroupMember(BaseModel):
 class PostGroupMembersReturn(BaseModel):
     members: list[GroupMember]
     next_index: int | None = None
+
+
+class GroupInfoReturn(BaseModel):
+    group_openid: str
+    group_name: str
+    group_finger_memo: str
+    group_class_text: str
+    group_tags: list[str]
+    group_member_num: int
+
+
+class GroupBotStateReturn(BaseModel):
+    member_openid: str
+    joined_at: datetime
+    allow_proactive_msg: bool
+    recv_msg_setting: Literal["all", "only_mention", "mention_and_context"]
+    member_role: Literal["member", "owner", "admin"]
+
+
+class MemberMuteState(BaseModel):
+    member_openid: str
+    mute_expire_at: datetime
+    username: str
+    union_openid: str | None = None
+
+
+class MuteScheduleRule(BaseModel):
+    task_id: str
+    start_at: datetime
+    end_at: datetime
+    enabled: bool
+
+
+class MuteRecurringRule(BaseModel):
+    task_id: str
+    weekdays: list[int]
+    start_time: time
+    end_time: time
+    enabled: bool
+
+
+class GlobalMuteRule(BaseModel):
+    mode: Literal["none", "always", "schedule"]
+    schedule_rules: list[MuteScheduleRule]
+    recurring_rules: list[MuteRecurringRule]
+
+
+class GroupRestrictChatSettingReturn(BaseModel):
+    global_rule: GlobalMuteRule
+    members: list[MemberMuteState]
+
+
+class SetMemberMuteState(BaseModel):
+    op: Literal["add", "update", "del"]
+    member_openid: str
+    mute_expire_at: str | datetime | timedelta | None = None
+
+    @field_validator("mute_expire_at", mode="before")
+    @classmethod
+    def normalize_expire(cls, v):
+        if isinstance(v, timedelta):
+            return (datetime.now(timezone.utc) + v).astimezone().isoformat()
+        if isinstance(v, datetime):
+            if v.tzinfo is None:
+                v = v.astimezone()
+            return v.isoformat()
+        return v
+
+
+class ReviewQA(BaseModel):
+    question: str
+    answer: str
+
+
+class VerifyInfo(BaseModel):
+    method: str
+    verify_message: str | None = None
+    review_qa_list: list[ReviewQA] | None = None
+
+
+class JoinRequest(BaseModel):
+    join_request_id: str
+    risk_tips: str | None = None
+    union_openid: str | None = None
+    member_openid: str
+    username: str
+    apply_at: datetime
+    apply_source: Literal["self_apply", "invited"]
+    invited_by: str | None = None
+    bot: bool = False
+    verify_info: VerifyInfo | None = None
+
+
+class JoinRequestListReturn(BaseModel):
+    list: list[JoinRequest]
+    next_cursor: str
+
+
+class AutoApproved(BaseModel):
+    strategy_id: str
 
 
 class MessageActionButton(BaseModel):
@@ -209,19 +316,72 @@ class MessageStream(BaseModel):
     """只能用于流式消息没有发送完成时，reset 时 index 需要从 0 开始，需要填写流式 id"""
 
 
+class GroupMemberInfo(BaseModel):
+    member_openid: str
+    username: str | None = None
+    member_role: Literal["member", "owner", "admin"] | None = None
+    bot: bool
+    joined_at: datetime | None = None
+    union_openid: str | None = None
+
+
+class GroupMembersReturn(BaseModel):
+    members: list[GroupMemberInfo]
+    next_cursor: str | None = None
+
+
+class BatchRemoveMembersReturn(BaseModel):
+    remove_members_result: str | None = None
+    add_to_member_blacklist_fail_openids: list[str] = Field(default_factory=list)
+
+
+class BlacklistUser(BaseModel):
+    union_openid: str | None = None
+    member_openid: str
+    username: str | None = None
+    banned_at: datetime | None = None
+    bot: bool
+
+
+class GroupMemberBlacklistReturn(BaseModel):
+    users: list[BlacklistUser]
+    next_cursor: str | None = None
+
+
+class MemberBlacklistOpReturn(BaseModel):
+    fail_openids: list[str] = Field(default_factory=list)
+
+
 __all__ = [
     "Attachment",
+    "AutoApproved",
+    "BatchRemoveMembersReturn",
+    "BlacklistUser",
     "FriendAuthor",
+    "GlobalMuteRule",
+    "GroupBotStateReturn",
+    "GroupInfoReturn",
     "GroupMember",
     "GroupMemberAuthor",
+    "GroupMemberBlacklistReturn",
+    "GroupMemberInfo",
+    "GroupMembersReturn",
     "GroupMention",
     "GroupMentionEveryone",
     "GroupMentionUser",
     "GroupQQMessage",
+    "GroupRestrictChatSettingReturn",
+    "JoinRequest",
+    "JoinRequestListReturn",
     "Media",
+    "MemberBlacklistOpReturn",
+    "MemberMuteState",
     "MessageActionButton",
+    "MessageExtInfo",
     "MessagePromptKeyboard",
     "MessageStream",
+    "MuteRecurringRule",
+    "MuteScheduleRule",
     "PostC2CFilesPrepareReturn",
     "PostC2CFilesReturn",
     "PostC2CMessagesReturn",
@@ -237,5 +397,8 @@ __all__ = [
     "PromptRow",
     "QQMessage",
     "QQReplyMessage",
+    "ReviewQA",
+    "SetMemberMuteState",
     "UserQQMessage",
+    "VerifyInfo",
 ]
