@@ -10,6 +10,7 @@ from nonebot.adapters import Event as BaseEvent
 from .message import Message
 from .models import (
     AudioAction,
+    AutoApproved,
     ButtonInteraction,
     Channel,
     ForumAuditResult,
@@ -17,6 +18,7 @@ from .models import (
     FriendAuthor,
     GroupMemberAuthor,
     Guild,
+    JoinRequest,
     Member,
     MessageAudited,
     MessageDelete,
@@ -126,6 +128,8 @@ class EventType(str, Enum):
     # GROUP_MEMBER_EVENT
     GROUP_MEMBER_ADD = "GROUP_MEMBER_ADD"
     GROUP_MEMBER_REMOVE = "GROUP_MEMBER_REMOVE"
+
+    GROUP_JOIN_REQUEST = "GROUP_JOIN_REQUEST"
 
 
 class Event(BaseEvent):
@@ -733,6 +737,22 @@ class GroupMemberRemoveEvent(GroupMemberEvent):
     __type__ = EventType.GROUP_MEMBER_REMOVE
 
 
+@register_event_class
+class GroupJoinRequestEvent(NoticeEvent, JoinRequest):
+    __type__ = EventType.GROUP_JOIN_REQUEST
+
+    group_openid: str
+    auto_approved: AutoApproved | None = None
+
+    @override
+    def get_user_id(self) -> str:
+        return self.member_openid
+
+    @override
+    def get_session_id(self) -> str:
+        return f"group_{self.group_openid}_{self.member_openid}"
+
+
 __all__ = [
     "EVENT_CLASSES",
     "AtMessageCreateEvent",
@@ -770,6 +790,7 @@ __all__ = [
     "GroupAddRobotEvent",
     "GroupAtMessageCreateEvent",
     "GroupDelRobotEvent",
+    "GroupJoinRequestEvent",
     "GroupMemberAddEvent",
     "GroupMemberEvent",
     "GroupMemberRemoveEvent",

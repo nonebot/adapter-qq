@@ -53,6 +53,7 @@ from .models import (
     APIPermissionDemandIdentify,
     AudioControl,
     AudioStatus,
+    BatchRemoveMembersReturn,
     Channel,
     ChannelPermissions,
     ChannelSubType,
@@ -65,9 +66,17 @@ from .models import (
     GetRoleMembersReturn,
     GetThreadReturn,
     GetThreadsListReturn,
+    GroupBotStateReturn,
+    GroupInfoReturn,
+    GroupMemberBlacklistReturn,
+    GroupMemberInfo,
+    GroupMembersReturn,
+    GroupRestrictChatSettingReturn,
     Guild,
+    JoinRequestListReturn,
     Media,
     Member,
+    MemberBlacklistOpReturn,
     MessageActionButton,
     MessageArk,
     MessageEmbed,
@@ -93,6 +102,7 @@ from .models import (
     RemindType,
     RichText,
     Schedule,
+    SetMemberMuteState,
     ShardUrlGetReturn,
     SpeakPermission,
     UrlGetReturn,
@@ -104,6 +114,8 @@ from .utils import API, exclude_none, log
 if TYPE_CHECKING:
     from .adapter import Adapter
 
+# 分片转存 BDH 通道异常，请重试
+FILE_BDH_ERROR_CODE = 40093001
 
 DEFAULT_FILENAME = "default"
 
@@ -2187,16 +2199,29 @@ class Bot(BaseBot):
         presigned_url: str,
         data: bytes,
         semaphore: asyncio.Semaphore | None = None,
+        max_attempts: int = 3,
     ) -> None:
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+
         async with semaphore or nullcontext():
             await self.put_upload_part(presigned_url=presigned_url, data=data)
-            await self.post_c2c_upload_part_finish(
-                openid=openid,
-                upload_id=upload_id,
-                part_index=index,
-                block_size=len(data),
-                md5=hashlib.md5(data).hexdigest(),
-            )
+            md5 = hashlib.md5(data).hexdigest()
+            for attempt in range(max_attempts):
+                try:
+                    await self.post_c2c_upload_part_finish(
+                        openid=openid,
+                        upload_id=upload_id,
+                        part_index=index,
+                        block_size=len(data),
+                        md5=md5,
+                    )
+                except ActionFailed as e:
+                    if e.code != FILE_BDH_ERROR_CODE or attempt == max_attempts - 1:
+                        raise
+                    await asyncio.sleep(5)
+                else:
+                    break
 
     @API
     async def post_c2c_upload_prepare(
@@ -2418,16 +2443,29 @@ class Bot(BaseBot):
         presigned_url: str,
         data: bytes,
         semaphore: asyncio.Semaphore | None = None,
+        max_attempts: int = 3,
     ) -> None:
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+
         async with semaphore or nullcontext():
             await self.put_upload_part(presigned_url=presigned_url, data=data)
-            await self.post_group_upload_part_finish(
-                group_openid=group_openid,
-                upload_id=upload_id,
-                part_index=index,
-                block_size=len(data),
-                md5=hashlib.md5(data).hexdigest(),
-            )
+            md5 = hashlib.md5(data).hexdigest()
+            for attempt in range(max_attempts):
+                try:
+                    await self.post_group_upload_part_finish(
+                        group_openid=group_openid,
+                        upload_id=upload_id,
+                        part_index=index,
+                        block_size=len(data),
+                        md5=md5,
+                    )
+                except ActionFailed as e:
+                    if e.code != FILE_BDH_ERROR_CODE or attempt == max_attempts - 1:
+                        raise
+                    await asyncio.sleep(5)
+                else:
+                    break
 
     @API
     async def post_group_upload_prepare(
@@ -2507,4 +2545,194 @@ class Bot(BaseBot):
         )
         return type_validate_python(
             PostGroupMembersReturn, await self._request(request)
+        )
+
+    @API
+    async def get_group_info(
+        self,
+        *,
+        group_id: str,
+    ) -> GroupInfoReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "info"),
+        )
+        return type_validate_python(GroupInfoReturn, await self._request(request))
+
+    @API
+    async def get_group_bot_state(
+        self,
+        *,
+        group_id: str,
+    ) -> GroupBotStateReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath("v2", "groups", group_id, "bot_state"),
+        )
+        return type_validate_python(GroupBotStateReturn, await self._request(request))
+
+    @API
+    async def get_group_mute_setting(
+        self,
+        *,
+        group_id: str,
+    ) -> GroupRestrictChatSettingReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "restrict_chat_setting"
+            ),
+        )
+        return type_validate_python(
+            GroupRestrictChatSettingReturn, await self._request(request)
+        )
+
+    @API
+    async def set_group_members_mute(
+        self, *, group_id: str, members: list[SetMemberMuteState]
+    ) -> None:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "restrict_chat_setting"
+            ),
+            json={"members": [m.dict(exclude_none=True) for m in members]},
+        )
+        return await self._request(request)
+
+    @API
+    async def get_group_join_request_list(
+        self,
+        *,
+        group_id: str,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> JoinRequestListReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "join_request_list"
+            ),
+            params=exclude_none({"cursor": cursor, "limit": limit}),
+        )
+        return type_validate_python(JoinRequestListReturn, await self._request(request))
+
+    @API
+    async def approval_join_request(
+        self,
+        *,
+        group_id: str,
+        member_openid: str,
+        op: Literal["approve", "decline"],
+        join_request_id: str | None = None,
+        reject_reason: str | None = None,
+        add_to_member_blacklist: bool | None = None,
+    ) -> None:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_id, "approval_join_request", member_openid
+            ),
+            json=exclude_none(
+                {
+                    "op": op,
+                    "join_request_id": join_request_id,
+                    "reject_reason": reject_reason,
+                    "add_to_member_blacklist": add_to_member_blacklist,
+                }
+            ),
+        )
+        return await self._request(request)
+
+    @API
+    async def get_group_members(
+        self,
+        *,
+        group_openid: str,
+        cursor: str | None = None,
+    ) -> GroupMembersReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "members"
+            ),
+            params=exclude_none({"cursor": cursor}),
+        )
+        return type_validate_python(GroupMembersReturn, await self._request(request))
+
+    @API
+    async def get_group_member(
+        self,
+        *,
+        group_openid: str,
+        member_openid: str,
+    ) -> GroupMemberInfo:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "members", member_openid
+            ),
+        )
+        return type_validate_python(GroupMemberInfo, await self._request(request))
+
+    @API
+    async def batch_remove_group_members(
+        self,
+        *,
+        group_openid: str,
+        member_openids: list[str],
+        add_to_member_blacklist: bool | None = None,
+    ) -> BatchRemoveMembersReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "batch_remove_members"
+            ),
+            json=exclude_none(
+                {
+                    "member_openids": member_openids,
+                    "add_to_member_blacklist": add_to_member_blacklist,
+                }
+            ),
+        )
+        return type_validate_python(
+            BatchRemoveMembersReturn, await self._request(request)
+        )
+
+    @API
+    async def get_group_member_blacklist(
+        self,
+        *,
+        group_openid: str,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> GroupMemberBlacklistReturn:
+        request = Request(
+            "GET",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "member_blacklist"
+            ),
+            params=exclude_none({"cursor": cursor, "limit": limit}),
+        )
+        return type_validate_python(
+            GroupMemberBlacklistReturn, await self._request(request)
+        )
+
+    @API
+    async def post_group_member_blacklist(
+        self,
+        *,
+        group_openid: str,
+        op: Literal["add", "del"],
+        member_openids: list[str],
+    ) -> MemberBlacklistOpReturn:
+        request = Request(
+            "POST",
+            self.adapter.get_api_base().joinpath(
+                "v2", "groups", group_openid, "member_blacklist"
+            ),
+            json=exclude_none({"op": op, "member_openids": member_openids}),
+        )
+        return type_validate_python(
+            MemberBlacklistOpReturn, await self._request(request)
         )
