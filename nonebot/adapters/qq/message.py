@@ -13,6 +13,7 @@ from nonebot.adapters import MessageSegment as BaseMessageSegment
 
 from .models import Attachment as QQAttachment
 from .models import (
+    GroupMentionEveryone,
     GroupMentionUser,
     MessageActionButton,
     MessageArk,
@@ -300,7 +301,7 @@ class MentionUser(MessageSegment):
 
     @override
     def __str__(self) -> str:
-        return f"<@{self.data['user_id']}>"
+        return f'<qqbot-at-user id="{self.data["user_id"]}" />'
 
 
 class _MentionChannelData(TypedDict):
@@ -328,7 +329,7 @@ class MentionEveryone(MessageSegment):
 
     @override
     def __str__(self) -> str:
-        return "@everyone"
+        return "<qqbot-at-everyone />"
 
 
 class _AttachmentData(TypedDict):
@@ -576,29 +577,26 @@ class Message(BaseMessage[MessageSegment]):
     @override
     def _construct(msg: str) -> Iterable[MessageSegment]:
         text_begin = 0
-        msg = msg.replace("@everyone", "")
-        msg = re.sub(r"\<qqbot-at-everyone\s/\>", "", msg)
         for embed in re.finditer(
-            r"\<(?P<type>(?:@|#|emoji:))!?(?P<id>\w+?)\>|\<(?P<type1>qqbot-at-user) id=\"(?P<id1>\w+)\"\s/\>|\<faceType=(?P<faceType>\d+),faceId=\"(?P<faceId>\d+)\",ext=\"[\w\=]+\"\>",  # noqa: E501
+            r"\<(?P<type>(?:#|emoji:))!?(?P<id>\w+?)\>|\<(?P<at_user>qqbot-at-user) id=\"(?P<at_user_id>\w+)\"\s/\>|\<(?P<everyone>qqbot-at-everyone)\s/\>|\<faceType=(?P<faceType>\d+),faceId=\"(?P<faceId>\d+)\",ext=\"[\w\=]+\"\>",  # noqa: E501
             msg,
         ):
             content = msg[text_begin : embed.pos + embed.start()]
             if content:
                 yield Text("text", {"text": unescape(content)})
             text_begin = embed.pos + embed.end()
-            if embed.group("type") == "@":
-                if embed.group("id") == "all":
-                    yield MessageSegment.mention_everyone()
-                else:
-                    yield MentionUser("mention_user", {"user_id": embed.group("id")})
-            elif embed.group("type") == "#":
+            if embed.group("type") == "#":
                 yield MentionChannel(
                     "mention_channel", {"channel_id": embed.group("id")}
                 )
             elif embed.group("type") == "emoji":
                 yield Emoji("emoji", {"id": embed.group("id")})
-            elif embed.group("type1") == "qqbot-at-user":
-                yield MentionUser("mention_user", {"user_id": embed.group("id1")})
+            elif embed.group("at_user") == "qqbot-at-user":
+                yield MentionUser(
+                    "mention_user", {"user_id": embed.group("at_user_id")}
+                )
+            elif embed.group("everyone") == "qqbot-at-everyone":
+                yield MessageSegment.mention_everyone()
             elif embed.group("faceType") and embed.group("faceId") != "0":
                 yield Emoji("emoji", {"id": embed["faceId"]})
         content = msg[text_begin:]
@@ -655,8 +653,18 @@ class Message(BaseMessage[MessageSegment]):
             mentions = {
                 m.id: m for m in message.mentions if isinstance(m, GroupMentionUser)
             }
+            mentions_everyone = any(
+                isinstance(m, GroupMentionEveryone) for m in message.mentions
+            )
         else:
             mentions = {}
+            mentions_everyone = False
+
+        # QQMessage.mentions 会用 GroupMentionEveryone 结构化地下发"@全体成员"，
+        # 不依赖 content 文本解析；content 里如果也带了对应标签，_construct 已经
+        # 生成过 mention_everyone 段，这里避免重复插入。
+        if mentions_everyone and not msg["mention_everyone"]:
+            msg.insert(0, MessageSegment.mention_everyone())
 
         ats = msg["mention_user"]
         if not ats:
